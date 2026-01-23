@@ -1,0 +1,197 @@
+// prisma/schema.prisma
+datasource db {
+  provider = "postgresql"
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+enum Status {
+  Active
+  Inactive
+}
+
+enum ShiftType {
+  Day
+  Night
+  Rotational
+}
+
+enum TodoPriority {
+  Low
+  Medium
+  High
+  Urgent
+}
+
+model Employee {
+  id                String           @id @default(uuid())
+  username          String           @unique
+  password          String
+  authorization     String
+  status            Status           @default(Inactive)
+  approvalStatus    String           @default("Pending")    // "Pending", "Approved", "Rejected"
+  approvedBy        String?          // Admin ID who approved
+  approvedAt        DateTime?
+  rejectionReason   String?
+  refreshToken      String?
+  name              String           @default("Nil")
+  designation       String           @default("Nil")
+  department        String           @default("Nil")
+  ctc               Float?
+  esic              Float?
+  pf                Float?
+  shiftType         ShiftType        @default(Day)
+  joiningDate       DateTime         @default(now())
+  employmentHistory String[]
+  resume            String?          @default("Nil")
+  assignedTodos     Todo[]           @relation("AssignedTodos")
+  createdTodos      Todo[]           @relation("CreatedTodos")
+  createdAt         DateTime         @default(now())
+  updatedAt         DateTime         @updatedAt
+}
+
+model Customer {
+  id                   String   @id @default(uuid())
+  customerName         String
+  address              String?
+  creditLimit          Float    @default(0)
+  creditApprovalStatus String   @default("Pending")
+  paymentTerms         String
+  throughVia           String?
+  gstrNo               String   @unique
+  kycProfile           String?
+  contactName          String?
+  contactPhone         String?
+  contactEmail         String?
+  contacts             Json?
+  remarks              String?
+  relationshipStatus   String?
+  gstCopy              String?
+  drugLicense         String?   // License number (string)
+  dlExpiry             DateTime? // Expiry date (DateTime)
+  isBlacklisted        Boolean  @default(false)
+  blacklistReason      String?
+  blacklistedAt        DateTime?
+  purchaseOrders       PurchaseOrder[]
+  createdAt            DateTime @default(now())
+  updatedAt            DateTime @updatedAt
+}
+
+
+
+model Todo {
+  id                String       @id @default(uuid())
+  title             String
+  description       String?
+  priority          TodoPriority @default(Medium)
+  createdByUsername String       // Who created/assigned the todo
+  createdBy         Employee     @relation("CreatedTodos", fields: [createdByUsername], references: [username])
+  assignedToUsername String?      // Who the todo is assigned to
+  assignedTo        Employee?    @relation("AssignedTodos", fields: [assignedToUsername], references: [username])
+  completed         Boolean      @default(false)
+  completedAt       DateTime?
+  dueDate           DateTime?
+  createdAt         DateTime     @default(now())
+  updatedAt         DateTime     @updatedAt
+
+  @@index([createdByUsername])
+  @@index([assignedToUsername])
+  @@index([priority])
+  @@index([dueDate])
+  @@index([completed])
+}
+
+model PurchaseOrder {
+  id                          String           @id @default(uuid())
+  gstNo                       String?
+  customerId                  String?
+  customer                    Customer?        @relation(fields: [customerId], references: [id])
+  poNo                        String           @unique @default(uuid())
+  poDate                      DateTime?
+  dispatchDate                DateTime?
+  brandName                   String?
+  partyName                   String?
+  batchNo                     String?
+  paymentTerms                String?
+  invCha                      String?
+  cylChar                     String?
+  orderThrough                String?
+  address                     String?
+  composition                 String?
+  notes                       String?
+  rmStatus                    String?
+  poQty                       Int?
+  poRate                       Float?
+  amount                       Float?
+  mrp                         Float?
+  section                      String?
+  specialRequirements          String?
+  tabletCapsuleDrySyrupBottle String?
+  roundOvalTablet              String?
+  tabletColour                 String?
+  aluAluBlisterStripBottle     String?
+  packStyle                    String?
+  productNewOld                String?
+  qaObservations               String?
+  batchQty                     Int?
+  expiry                       DateTime?
+  pvcColourBase                String?
+  foil                         String?
+  lotNo                        String?
+  foilPoDate                   DateTime?
+  foilSize                     String?
+  foilPoVendor                 String?
+  foilBillDate                 DateTime?
+  foilQuantity                 Int?
+  cartonPoDate                 DateTime?
+  cartonPoVendor               String?
+  cartonBillDate               DateTime?
+  cartonQuantity               Int?
+  packingDate                  DateTime?
+  qtyPacked                    Int?
+  noOfShippers                 Int?
+  design                       String?
+  overallStatus                String           @default("Pending")
+  invoiceNo                    String?
+  invoiceDate                  DateTime?
+  changePart                   Int?
+  cyc                          Int?
+  advance                      Float?
+  showStatus                   String           @default("Order Pending")
+  mdApproval                   String           @default("Pending")
+  accountsApproval             String           @default("Pending")
+  designerApproval             String           @default("Pending")
+  ppicApproval                 String           @default("Pending")
+  designerActions              Json?
+  accountBills                 Json?
+  salesComments                String?
+  poDisputes                   Json?
+
+  // NEW FIELDS
+  foilQuantityOrdered          Int?
+  cartonQuantityOrdered        Int?
+  dispatchStatus               String?         @default("Pending")
+  timestamp                    Json?           // JSON field for RM / Production / Dispatch statuses + timestamps
+
+  createdAt                    DateTime         @default(now())
+  updatedAt                    DateTime         @updatedAt
+
+  @@index([gstNo])
+  @@index([customerId])
+  @@index([poDate])
+  @@index([overallStatus])
+  @@index([createdAt])
+}
+
+
+model Notification {
+  id        String   @id @default(uuid())
+  userId    String
+  type      String
+  message   String
+  isRead    Boolean  @default(false)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
