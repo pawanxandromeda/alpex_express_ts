@@ -49,7 +49,8 @@ const corsOptions: CorsOptions = {
 
 // CORS MUST be first
 app.use(cors(corsOptions));
-app.options("*", cors(corsOptions));
+app.options("/*", cors(corsOptions));
+
 
 /* =========================
    SECURITY & BODY PARSING
