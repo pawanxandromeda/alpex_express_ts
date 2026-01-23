@@ -1,8 +1,10 @@
 import Redis from "ioredis";
 
-const redis = new Redis({
-  host: "127.0.0.1",
-  port: 6379,
+if (!process.env.REDIS_URL) {
+  throw new Error("REDIS_URL is not defined");
+}
+
+const redis = new Redis(process.env.REDIS_URL, {
   maxRetriesPerRequest: null,
   enableReadyCheck: true,
 });
@@ -16,4 +18,3 @@ redis.on("error", (err) => {
 });
 
 export default redis;
-  
