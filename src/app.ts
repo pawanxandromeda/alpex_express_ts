@@ -61,5 +61,11 @@ app.use("/api/designer", designerRoutes);
 app.use("/api/accounts", accountsRoutes);
 app.use("/api/ppic", ppicRoutes);
 
+app.use((err: any, req: express.Request, res: express.Response, next: express.NextFunction) => {
+  console.error(err);
+  res.status(500).json({ success: false, message: err.message || "Internal Server Error" });
+});
+
+
 
 export default app;
