@@ -6,15 +6,15 @@ async function main() {
   const passwordHash = await bcrypt.hash("admin@123", 10);
 
   const admin = await prisma.employee.upsert({
-    where: { username: "admin@alpex.com" },
+    where: { username: "admin" },
     update: {},
     create: {
-      username: "admin@alpex.com",
+      username: "admin",
       password: passwordHash,
       authorization: "admin",
       status: "Active",
-      name: "Pawan Sharma",
-      designation: "Software Engineer",
+      name: "Admin",
+      designation: "Admin",
       department: "admin",
       shiftType: "Day",
       employmentHistory: ["Initial system admin"],

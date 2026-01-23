@@ -1,7 +1,8 @@
 import dotenv from "dotenv";
 dotenv.config();
-import express from "express";
-import cors from "cors";
+import express, { Application } from "express";
+import cors, { CorsOptions } from "cors";
+
 import helmet from "helmet";
 import employeeRoutes from "./modules/employee/employee.routes";
 import authRoutes from "./modules/auth/auth.routes";
@@ -15,29 +16,41 @@ import ppicRoutes from "./modules/ppic/ppic.routes";
 
 
 
-const app = express();
+const app: Application = express();
+app.use(
+  helmet({
+    crossOriginResourcePolicy: false,
+  })
+);
 
 
 app.use(express.json({ limit: "50mb" }));
 app.use(express.urlencoded({ limit: "50mb", extended: true }));
 
-app.use(
-  cors({
-    origin: (origin, callback) => {
-      const allowedOrigins = [
-        "https://alpex-dashboard.vercel.app",
-       
-      ];
-      if (!origin || allowedOrigins.includes(origin)) {
-        callback(null, true);
-      } else {
-        callback(new Error("Not allowed by CORS"));
-      }
-    },
-    credentials: true,
-  })
-);
-app.use(helmet());
+const allowedOrigins: string[] = [
+  "https://alpex-dashboard.vercel.app",
+];
+
+
+const corsOptions: CorsOptions = {
+  origin: (origin, callback) => {
+    if (!origin || allowedOrigins.includes(origin)) {
+      callback(null, true);
+    } else {
+      callback(new Error("Not allowed by CORS"));
+    }
+  },
+  credentials: true,
+  methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+  allowedHeaders: [
+    "Content-Type",
+    "Authorization",
+    "X-Requested-With",
+  ],
+};
+
+app.use(cors(corsOptions));
+app.options(/.*/, cors(corsOptions));
 
 app.use("/api/employees", employeeRoutes);
 app.use("/api/auth", authRoutes);
