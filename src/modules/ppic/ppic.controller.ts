@@ -201,7 +201,7 @@ async bulkImport(req: Request, res: Response, next: NextFunction) {
 async getAllPOs(req: Request, res: Response, next: NextFunction) {
   try {
     const page = parseInt(req.query.page as string) || 1;
-    const limit = parseInt(req.query.limit as string) || 10;
+    const limit = parseInt(req.query.limit as string) || 50;
 
     const result = await PPICService.getAllImportedPOs(
       page,
@@ -257,27 +257,27 @@ async getAllPOs(req: Request, res: Response, next: NextFunction) {
    * Get purchase order by PO number
    * GET /api/ppic/pos/number/:poNo
    */
-  async getPOByNumber(req: Request, res: Response, next: NextFunction) {
-    try {
-      const poNo = Array.isArray(req.params.poNo) ? req.params.poNo[0] : req.params.poNo;
+  // async getPOByNumber(req: Request, res: Response, next: NextFunction) {
+  //   try {
+  //     const poNo = Array.isArray(req.params.poNo) ? req.params.poNo[0] : req.params.poNo;
 
-      if (!poNo) {
-        return sendError(
-          res,
-          ERROR_CODES.VALIDATION_ERROR,
-          "PO number is required"
-        );
-      }
+  //     if (!poNo) {
+  //       return sendError(
+  //         res,
+  //         ERROR_CODES.VALIDATION_ERROR,
+  //         "PO number is required"
+  //       );
+  //     }
 
-      const po = await PPICService.getImportedPOByNumber(poNo);
-      return sendSuccess(res, po, "Purchase order retrieved successfully");
-    } catch (err) {
-      if ((err as Error).message.includes("not found")) {
-        return sendError(res, ERROR_CODES.NOT_FOUND, (err as Error).message);
-      }
-      next(err);
-    }
-  }
+  //     const po = await PPICService.getImportedPOByNumber(poNo);
+  //     return sendSuccess(res, po, "Purchase order retrieved successfully");
+  //   } catch (err) {
+  //     if ((err as Error).message.includes("not found")) {
+  //       return sendError(res, ERROR_CODES.NOT_FOUND, (err as Error).message);
+  //     }
+  //     next(err);
+  //   }
+  // }
 
   /**
    * Search purchase orders with filters

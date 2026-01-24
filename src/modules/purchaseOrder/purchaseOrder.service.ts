@@ -23,10 +23,7 @@ const getCacheKey = (prefix: string, payload: any) => {
 /* ---------------- CREATE ---------------- */
 export const createPurchaseOrder = async (data: any) => {
   // Check if PO already exists
-  const existing = await prisma.purchaseOrder.findUnique({
-    where: { poNo: data.poNo },
-  });
-  if (existing) throw new AppError(ERROR_CODES.PO_ALREADY_EXISTS);
+ 
 
   // Find the customer by GST
   const gstNo = data.gstNumber || data.gstNo;
@@ -42,24 +39,22 @@ export const createPurchaseOrder = async (data: any) => {
       poNo: data.poNo,
       gstNo: customer.gstrNo,
       partyName: data.partyName,
-      poDate: data.poDate ? new Date(data.poDate) : undefined,
-      poQty: data.poQuantity ? Number(data.poQuantity) : undefined,
-      poRate: data.poRate ? Number(data.poRate) : undefined,
+      poDate: data.poDate,
+      poQty: data.poQuantity ,
+      poRate: data.poRate,
       amount: data.totalAmount || data.amount,
-      mrp: data.mrp ? Number(data.mrp) : undefined,
+      mrp: data.mrp ? String(data.mrp) : undefined,
       aluAluBlisterStripBottle: data.packType,
       brandName: data.brandName,
       composition: data.composition,
       packStyle: data.packStyle || undefined,
       paymentTerms: data.paymentTerms,
-      cyc: data.cyc ? Number(data.cyc) : 0,
-      advance: data.advance ? Number(data.advance) : 0,
+      cyc: data.cyc,
+      advance: data.advance,
       section: data.section,
       productNewOld: data.productType,
       batchQty:
-        data.batchQuantity !== null && data.batchQuantity !== undefined && data.batchQuantity !== ""
-          ? Number(data.batchQuantity)
-          : null,
+        data.batchQuantity ,
       showStatus: String(data.showStatus || "Order Pending"),
       specialRequirements: data.specialRequirements || undefined,
       // Initialize timestamp with creation action
@@ -115,7 +110,7 @@ export const createPurchaseOrderWithCreditCheck = async (data: any) => {
 
   // Check total credit used
   const totalCreditUsed = await getSlabLimit(customer.gstrNo);
-  const newCreditUsage = totalCreditUsed + (data.amount || 0);
+  const newCreditUsage = totalCreditUsed + (parseFloat(String(data.amount || 0)));
 
   if (newCreditUsage > customer.creditLimit) {
     throw new AppError(ERROR_CODES.CREDIT_LIMIT_EXCEEDED);
@@ -327,35 +322,35 @@ export const getAllPurchaseOrders = async (
   }
 };
 
-export const getPOByPoNo = async (poNo: string) => {
-  try {
-    const cacheKey = `po:poNo:${poNo}`;
-    const cached = await redis.get(cacheKey);
-    if (cached) return JSON.parse(cached);
+// export const getPOByPoNo = async (poNo: string) => {
+//   try {
+//     const cacheKey = `po:poNo:${poNo}`;
+//     const cached = await redis.get(cacheKey);
+//     if (cached) return JSON.parse(cached);
 
-    const po = await prisma.purchaseOrder.findUnique({
-      where: { poNo },
-      select: {
-        mdApproval: true,
-        accountsApproval: true,
-        designerApproval: true,
-        ppicApproval: true,
-        showStatus: true,
-        gstNo: true,
-        poNo: true,
-        poDate: true,
-        brandName: true,
-        partyName: true,
-      },
-    });
+//     const po = await prisma.purchaseOrder.findUnique({
+//       where: { poNo },
+//       select: {
+//         mdApproval: true,
+//         accountsApproval: true,
+//         designerApproval: true,
+//         ppicApproval: true,
+//         showStatus: true,
+//         gstNo: true,
+//         poNo: true,
+//         poDate: true,
+//         brandName: true,
+//         partyName: true,
+//       },
+//     });
 
-    if (po) await redis.setex(cacheKey, 120, JSON.stringify(po));
-    return po;
-  } catch (error) {
-    console.error("Error getting PO by PoNo:", error);
-    throw error;
-  }
-};
+//     if (po) await redis.setex(cacheKey, 120, JSON.stringify(po));
+//     return po;
+//   } catch (error) {
+//     console.error("Error getting PO by PoNo:", error);
+//     throw error;
+//   }
+// };
 
 export const getLatestPoCount = async (): Promise<number> => {
   try {
@@ -436,48 +431,48 @@ export const getPPICApprovedBatches = async () => {
   }
 };
 
-export const completePO = async (poNo: string) => {
-  try {
-    const po = await prisma.purchaseOrder.findUnique({
-      where: { poNo },
-    });
+// export const completePO = async (poNo: string) => {
+//   try {
+//     const po = await prisma.purchaseOrder.findUnique({
+//       where: { poNo },
+//     });
 
-    if (!po) {
-      throw new AppError(ERROR_CODES.PO_NOT_FOUND);
-    }
+//     if (!po) {
+//       throw new AppError(ERROR_CODES.PO_NOT_FOUND);
+//     }
 
-    // Get existing audit log
-    const auditLog = getAuditLog(po.timestamp);
+//     // Get existing audit log
+//     const auditLog = getAuditLog(po.timestamp);
 
-    // Create completion action
-    const completionAction = createAuditAction({
-      actionType: "COMPLETE",
-      performedBy: {
-        name: "System",
-        department: "System",
-      },
-      description: "Purchase Order marked as completed",
-    });
+//     // Create completion action
+//     const completionAction = createAuditAction({
+//       actionType: "COMPLETE",
+//       performedBy: {
+//         name: "System",
+//         department: "System",
+//       },
+//       description: "Purchase Order marked as completed",
+//     });
 
-    // Add action to log
-    const updatedLog = addActionToLog(auditLog, completionAction);
+//     // Add action to log
+//     const updatedLog = addActionToLog(auditLog, completionAction);
 
-    const completedPo = await prisma.purchaseOrder.update({
-      where: { poNo },
-      data: {
-        overallStatus: "Completed",
-        timestamp: JSON.stringify(updatedLog),
-      },
-    });
+//     const completedPo = await prisma.purchaseOrder.update({
+//       where: { poNo },
+//       data: {
+//         overallStatus: "Completed",
+//         timestamp: JSON.stringify(updatedLog),
+//       },
+//     });
 
-    await redis.del(`po:poNo:${poNo}`);
-    await redis.del("purchase_orders:list:*"); // Invalidate lists
-    return completedPo;
-  } catch (error) {
-    console.error("Error completing PO:", error);
-    throw error;
-  }
-};
+//     await redis.del(`po:poNo:${poNo}`);
+//     await redis.del("purchase_orders:list:*"); // Invalidate lists
+//     return completedPo;
+//   } catch (error) {
+//     console.error("Error completing PO:", error);
+//     throw error;
+//   }
+// };
 
 export const getSlabLimit = async (gstNo: string) => {
   try {
@@ -485,12 +480,17 @@ export const getSlabLimit = async (gstNo: string) => {
     const cached = await redis.get(cacheKey);
     if (cached) return JSON.parse(cached);
 
-    const result = await prisma.purchaseOrder.aggregate({
+    // Get all POs for this GST and manually sum amounts (since they're now strings)
+    const pos = await prisma.purchaseOrder.findMany({
       where: { gstNo },
-      _sum: { amount: true },
+      select: { amount: true },
     });
 
-    const total = result._sum.amount || 0;
+    const total = pos.reduce((sum, po) => {
+      const amount = po.amount ? parseFloat(String(po.amount)) : 0;
+      return sum + (isNaN(amount) ? 0 : amount);
+    }, 0);
+
     await redis.setex(cacheKey, 120, JSON.stringify(total));
     return total;
   } catch (error) {
@@ -542,11 +542,9 @@ export const getPOAnalytics = async (fromDate?: Date, toDate?: Date) => {
     const [
       totalPOs,
       statusCounts,
-      totalAmount,
-      avgAmount,
+      allPOs,  // Fetch all POs to calculate amounts manually
       posPerCustomer,
       monthlyPOs,
-      topCustomersByAmount,
       approvalStats,
     ] = await Promise.all([
       // Total POs
@@ -559,15 +557,9 @@ export const getPOAnalytics = async (fromDate?: Date, toDate?: Date) => {
         where,
       }),
 
-      // Total amount
-      prisma.purchaseOrder.aggregate({
-        _sum: { amount: true },
-        where,
-      }),
-
-      // Average amount
-      prisma.purchaseOrder.aggregate({
-        _avg: { amount: true },
+      // Fetch all POs for manual amount calculation
+      prisma.purchaseOrder.findMany({
+        select: { amount: true, gstNo: true },
         where,
       }),
 
@@ -592,15 +584,6 @@ export const getPOAnalytics = async (fromDate?: Date, toDate?: Date) => {
         ORDER BY month DESC
         LIMIT 12
       `,
-
-      // Top 10 customers by total amount
-      prisma.purchaseOrder.groupBy({
-        by: ["gstNo"],
-        _sum: { amount: true },
-        where,
-        orderBy: { _sum: { amount: "desc" } },
-        take: 10,
-      }),
 
       // Approval stats
       prisma.purchaseOrder.aggregate({
@@ -629,8 +612,14 @@ export const getPOAnalytics = async (fromDate?: Date, toDate?: Date) => {
         status: s.overallStatus,
         count: s._count.id,
       })),
-      totalAmount: totalAmount._sum.amount || 0,
-      averageAmount: avgAmount._avg.amount || 0,
+      totalAmount: allPOs.reduce((sum, po) => {
+        const amount = po.amount ? parseFloat(String(po.amount)) : 0;
+        return sum + (isNaN(amount) ? 0 : amount);
+      }, 0),
+      averageAmount: allPOs.length > 0 ? (allPOs.reduce((sum, po) => {
+        const amount = po.amount ? parseFloat(String(po.amount)) : 0;
+        return sum + (isNaN(amount) ? 0 : amount);
+      }, 0) / allPOs.length) : 0,
       posPerCustomer: posPerCustomer.map((c) => ({
         gstNo: c.gstNo,
         count: c._count.id,
@@ -639,10 +628,17 @@ export const getPOAnalytics = async (fromDate?: Date, toDate?: Date) => {
         month: m.month.toISOString(),
         count: Number(m.count),
       })),
-      topCustomersByAmount: topCustomersByAmount.map((c) => ({
-        gstNo: c.gstNo,
-        totalAmount: c._sum.amount || 0,
-      })),
+      topCustomersByAmount: posPerCustomer  // Use posPerCustomer but calculate amounts
+        .map((c) => {
+          const customerPOs = allPOs.filter(po => po.gstNo === c.gstNo);
+          const totalAmount = customerPOs.reduce((sum, po) => {
+            const amount = po.amount ? parseFloat(String(po.amount)) : 0;
+            return sum + (isNaN(amount) ? 0 : amount);
+          }, 0);
+          return { gstNo: c.gstNo, totalAmount };
+        })
+        .sort((a, b) => b.totalAmount - a.totalAmount)
+        .slice(0, 10),
       approvalStats: {
         mdApproved: approvalStats._count.mdApproval || 0,
         accountsApproved: approvalStats._count.accountsApproval || 0,

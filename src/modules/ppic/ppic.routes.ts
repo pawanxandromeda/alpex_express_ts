@@ -24,6 +24,5 @@ router.get("/export", ppicController.exportPOs);
 router.get("/pos", encryptResponse, ppicController.getAllPOs);
 router.get("/pos/search", encryptResponse, ppicController.searchPOs);
 router.get("/pos/:id", encryptResponse, ppicController.getPOById);
-router.get("/pos/number/:poNo", encryptResponse, ppicController.getPOByNumber);
 
 export default router;

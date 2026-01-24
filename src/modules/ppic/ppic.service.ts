@@ -53,13 +53,13 @@ export class PPICService {
       }
 
       if (fileType === "csv") {
-        const lines = buffer.toString().split("\n");
+        const lines = buffer.toString().split("\n").filter(line => line.trim());
         const headers = lines[0].split(",").map((h) => h.trim());
         const rows = lines.slice(1).map((line) => {
           const values = line.split(",").map((v) => v.trim());
           const row: Record<string, any> = {};
           headers.forEach((header, i) => {
-            row[header] = values[i] || null;
+            row[header] = values[i] !== undefined && values[i] !== '' ? values[i] : null;
           });
           return row;
         });
@@ -132,10 +132,12 @@ export class PPICService {
   /**
    * Batch create purchase orders with transaction support
    * NOTE: Processes all rows including warning rows (lenient import)
+   * IMPORTANT: Only saves fields present in the sheet header, leaves others null
    */
   static async createPurchaseOrders(
     rows: ImportRow[],
-    options: BatchImportOptions = {}
+    options: BatchImportOptions = {},
+    sheetHeaders: string[] = []
   ): Promise<{
     successful: ImportRow[];
     failed: ImportRow[];
@@ -147,7 +149,7 @@ export class PPICService {
 
     // Process all rows (even warning rows) - only skip error rows if explicitly requested
     const rowsToProcess = options.skipOnError
-      ? rows.filter((r) => r.status === "error")
+      ? rows.filter((r) => r.status !== "error")
       : rows;
 
     // Process in batches (without prisma transactions - use sequential processing)
@@ -159,7 +161,7 @@ export class PPICService {
         // Process sequentially instead of transaction
         const results = await Promise.all(
           batch.map((row) =>
-            this.createSinglePurchaseOrder(row, options)
+            this.createSinglePurchaseOrder(row, options, sheetHeaders)
           )
         );
 
@@ -203,140 +205,63 @@ export class PPICService {
 
   /**
    * Create a single purchase order (for use in transactions)
-   * NOTE: Lenient creation - accepts partial data without gstNo or poNo
+   * NOTE: Only saves fields present in the sheet header, leaves others null
+   * Does NOT generate poNo or batchNo - saves exact data from sheet
    */
-  private static async createSinglePurchaseOrder(
-    row: ImportRow,
-    options: BatchImportOptions
-  ): Promise<{ success: boolean; poId?: string; error?: string }> {
-    try {
-      if (row.status === "error") {
-        return {
-          success: false,
-          error: "Row has validation errors",
-        };
-      }
-
-      const data = row.data as any;
-
-      // Generate a unique poNo if not provided
-      if (!data.poNo) {
-        data.poNo = `AUTO-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
-      }
-
-      // If gstNo exists, verify customer - otherwise create without customer link
-      let customerId = null;
-      if (data.gstNo) {
-        const customer = await prisma.customer.findUnique({
-          where: { gstrNo: data.gstNo },
-        });
-        if (customer) {
-          customerId = customer.id;
-        }
-        // If customer not found, continue without link (lenient)
-      }
-
-      // Check if PO already exists
-      const existingPO = await prisma.purchaseOrder.findUnique({
-        where: { poNo: data.poNo },
-        select: {
-          id: true,
-          poNo: true,
-          timestamp: true,
-        },
-      });
-
-      if (existingPO) {
-        if (!options.updateIfExists) {
-          return {
-            success: false,
-            error: `PO ${data.poNo} already exists`,
-          };
-        }
-
-        // Update existing PO
-        const updateData = this.sanitizeData(data);
-
-        // Get existing audit log
-        const auditLog = getAuditLog(existingPO.timestamp);
-
-        // Create audit action for PPIC update
-        const ppicUpdateAction = createAuditAction({
-          actionType: "PPIC_UPDATE",
-          performedBy: {
-            name: "PPIC System",
-            department: "PPIC",
-          },
-          description: `Purchase Order updated via PPIC bulk import - Row #${row.rowIndex}`,
-        });
-
-        // Add action to audit log
-        const updatedLog = addActionToLog(auditLog, ppicUpdateAction);
-
-        const updatedPO = await prisma.purchaseOrder.update({
-          where: { poNo: data.poNo },
-          data: {
-            ...updateData,
-            timestamp: JSON.stringify(updatedLog),
-          },
-        });
-
-        return {
-          success: true,
-          poId: updatedPO.id,
-        };
-      }
-
-      // Create new PO
-      const createData: any = {
-        poNo: data.poNo,
-        ...this.sanitizeData(data),
-      };
-
-      // Only set gstNo if it exists
-      if (data.gstNo) {
-        createData.gstNo = data.gstNo;
-      }
-
-      // Link customer if found
-      if (customerId) {
-        createData.customerId = customerId;
-      }
-
-      // Create audit log for new PO creation via PPIC
-      const ppicCreateAction = createAuditAction({
-        actionType: "PPIC_CREATE",
-        performedBy: {
-          name: "PPIC System",
-          department: "PPIC",
-        },
-        description: `Purchase Order created via PPIC bulk import - PO#: ${data.poNo}, Row #${row.rowIndex}`,
-      });
-
-      const auditLog = addActionToLog(null, ppicCreateAction);
-      createData.timestamp = JSON.stringify(auditLog);
-
-      const newPO = await prisma.purchaseOrder.create({
-        data: createData,
-      });
-
-      return {
-        success: true,
-        poId: newPO.id,
-      };
-    } catch (err) {
-      return {
-        success: false,
-        error: (err as Error).message,
-      };
+private static async createSinglePurchaseOrder(
+  row: ImportRow,
+  options: BatchImportOptions,
+  sheetHeaders: string[] = []
+): Promise<{ success: boolean; poId?: string; error?: string }> {
+  try {
+    if (row.status === "error") {
+      return { success: false, error: "Row has validation errors" };
     }
+
+    const data = row.data as any;
+
+    // Link customer if gstNo exists
+    let customerId = null;
+    if (data.gstNo) {
+      const customer = await prisma.customer.findUnique({
+        where: { gstrNo: data.gstNo },
+      });
+      if (customer) customerId = customer.id;
+    }
+
+    // Sanitize data - only keep fields present in sheet headers
+    const createData: any = this.sanitizeData(data, sheetHeaders);
+
+    if (customerId) createData.customerId = customerId;
+    if (data.gstNo) createData.gstNo = data.gstNo;
+
+    // Create audit log
+    const ppicCreateAction = createAuditAction({
+      actionType: "PPIC_CREATE",
+      performedBy: { name: "PPIC System", department: "PPIC" },
+      description: `Purchase Order created via PPIC bulk import - Row #${row.rowIndex}`,
+    });
+
+    createData.timestamp = JSON.stringify(addActionToLog(null, ppicCreateAction));
+
+    // Save PO
+    const newPO = await prisma.purchaseOrder.create({ data: createData });
+
+    return { success: true, poId: newPO.id };
+  } catch (err) {
+    return { success: false, error: (err as Error).message };
   }
+}
+
+
 
   /**
    * Sanitize data for database insertion
-   * Filters out unknown fields that don't exist in PurchaseOrder schema
+   * IMPORTANT: Only keeps fields that exist in the PurchaseOrder schema
+   * Unknown sheet fields are stored in rawImportedData JSON field
+   * Preserves exact values as they appear in the sheet
    */
-  private static sanitizeData(data: Record<string, any>): Record<string, any> {
+  private static sanitizeData(data: Record<string, any>, sheetHeaders: string[] = []): Record<string, any> {
     // Valid fields in PurchaseOrder schema
     const validFields = new Set([
       "id", "gstNo", "customerId", "poNo", "poDate", "dispatchDate", "brandName",
@@ -352,29 +277,40 @@ export class PPICService {
       "showStatus", "mdApproval", "accountsApproval", "designerApproval",
       "ppicApproval", "designerActions", "accountBills", "salesComments",
       "poDisputes", "foilQuantityOrdered", "cartonQuantityOrdered",
-      "dispatchStatus", "timestamp", "createdAt", "updatedAt"
+      "dispatchStatus", "productionStatus", "timestamp", "createdAt", "updatedAt", "rawImportedData"
     ]);
 
+    // Fields to skip (S. NO., empty columns, etc.)
+    const skipFields = new Set(["S. NO.", "__EMPTY_1", "__EMPTY"]);
+
     const sanitized: Record<string, any> = {};
+    const unmappedData: Record<string, any> = {};
 
+    // Process each field in the data
     for (const [key, value] of Object.entries(data)) {
-      // Skip unknown fields
-      if (!validFields.has(key)) continue;
+      // Skip null/undefined/empty
+      if (value === null || value === undefined || value === '') continue;
 
-      // Skip null/undefined
-      if (value === null || value === undefined) continue;
+      // Skip unnecessary fields
+      if (skipFields.has(key)) continue;
 
-      // Handle special types
-      if (value instanceof Date) {
-        sanitized[key] = value;
-      } else if (typeof value === "string") {
-        const trimmed = value.trim();
-        if (trimmed) sanitized[key] = trimmed;
-      } else if (typeof value === "number") {
+      // Check if field exists in PurchaseOrder schema
+      if (validFields.has(key)) {
+        // Valid field - add to sanitized output
+        if (key === "timestamp") {
+          // timestamp is already processed, skip it
+          continue;
+        }
         sanitized[key] = value;
       } else {
-        sanitized[key] = value;
+        // Unknown field - store in unmappedData for rawImportedData
+        unmappedData[key] = value;
       }
+    }
+
+    // Store any unmapped fields in rawImportedData JSON field
+    if (Object.keys(unmappedData).length > 0) {
+      sanitized.rawImportedData = unmappedData;
     }
 
     return sanitized;
@@ -413,10 +349,11 @@ export class PPICService {
         this.validateRow(row, mapping, idx + 1)
       );
 
-      // 4. Create purchase orders
+      // 4. Create purchase orders (pass sheet headers)
       const { successful, failed, batchId } = await this.createPurchaseOrders(
         validatedRows,
-        options
+        options,
+        headers
       );
 
       // 5. Build response
@@ -488,7 +425,7 @@ export class PPICService {
    */
   static async getAllImportedPOs(
     page: number = 1,
-    limit: number = 10,
+    limit: number = 50,
     sortBy: string = "createdAt",
     sortOrder: "asc" | "desc" = "desc"
   ): Promise<{
@@ -598,24 +535,24 @@ export class PPICService {
   /**
    * Get purchase order by PO number
    */
-  static async getImportedPOByNumber(poNo: string): Promise<any> {
-    try {
-      const po = await prisma.purchaseOrder.findUnique({
-        where: { poNo },
-        include: {
-          customer: true,
-        },
-      });
+  // static async getImportedPOByNumber(poNo: string): Promise<any> {
+  //   try {
+  //     const po = await prisma.purchaseOrder.findUnique({
+  //       where: { poNo },
+  //       include: {
+  //         customer: true,
+  //       },
+  //     });
 
-      if (!po) {
-        throw new Error(`Purchase order ${poNo} not found`);
-      }
+  //     if (!po) {
+  //       throw new Error(`Purchase order ${poNo} not found`);
+  //     }
 
-      return po;
-    } catch (err) {
-      throw new Error(`Failed to fetch purchase order: ${(err as Error).message}`);
-    }
-  }
+  //     return po;
+  //   } catch (err) {
+  //     throw new Error(`Failed to fetch purchase order: ${(err as Error).message}`);
+  //   }
+  // }
 
   /**
    * Search purchase orders with filters and pagination

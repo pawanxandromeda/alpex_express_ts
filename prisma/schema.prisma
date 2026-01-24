@@ -108,7 +108,7 @@ model PurchaseOrder {
   gstNo                       String?
   customerId                  String?
   customer                    Customer?        @relation(fields: [customerId], references: [id])
-  poNo                        String           @unique @default(uuid())
+  poNo                        String?          @default(uuid())
   poDate                      DateTime?
   dispatchDate                DateTime?
   brandName                   String?
@@ -122,10 +122,10 @@ model PurchaseOrder {
   composition                 String?
   notes                       String?
   rmStatus                    String?
-  poQty                       Int?
-  poRate                       Float?
-  amount                       Float?
-  mrp                         Float?
+  poQty                       String?
+  poRate                       String?
+  amount                       String?
+  mrp                         String?
   section                      String?
   specialRequirements          String?
   tabletCapsuleDrySyrupBottle String?
@@ -135,7 +135,7 @@ model PurchaseOrder {
   packStyle                    String?
   productNewOld                String?
   qaObservations               String?
-  batchQty                     Int?
+  batchQty                     String?
   expiry                       DateTime?
   pvcColourBase                String?
   foil                         String?
@@ -144,21 +144,22 @@ model PurchaseOrder {
   foilSize                     String?
   foilPoVendor                 String?
   foilBillDate                 DateTime?
-  foilQuantity                 Int?
+  foilQuantity                 String?
   cartonPoDate                 DateTime?
   cartonPoVendor               String?
   cartonBillDate               DateTime?
-  cartonQuantity               Int?
+  cartonQuantity               String?
   packingDate                  DateTime?
-  qtyPacked                    Int?
-  noOfShippers                 Int?
+  qtyPacked                    String?
+  noOfShippers                 String?
   design                       String?
+  productionStatus             String?         // Status during production/manufacturing
   overallStatus                String           @default("Pending")
   invoiceNo                    String?
   invoiceDate                  DateTime?
-  changePart                   Int?
-  cyc                          Int?
-  advance                      Float?
+  changePart                   String?
+  cyc                          String?
+  advance                      String?
   showStatus                   String           @default("Order Pending")
   mdApproval                   String           @default("Pending")
   accountsApproval             String           @default("Pending")
@@ -168,10 +169,11 @@ model PurchaseOrder {
   accountBills                 Json?
   salesComments                String?
   poDisputes                   Json?
+  rawImportedData              Json?           // JSON field for unmapped sheet columns
 
   // NEW FIELDS
-  foilQuantityOrdered          Int?
-  cartonQuantityOrdered        Int?
+  foilQuantityOrdered          String?
+  cartonQuantityOrdered        String?
   dispatchStatus               String?         @default("Pending")
   timestamp                    Json?           // JSON field for RM / Production / Dispatch statuses + timestamps
 

@@ -144,17 +144,17 @@ export const getAllPOs = async (req: Request, res: Response) => {
 /**
  * GET PO by PO Number ✅
  */
-export const getPOByPoNo = async (req: Request, res: Response) => {
-  try {
-    const po = await service.getPOByPoNo(req.params.poNo as string);
-    if (!po) {
-      return (res as any).encryptAndSend({ message: "PO not found" });
-    }
-    (res as any).encryptAndSend(po);
-  } catch (error: any) {
-    (res as any).encryptAndSend({ message: error.message });
-  }
-};
+// export const getPOByPoNo = async (req: Request, res: Response) => {
+//   try {
+//     const po = await service.getPOByPoNo(req.params.poNo as string);
+//     if (!po) {
+//       return (res as any).encryptAndSend({ message: "PO not found" });
+//     }
+//     (res as any).encryptAndSend(po);
+//   } catch (error: any) {
+//     (res as any).encryptAndSend({ message: error.message });
+//   }
+// };
 
 /**
  * GET latest PO count ✅
@@ -231,14 +231,14 @@ export const getPPICApprovedBatches = async (_req: Request, res: Response) => {
 /**
  * COMPLETE PO ❌
  */
-export const completePO = async (req: Request, res: Response) => {
-  try {
-    const po = await service.completePO(req.params.poNo as string);
-    return sendSuccess(res, po, "Purchase order completed successfully", 200);
-  } catch (error: any) {
-    return handleError(res, error);
-  }
-};
+// export const completePO = async (req: Request, res: Response) => {
+//   try {
+//     const po = await service.completePO(req.params.poNo as string);
+//     return sendSuccess(res, po, "Purchase order completed successfully", 200);
+//   } catch (error: any) {
+//     return handleError(res, error);
+//   }
+// };
 
 /**
  * GET batch numbers ✅

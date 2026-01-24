@@ -4,6 +4,11 @@ import prisma from "../../config/postgres";
 export const createEmployee = async (data: any, creator: any) => {
   const isAdminCreator = creator?.department === "admin";
 
+  // Hash password if provided
+  if (data.password) {
+    data.password = await bcrypt.hash(data.password, 10);
+  }
+
   return prisma.employee.create({
     data: {
       ...data,

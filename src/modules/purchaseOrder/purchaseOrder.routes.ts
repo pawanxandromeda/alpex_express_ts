@@ -18,7 +18,7 @@ router.get("/ppic-approved-batches", encryptResponse, controller.getPPICApproved
 router.get("/batch-numbers", encryptResponse, controller.getBatchNumbers);
 router.get("/slab/:gstNo", encryptResponse, controller.getSlabLimit);
 router.get("/gst/:gstNo", encryptResponse, controller.getPOByGST);
-router.get("/po/:poNo", encryptResponse, controller.getPOByPoNo);
+// router.get("/po/:poNo", encryptResponse, controller.getPOByPoNo);
 router.get("/", encryptResponse, controller.getAllPOs);
 
 

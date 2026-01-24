@@ -309,23 +309,21 @@ export class SchemaMapper {
     packingDate: { type: "date", validators: [] },
     invoiceDate: { type: "date", validators: [] },
 
-    // Numbers (Integers)
-    poQty: { type: "int", validators: ["positive"] },
-    batchQty: { type: "int", validators: ["positive"] },
-    foilQuantity: { type: "int", validators: ["positive"] },
-    cartonQuantity: { type: "int", validators: ["positive"] },
-    qtyPacked: { type: "int", validators: ["positive"] },
-    noOfShippers: { type: "int", validators: ["positive"] },
-    changePart: { type: "int", validators: [] },
-    cyc: { type: "int", validators: [] },
-    foilQuantityOrdered: { type: "int", validators: ["positive"] },
-    cartonQuantityOrdered: { type: "int", validators: ["positive"] },
-
-    // Numbers (Floats)
-    poRate: { type: "float", validators: ["positive"] },
-    amount: { type: "float", validators: ["positive"] },
-    mrp: { type: "float", validators: ["positive"] },
-    advance: { type: "float", validators: [] },
+    // Numbers (kept as strings to preserve exact data from sheet)
+    poQty: { type: "string", validators: [] },
+    batchQty: { type: "string", validators: [] },
+    foilQuantity: { type: "string", validators: [] },
+    cartonQuantity: { type: "string", validators: [] },
+    qtyPacked: { type: "string", validators: [] },
+    noOfShippers: { type: "string", validators: [] },
+    changePart: { type: "string", validators: [] },
+    cyc: { type: "string", validators: [] },
+    foilQuantityOrdered: { type: "string", validators: [] },
+    cartonQuantityOrdered: { type: "string", validators: [] },
+    poRate: { type: "string", validators: [] },
+    amount: { type: "string", validators: [] },
+    mrp: { type: "string", validators: [] },
+    advance: { type: "string", validators: [] },
 
     // Strings
     brandName: { type: "string", validators: [], maxLength: 100 },
@@ -377,6 +375,10 @@ export class SchemaMapper {
       if (!sheetColumn || !(sheetColumn in rawData)) continue;
 
       const rawValue = rawData[sheetColumn];
+      
+      // Skip null/undefined/empty values
+      if (rawValue === null || rawValue === undefined || rawValue === '') continue;
+
       const schema = this.PO_FIELD_SCHEMA[poField];
 
       // Allow unknown fields - just store the raw value
@@ -387,43 +389,46 @@ export class SchemaMapper {
       }
 
       try {
-        let parsedValue: any = null;
+        let parsedValue: any = rawValue;
 
-        // Parse based on type
-        switch (schema.type) {
-          case "date":
-            parsedValue = DataNormalizer.parseDate(rawValue);
-            break;
-          case "int":
-            parsedValue = DataNormalizer.parseNumber(rawValue, "int");
-            break;
-          case "float":
-            parsedValue = DataNormalizer.parseNumber(rawValue, "float");
-            break;
-          case "string":
-            parsedValue = DataNormalizer.parseString(rawValue);
-            break;
-          case "boolean":
-            parsedValue = DataNormalizer.parseBoolean(rawValue);
-            break;
+        // For string fields, keep the raw value without parsing
+        // This preserves data exactly as it is, regardless of content
+        if (schema.type === "string") {
+          parsedValue = String(rawValue).trim();
+        } else {
+          // For other types, still parse but store raw on failure
+          switch (schema.type) {
+            case "date":
+              parsedValue = DataNormalizer.parseDate(rawValue);
+              break;
+            case "int":
+              parsedValue = DataNormalizer.parseNumber(rawValue, "int");
+              break;
+            case "float":
+              parsedValue = DataNormalizer.parseNumber(rawValue, "float");
+              break;
+            case "boolean":
+              parsedValue = DataNormalizer.parseBoolean(rawValue);
+              break;
+          }
         }
 
-        // NOTE: Validation is now lenient - we accept partial/invalid data
-        // Skip strict validation for required fields, positive numbers, GST format, etc.
+        // If parsing failed for non-string types, store as string instead
+        if (parsedValue === null && schema.type !== "string") {
+          parsedValue = String(rawValue);
+        }
 
-        if (schema.maxLength && parsedValue && typeof parsedValue === "string" && parsedValue.length > schema.maxLength) {
+        // Max length check for strings
+        if (schema.maxLength && typeof parsedValue === "string" && parsedValue.length > schema.maxLength) {
           parsedValue = parsedValue.substring(0, schema.maxLength);
         }
 
-        if (parsedValue !== null) {
+        if (parsedValue !== null && parsedValue !== undefined && parsedValue !== '') {
           data[poField] = parsedValue;
-        } else {
-          // Store null/empty values too
-          data[poField] = rawValue;
         }
       } catch (err) {
-        // Store raw value on parse error instead of rejecting
-        data[poField] = rawValue;
+        // Store raw value as string on parse error
+        data[poField] = String(rawValue);
       }
     }
 
@@ -528,52 +533,30 @@ export class MappingBuilder {
 
   /**
    * Auto-detect mappings from sheet headers
-   * Improved algorithm: iterate through sheet columns first for better accuracy
+   * Maps sheet headers to PurchaseOrder field names using fuzzy matching
    */
   static buildMapping(sheetHeaders: string[]): Record<string, string> {
     const mapping: Record<string, string> = {};
-    const matchedFields = new Set<string>();
-    const matchedHeaders = new Set<string>();
 
-    // First pass: Match required fields with high confidence (0.8+)
-    const requiredFields = ["poNo", "gstNo"];
-    for (const poField of requiredFields) {
-      const aliases = this.FIELD_ALIASES[poField] || [];
-      for (const sheetHeader of sheetHeaders) {
-        if (matchedHeaders.has(sheetHeader)) continue;
-
+    for (const sheetHeader of sheetHeaders) {
+      // Try to find matching PO field using aliases
+      for (const [poField, aliases] of Object.entries(this.FIELD_ALIASES)) {
+        const headerLower = sheetHeader.toLowerCase().trim();
+        
+        // Check if header matches any alias for this field
         for (const alias of aliases) {
-          const match = FuzzyMatcher.findBestMatch(alias, [sheetHeader]);
-          if (match && match.similarity > 0.8) {
-            mapping[poField] = sheetHeader;
-            matchedFields.add(poField);
-            matchedHeaders.add(sheetHeader);
+          if (headerLower === alias.toLowerCase()) {
+            mapping[poField] = sheetHeader; // Map PO field to sheet header
             break;
           }
         }
-        if (matchedFields.has(poField)) break;
+        
+        // If found, stop checking other fields
+        if (mapping[poField]) break;
       }
-    }
 
-    // Second pass: Match optional fields with medium confidence (0.7+)
-    for (const [poField, aliases] of Object.entries(this.FIELD_ALIASES)) {
-      if (matchedFields.has(poField) || requiredFields.includes(poField))
-        continue;
-
-      for (const sheetHeader of sheetHeaders) {
-        if (matchedHeaders.has(sheetHeader)) continue;
-
-        for (const alias of aliases) {
-          const match = FuzzyMatcher.findBestMatch(alias, [sheetHeader]);
-          if (match && match.similarity > 0.7) {
-            mapping[poField] = sheetHeader;
-            matchedFields.add(poField);
-            matchedHeaders.add(sheetHeader);
-            break;
-          }
-        }
-        if (matchedFields.has(poField)) break;
-      }
+      // If no match found, skip this header
+      // Unknown headers will be captured in rawImportedData
     }
 
     return mapping;

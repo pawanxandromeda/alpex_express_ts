@@ -45,8 +45,9 @@ export const getBills = async (page = 1, limit = 10) => {
   const start = (page - 1) * limit;
 
   const data = pos.slice(start, start + limit).map((po, idx) => {
-    const billAmt = po.amount ?? 0;
-    const receivedAmount = po.advance ?? 0;
+    // Convert string amounts to numbers for calculations
+    const billAmt = po.amount ? parseFloat(String(po.amount)) : 0;
+    const receivedAmount = po.advance ? parseFloat(String(po.advance)) : 0;
     const balanceAmount = billAmt - receivedAmount;
 
     return {
@@ -284,52 +285,52 @@ export const raisePoDispute = async (
 };
 
 
-export const addSalesComment = async (poNo: string, comment: string) => {
+// export const addSalesComment = async (poNo: string, comment: string) => {
 
-  const po = await prisma.purchaseOrder.findUnique({
-    where: { poNo },
-    select: {
-      id: true,
-      salesComments: true,
-      timestamp: true,
-    },
-  });
-  if (!po) throw new Error("PurchaseOrder not found");
+//   const po = await prisma.purchaseOrder.findUnique({
+//     where: { poNo },
+//     select: {
+//       id: true,
+//       salesComments: true,
+//       timestamp: true,
+//     },
+//   });
+//   if (!po) throw new Error("PurchaseOrder not found");
 
-  // Get existing audit log
-  const auditLog = getAuditLog(po.timestamp);
+//   // Get existing audit log
+//   const auditLog = getAuditLog(po.timestamp);
 
-  // Create audit action for sales comment
-  const commentAction = createAuditAction({
-    actionType: "SALES_COMMENT_ADDED",
-    performedBy: {
-      name: "Sales",
-      department: "Sales",
-    },
-    description: "Sales comment added to Purchase Order",
-    remarks: comment,
-  });
+//   // Create audit action for sales comment
+//   const commentAction = createAuditAction({
+//     actionType: "SALES_COMMENT_ADDED",
+//     performedBy: {
+//       name: "Sales",
+//       department: "Sales",
+//     },
+//     description: "Sales comment added to Purchase Order",
+//     remarks: comment,
+//   });
 
-  // Add action to audit log
-  const updatedLog = addActionToLog(auditLog, commentAction);
+//   // Add action to audit log
+//   const updatedLog = addActionToLog(auditLog, commentAction);
 
-  // Update salesComments
-  const updated = await prisma.purchaseOrder.update({
-    where: { poNo },
-    data: {
-      salesComments: comment,
-      timestamp: JSON.stringify(updatedLog),
-    },
-  });
+//   // Update salesComments
+//   const updated = await prisma.purchaseOrder.update({
+//     where: { poNo },
+//     data: {
+//       salesComments: comment,
+//       timestamp: JSON.stringify(updatedLog),
+//     },
+//   });
 
-  await Promise.all([
-    redis.del(`po:poNo:${poNo}`),
-    redis.del(`purchase_orders:single:${po.id}`),
-    redis.del("purchase_orders:list:*"),
-  ]);
+//   await Promise.all([
+//     redis.del(`po:poNo:${poNo}`),
+//     redis.del(`purchase_orders:single:${po.id}`),
+//     redis.del("purchase_orders:list:*"),
+//   ]);
 
-  return updated;
-};
+//   return updated;
+// };
 
 export const getBillsByPo = async (poId: string, page = 1, limit = 100) => {
   const cacheKey = getCacheKey("bills:by_po", { poId, page, limit });
@@ -344,7 +345,7 @@ export const getBillsByPo = async (poId: string, page = 1, limit = 100) => {
   const rows = bills.map((b: any, idx: number) => {
     const billDate = b.billDate || b.createdAt || null;
     const billNo = b.billNo || b.id;
-    const billAmt = typeof b.billAmt === "number" ? b.billAmt : b.amount ?? po.amount ?? 0;
+    const billAmt = typeof b.billAmt === "number" ? b.billAmt : parseFloat(String(b.amount ?? po.amount ?? 0));
     const receivedAmount = typeof b.receivedAmount === "number" ? b.receivedAmount : 0;
     const balanceAmount = typeof b.balanceAmount === "number" ? b.balanceAmount : billAmt - receivedAmount;
 
