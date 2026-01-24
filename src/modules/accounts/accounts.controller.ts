@@ -85,24 +85,24 @@ export const raisePoDispute = async (req: Request, res: Response) => {
   }
 };
 
-export const addSalesComment = async (req: Request, res: Response) => {
-  try {
-    const { poId } = req.params;
-    const { salesComments } = req.body;
+// export const addSalesComment = async (req: Request, res: Response) => {
+//   try {
+//     const { poId } = req.params;
+//     const { salesComments } = req.body;
 
-    const updated = await service.addSalesComment(
-      poId as string,
-      salesComments
-    );
+//     const updated = await service.addSalesComment(
+//       poId as string,
+//       salesComments
+//     );
 
-    return res.json({
-      success: true,
-      data: updated,
-    });
-  } catch (error: any) {
-    return res.status(400).json({
-      success: false,
-      message: error.message,
-    });
-  }
-};
+//     return res.json({
+//       success: true,
+//       data: updated,
+//     });
+//   } catch (error: any) {
+//     return res.status(400).json({
+//       success: false,
+//       message: error.message,
+//     });
+//   }
+// };
