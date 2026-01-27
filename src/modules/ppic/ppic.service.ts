@@ -262,8 +262,58 @@ private static async createSinglePurchaseOrder(
    * Preserves exact values as they appear in the sheet
    */
   private static sanitizeData(data: Record<string, any>, sheetHeaders: string[] = []): Record<string, any> {
-    // Directly return the input data as-is without filtering or sanitization
-    return data;
+    // Valid fields in PurchaseOrder schema
+    const validFields = new Set([
+      "id", "gstNo", "customerId", "poNo", "poDate", "dispatchDate", "brandName",
+      "partyName", "batchNo", "paymentTerms", "invCha", "cylChar", "orderThrough",
+      "address", "composition", "notes", "rmStatus", "poQty", "poRate", "amount",
+      "mrp", "section", "specialRequirements", "tabletCapsuleDrySyrupBottle",
+      "roundOvalTablet", "tabletColour", "aluAluBlisterStripBottle", "packStyle",
+      "productNewOld", "qaObservations", "batchQty", "expiry", "pvcColourBase",
+      "foil", "lotNo", "foilPoDate", "foilSize", "foilPoVendor", "foilBillDate",
+      "foilQuantity", "cartonPoDate", "cartonPoVendor", "cartonBillDate",
+      "cartonQuantity", "packingDate", "qtyPacked", "noOfShippers", "design",
+      "overallStatus", "invoiceNo", "invoiceDate", "changePart", "cyc", "advance",
+      "showStatus", "mdApproval", "accountsApproval", "designerApproval",
+      "ppicApproval", "designerActions", "accountBills", "salesComments",
+      "poDisputes", "foilQuantityOrdered", "cartonQuantityOrdered",
+      "dispatchStatus", "productionStatus", "timestamp", "createdAt", "updatedAt", "rawImportedData"
+    ]);
+
+    // Fields to skip (S. NO., empty columns, etc.)
+    const skipFields = new Set(["S. NO.", "__EMPTY_1", "__EMPTY"]);
+
+    const sanitized: Record<string, any> = {};
+    const unmappedData: Record<string, any> = {};
+
+    // Process each field in the data
+    for (const [key, value] of Object.entries(data)) {
+      // Skip null/undefined/empty
+      if (value === null || value === undefined || value === '') continue;
+
+      // Skip unnecessary fields
+      if (skipFields.has(key)) continue;
+
+      // Check if field exists in PurchaseOrder schema
+      if (validFields.has(key)) {
+        // Valid field - add to sanitized output
+        if (key === "timestamp") {
+          // timestamp is already processed, skip it
+          continue;
+        }
+        sanitized[key] = value;
+      } else {
+        // Unknown field - store in unmappedData for rawImportedData
+        unmappedData[key] = value;
+      }
+    }
+
+    // Store any unmapped fields in rawImportedData JSON field
+    if (Object.keys(unmappedData).length > 0) {
+      sanitized.rawImportedData = unmappedData;
+    }
+
+    return sanitized;
   }
 
   /**
