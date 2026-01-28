@@ -250,3 +250,13 @@ model Notification {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 }
+model AuditLog {
+  id          String   @id @default(uuid())
+  action      String
+  performedBy String
+  targetId    String
+  details     Json?
+  timestamp   DateTime @default(now())
+
+  @@map("audit_logs")
+}
