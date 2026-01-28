@@ -1,4 +1,5 @@
-import prisma from '../../config/postgres';
+import prisma from "../../config/postgres";
+import { Prisma } from "@prisma/client";
 
 interface LogActionData {
   action: string;
@@ -13,7 +14,7 @@ export async function logAction(data: LogActionData) {
       action: data.action,
       performedBy: data.performedBy,
       targetId: data.targetId,
-      details: data.details ? JSON.stringify(data.details) : null,
+      details: data.details ?? Prisma.JsonNull,
       timestamp: new Date(),
     },
   });
