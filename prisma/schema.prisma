@@ -25,32 +25,54 @@ enum TodoPriority {
   Urgent
 }
 
-model Employee {
-  id                String           @id @default(uuid())
-  username          String           @unique
-  password          String
-  authorization     String
-  status            Status           @default(Inactive)
-  approvalStatus    String           @default("Pending")    // "Pending", "Approved", "Rejected"
-  approvedBy        String?          // Admin ID who approved
-  approvedAt        DateTime?
-  rejectionReason   String?
-  refreshToken      String?
-  name              String           @default("Nil")
-  designation       String           @default("Nil")
-  department        String           @default("Nil")
-  ctc               Float?
-  esic              Float?
-  pf                Float?
-  shiftType         ShiftType        @default(Day)
-  joiningDate       DateTime         @default(now())
-  employmentHistory String[]
-  resume            String?          @default("Nil")
-  assignedTodos     Todo[]           @relation("AssignedTodos")
-  createdTodos      Todo[]           @relation("CreatedTodos")
-  createdAt         DateTime         @default(now())
-  updatedAt         DateTime         @updatedAt
+enum TodoStatus {
+  Open
+  InProgress
+  OnHold
+  Completed
+  Cancelled
 }
+
+enum EmployeeStatus {
+  Pending
+  Active
+  Inactive
+}
+
+enum CredentialApprovalStatus {
+  Pending
+  Approved
+}
+
+model Employee {
+  id                     String                   @id @default(uuid())
+  name                   String
+  email                  String                   @unique
+  phone                  String                   @unique
+  role                   String
+  department             String
+  status                 EmployeeStatus           @default(Pending)
+  approvedForCredentials CredentialApprovalStatus @default(Pending)
+
+  dateOfJoining          DateTime?
+  ctc                    Float?
+  
+  createdByRole          String
+  username               String?                  @unique
+  password               String?
+  approvedBy             String?
+  approvedAt             DateTime?
+  rejectionReason        String?
+  refreshToken           String?
+
+  createdTodos           Todo[]                   @relation("CreatedTodos")
+  assignedTodos          Todo[]                   @relation("AssignedTodos")
+  mentionedInTodos       TodoMention[]            @relation("MentionedEmployee")
+
+  createdAt              DateTime                 @default(now())
+  updatedAt              DateTime                 @updatedAt
+}
+
 
 model Customer {
   id                   String   @id @default(uuid())
@@ -86,21 +108,52 @@ model Todo {
   title             String
   description       String?
   priority          TodoPriority @default(Medium)
-  createdByUsername String       // Who created/assigned the todo
-  createdBy         Employee     @relation("CreatedTodos", fields: [createdByUsername], references: [username])
-  assignedToUsername String?      // Who the todo is assigned to
-  assignedTo        Employee?    @relation("AssignedTodos", fields: [assignedToUsername], references: [username])
+  status            TodoStatus   @default(Open)
+  createdById       String
+  createdBy         Employee     @relation("CreatedTodos", fields: [createdById], references: [id], onDelete: Cascade)
+  assignedToId      String?
+  assignedTo        Employee?    @relation("AssignedTodos", fields: [assignedToId], references: [id], onDelete: SetNull)
+  mentionedEmployees TodoMention[] @relation("TodoMentions")
+  updates           TodoUpdate[] @relation("TodoUpdates")
   completed         Boolean      @default(false)
   completedAt       DateTime?
   dueDate           DateTime?
   createdAt         DateTime     @default(now())
   updatedAt         DateTime     @updatedAt
 
-  @@index([createdByUsername])
-  @@index([assignedToUsername])
+  @@index([createdById])
+  @@index([assignedToId])
   @@index([priority])
   @@index([dueDate])
   @@index([completed])
+  @@index([status])
+}
+
+model TodoMention {
+  id          String   @id @default(uuid())
+  todoId      String
+  todo        Todo     @relation("TodoMentions", fields: [todoId], references: [id], onDelete: Cascade)
+  employeeId  String
+  employee    Employee @relation("MentionedEmployee", fields: [employeeId], references: [id], onDelete: Cascade)
+  mentionedAt DateTime @default(now())
+
+  @@unique([todoId, employeeId])
+  @@index([employeeId])
+  @@index([todoId])
+}
+
+model TodoUpdate {
+  id          String   @id @default(uuid())
+  todoId      String
+  todo        Todo     @relation("TodoUpdates", fields: [todoId], references: [id], onDelete: Cascade)
+  description String
+  updateType  String   // "comment", "status_change", "assignment", "mention_added", "mention_removed"
+  oldValue    String?
+  newValue    String?
+  createdAt   DateTime @default(now())
+
+  @@index([todoId])
+  @@index([createdAt])
 }
 
 model PurchaseOrder {

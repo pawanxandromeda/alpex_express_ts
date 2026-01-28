@@ -7,17 +7,19 @@ import {
   toSafeString,
   normalizeNumber,
   normalizeDate,
-  normalizeBoolean,
 } from "../../common/utils/purchaseOrder.import.utils";
 import { sendSuccess, sendError, handleError } from "../../common/utils/responseFormatter";
 import { ERROR_CODES } from "../../common/utils/errorMessages";
+import { AuthRequest } from "../../common/middleware/auth.middleware";
 
-
-export const createPO = async (req: Request, res: Response) => {
+export const createPO = async (req: AuthRequest, res: Response) => {
   try {
+    if (!req.user) {
+      return sendError(res, ERROR_CODES.UNAUTHORIZED);
+    }
+
     const body = req.body;
 
-    // Resolve customer via GST
     const customer = await prisma.customer.findUnique({
       where: { gstrNo: body.gstNumber },
     });
@@ -26,32 +28,58 @@ export const createPO = async (req: Request, res: Response) => {
       return sendError(res, ERROR_CODES.CUSTOMER_NOT_FOUND);
     }
 
-    // Normalize payload
-    const normalizedData = {
-      ...body,
+    const poData = {
+      gstNo: body.gstNumber,
       customerId: customer.id,
-      amount: Number(body.totalAmount),
-      batchQty: body.batchQuantity
-        ? Number(body.batchQuantity)
-        : null,
-      poDate: body.poDate ? new Date(body.poDate) : undefined,
+
+      poNo: body.poNo || `PO-${Date.now()}`,
+      poDate: body.poDate ? new Date(body.poDate) : new Date(),
+
+      brandName: body.brandName,
+      partyName: body.partyName || customer.customerName,
+      composition: body.composition,
+
+      poQty: body.poQuantity ? String(body.poQuantity) : null,
+      poRate: body.poRate ? String(body.poRate) : null,
+      amount: body.totalAmount ? String(body.totalAmount) : null,
+      mrp: body.mrp ? String(body.mrp) : null,
+      batchQty: body.batchQuantity ? String(body.batchQuantity) : null,
+
+      paymentTerms: customer.paymentTerms,
+      cyc: body.cyc ? String(body.cyc) : null,
+      advance: body.advance ? String(body.advance) : null,
+
+      aluAluBlisterStripBottle: body.packType,
+      packStyle: body.packStyle,
+      section: body.section,
+      productNewOld: body.productType,
+
+      showStatus: "Order Pending",
+      rmStatus: "Pending",
+      overallStatus: "Open",
+      productionStatus: "Pending",
+      dispatchStatus: "Pending",
+
+      specialRequirements: body.specialRequirements,
+      salesComments: body.salesComments,
+
+      /** 🔥 AUTO FROM AUTH 🔥 */
+      createdBy: req.user.username|| req.user.id,
+      createdByDept: req.user.department || "Unknown",
+      orderThrough: req.user.username,
     };
 
-    // Decide internally (CASH vs CREDIT)
     const po =
       customer.paymentTerms === "Cash"
-        ? await service.createPurchaseOrder(normalizedData)
-        : await service.createPurchaseOrderWithCreditCheck(normalizedData);
+        ? await service.createPurchaseOrder(poData)
+        : await service.createPurchaseOrderWithCreditCheck(poData);
 
-    return sendSuccess(res, po, "Purchase order created successfully", 201);
-  } catch (error: any) {
+    return sendSuccess(res, po, "Purchase Order created successfully", 201);
+  } catch (error) {
     return handleError(res, error);
   }
 };
 
-/**
- * CREATE Purchase Order with Credit Limit Check
- */
 export const createPurchaseOrder = async (req: Request, res: Response) => {
   try {
     const poData = req.body;
@@ -68,9 +96,6 @@ export const createPurchaseOrder = async (req: Request, res: Response) => {
   }
 };
 
-/**
- * GET PO by ID ✅
- */
 export const getPOById = async (req: Request, res: Response) => {
   try {
     const po = await service.getPurchaseOrderById(req.params.id as string);
@@ -80,9 +105,6 @@ export const getPOById = async (req: Request, res: Response) => {
   }
 };
 
-/**
- * UPDATE PO ❌
- */
 export const updatePO = async (req: Request, res: Response) => {
   try {
     const po = await service.updatePurchaseOrder(req.params.id as string, req.body);
@@ -92,9 +114,6 @@ export const updatePO = async (req: Request, res: Response) => {
   }
 };
 
-/**
- * DELETE PO ❌
- */
 export const deletePO = async (req: Request, res: Response) => {
   try {
     await service.deletePurchaseOrder(req.params.id as string);
@@ -104,22 +123,26 @@ export const deletePO = async (req: Request, res: Response) => {
   }
 };
 
-/**
- * GET all POs ✅
- */
-export const getAllPOs = async (req: Request, res: Response) => {
+export const getAllPOs = async (req: AuthRequest, res: Response) => {
   try {
     const {
       page = 1,
       limit = 10,
-      sortBy,
-      order,
+      sortBy = "createdAt",
+      order = "desc",
       gstNo,
       poNo,
       overallStatus,
       fromDate,
       toDate,
     } = req.query;
+
+    // 🔐 Logged-in user (from auth middleware)
+    const loggedInUser = req.user;
+
+    if (!loggedInUser?.name) {
+      throw new Error("Unauthorized: username missing");
+    }
 
     const result = await service.getAllPurchaseOrders(
       {
@@ -128,6 +151,9 @@ export const getAllPOs = async (req: Request, res: Response) => {
         overallStatus: overallStatus as string,
         fromDate: fromDate ? new Date(fromDate as string) : undefined,
         toDate: toDate ? new Date(toDate as string) : undefined,
+
+        // 🔐 enforce ownership
+        createdByUsername: loggedInUser.name,
       },
       Number(page),
       Number(limit),
@@ -137,28 +163,12 @@ export const getAllPOs = async (req: Request, res: Response) => {
 
     (res as any).encryptAndSend(result);
   } catch (error: any) {
-    (res as any).encryptAndSend({ message: error.message });
+    (res as any).encryptAndSend({
+      message: error.message || "Failed to fetch purchase orders",
+    });
   }
 };
 
-/**
- * GET PO by PO Number ✅
- */
-// export const getPOByPoNo = async (req: Request, res: Response) => {
-//   try {
-//     const po = await service.getPOByPoNo(req.params.poNo as string);
-//     if (!po) {
-//       return (res as any).encryptAndSend({ message: "PO not found" });
-//     }
-//     (res as any).encryptAndSend(po);
-//   } catch (error: any) {
-//     (res as any).encryptAndSend({ message: error.message });
-//   }
-// };
-
-/**
- * GET latest PO count ✅
- */
 export const getPOCount = async (_: Request, res: Response) => {
   try {
     const count = await service.getLatestPoCount();
@@ -168,21 +178,15 @@ export const getPOCount = async (_: Request, res: Response) => {
   }
 };
 
-/**
- * GET Slab limit by GST ✅
- */
 export const getSlabLimit = async (req: Request, res: Response) => {
   try {
-    const totalAmount = await service.getSlabLimit(req.params.gstNo as string );
+    const totalAmount = await service.getSlabLimit(req.params.gstNo as string);
     (res as any).encryptAndSend({ totalAmount });
   } catch (error: any) {
     (res as any).encryptAndSend({ message: error.message });
   }
 };
 
-/**
- * GET POs by GST ✅
- */
 export const getPOByGST = async (req: Request, res: Response) => {
   try {
     const pos = await service.getPOByGST(req.params.gstNo as string);
@@ -192,9 +196,6 @@ export const getPOByGST = async (req: Request, res: Response) => {
   }
 };
 
-/**
- * GET list of customers with GST ✅
- */
 export const getGstrList = async (_req: Request, res: Response) => {
   try {
     const list = await customerService.getCustomerGSTList();
@@ -204,9 +205,6 @@ export const getGstrList = async (_req: Request, res: Response) => {
   }
 };
 
-/**
- * GET MD-approved POs ✅
- */
 export const getMDApproved = async (_req: Request, res: Response) => {
   try {
     const pos = await service.getMDApprovedPOs();
@@ -216,9 +214,6 @@ export const getMDApproved = async (_req: Request, res: Response) => {
   }
 };
 
-/**
- * GET PPIC-approved batches ✅
- */
 export const getPPICApprovedBatches = async (_req: Request, res: Response) => {
   try {
     const batches = await service.getPPICApprovedBatches();
@@ -228,21 +223,6 @@ export const getPPICApprovedBatches = async (_req: Request, res: Response) => {
   }
 };
 
-/**
- * COMPLETE PO ❌
- */
-// export const completePO = async (req: Request, res: Response) => {
-//   try {
-//     const po = await service.completePO(req.params.poNo as string);
-//     return sendSuccess(res, po, "Purchase order completed successfully", 200);
-//   } catch (error: any) {
-//     return handleError(res, error);
-//   }
-// };
-
-/**
- * GET batch numbers ✅
- */
 export const getBatchNumbers = async (_req: Request, res: Response) => {
   try {
     const batches = await service.getBatchNumbers();
@@ -252,9 +232,6 @@ export const getBatchNumbers = async (_req: Request, res: Response) => {
   }
 };
 
-/**
- * GET PO analytics ✅
- */
 export const getAnalytics = async (req: Request, res: Response) => {
   try {
     const { fromDate, toDate } = req.query;
@@ -267,7 +244,6 @@ export const getAnalytics = async (req: Request, res: Response) => {
     (res as any).encryptAndSend({ message: error.message });
   }
 };
-
 
 export const importPurchaseOrders = async (req: Request, res: Response) => {
   try {
@@ -308,7 +284,7 @@ export const importPurchaseOrders = async (req: Request, res: Response) => {
             return;
           }
 
-          // STRING fields
+          // STRING fields (according to new schema)
           if (
             [
               "gstNo", "poNo", "brandName", "partyName", "batchNo", "paymentTerms",
@@ -319,26 +295,30 @@ export const importPurchaseOrders = async (req: Request, res: Response) => {
               "foilPoVendor", "cartonPoVendor", "design", "overallStatus",
               "invoiceNo", "showStatus", "mdApproval", "accountsApproval",
               "designerApproval", "ppicApproval", "salesComments", "customerId",
+              "productionStatus", "dispatchStatus"
             ].includes(dbField)
           ) {
             record[dbField] = toSafeString(raw);
             return;
           }
 
-          // INTEGER fields
+          // INTEGER/STRING NUMBER fields
           if (
             [
               "poQty", "batchQty", "foilQuantity", "cartonQuantity",
               "qtyPacked", "noOfShippers", "changePart", "cyc",
+              "foilQuantityOrdered", "cartonQuantityOrdered"
             ].includes(dbField)
           ) {
-            record[dbField] = normalizeNumber(raw);
+            const num = normalizeNumber(raw);
+            record[dbField] = num !== null ? String(num) : null;
             return;
           }
 
-          // FLOAT fields
+          // FLOAT/STRING AMOUNT fields
           if (["poRate", "amount", "mrp", "advance"].includes(dbField)) {
-            record[dbField] = normalizeNumber(raw);
+            const num = normalizeNumber(raw);
+            record[dbField] = num !== null ? String(num) : null;
             return;
           }
 
@@ -346,7 +326,7 @@ export const importPurchaseOrders = async (req: Request, res: Response) => {
           if (
             [
               "poDate", "dispatchDate", "expiry", "foilPoDate", "foilBillDate",
-              "cartonPoDate", "cartonBillDate", "packingDate", "invoiceDate",
+              "cartonPoDate", "cartonBillDate", "packingDate", "invoiceDate"
             ].includes(dbField)
           ) {
             record[dbField] = normalizeDate(raw);
@@ -378,11 +358,14 @@ export const importPurchaseOrders = async (req: Request, res: Response) => {
         poNo: po.poNo?.toUpperCase().trim() || "",
         gstNo: po.gstNo?.toUpperCase().trim() || "",
 
-        // Set defaults for approval fields
+        // Set defaults for new schema fields
         paymentTerms: po.paymentTerms || "NA",
         orderThrough: po.orderThrough || "Direct",
         rmStatus: po.rmStatus || "Pending",
         overallStatus: po.overallStatus || "Open",
+        productionStatus: po.productionStatus || "Pending",
+        dispatchStatus: po.dispatchStatus || "Pending",
+        showStatus: po.showStatus || "Order Pending",
         mdApproval: po.mdApproval || "Pending",
         accountsApproval: po.accountsApproval || "Pending",
         designerApproval: po.designerApproval || "Pending",
@@ -416,7 +399,6 @@ export const importPurchaseOrders = async (req: Request, res: Response) => {
     return handleError(res, error);
   }
 };
-
 
 export const exportPurchaseOrders = async (req: Request, res: Response) => {
   try {

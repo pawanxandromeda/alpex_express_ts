@@ -1,4 +1,3 @@
-// src/services/purchaseOrder.service.ts
 import prisma from "../../config/postgres";
 import redis from "../../config/redis";
 import crypto from "crypto";
@@ -10,7 +9,29 @@ import {
   trackFieldChanges,
 } from "../../common/utils/auditLog";
 
-const CACHE_TTL = 60; // seconds
+const CACHE_TTL = 60;
+
+interface TimestampAction {
+  actionType: string;
+  performedBy: {
+    employeeId?: string;
+    name: string;
+    department: string;
+  };
+  description: string;
+  timestamp: Date;
+  changes?: any;
+  remarks?: string;
+}
+
+interface TimestampData {
+  createdAt?: Date;
+  createdBy?: string;
+  createdByDept?: string;
+  importedBy?: string;
+  importedByDept?: string;
+  actions: TimestampAction[];
+}
 
 const getCacheKey = (prefix: string, payload: any) => {
   const hash = crypto
@@ -22,148 +43,216 @@ const getCacheKey = (prefix: string, payload: any) => {
 
 /* ---------------- CREATE ---------------- */
 export const createPurchaseOrder = async (data: any) => {
-  // Check if PO already exists
- 
+  try {
+    console.log("Creating PO with data:", data);
+    
+    // Check if PO already exists
+    if (data.poNo) {
+      const existingPO = await prisma.purchaseOrder.findFirst({
+        where: { poNo: data.poNo, gstNo: data.gstNo },
+      });
+      
+      if (existingPO) {
+        throw new AppError(ERROR_CODES.PO_ALREADY_EXISTS);
+      }
+    }
 
-  // Find the customer by GST
-  const gstNo = data.gstNumber || data.gstNo;
-  const customer = await prisma.customer.findUnique({ where: { gstrNo: gstNo } });
+    // Find the customer by GST
+    const gstNo = data.gstNo;
+    const customer = await prisma.customer.findUnique({ 
+      where: { gstrNo: gstNo } 
+    });
 
-  if (!customer) {
-    throw new AppError(ERROR_CODES.CUSTOMER_NOT_FOUND);
+    if (!customer) {
+      throw new AppError(ERROR_CODES.CUSTOMER_NOT_FOUND);
+    }
+
+    // Prepare timestamp with audit log
+    const timestampData: TimestampData = {
+      createdAt: new Date(),
+      createdBy: data.createdBy || "System",
+      createdByDept: data.createdByDept || "System",
+      actions: [{
+        actionType: "CREATE",
+        performedBy: {
+          name: data.createdBy || "System",
+          department: data.createdByDept || "System",
+        },
+        description: `Purchase Order created for customer ${customer.customerName} (GST: ${customer.gstrNo})`,
+        timestamp: new Date(),
+        remarks: data.remarks,
+      }]
+    };
+
+    // Create the purchase order
+    const po = await prisma.purchaseOrder.create({
+      data: {
+        // Customer info
+        gstNo: data.gstNo,
+        customerId: data.customerId,
+        
+        // Basic PO info
+        poNo: data.poNo,
+        poDate: data.poDate || new Date(),
+        brandName: data.brandName,
+        partyName: data.partyName,
+        
+        // Product details
+        composition: data.composition,
+        poQty: data.poQty,
+        poRate: data.poRate,
+        amount: data.amount,
+        mrp: data.mrp,
+        batchQty: data.batchQty,
+        
+        // Payment and terms
+        paymentTerms: data.paymentTerms,
+        cyc: data.cyc,
+        advance: data.advance,
+        
+        // Packaging
+        aluAluBlisterStripBottle: data.aluAluBlisterStripBottle,
+        packStyle: data.packStyle,
+        
+        // Categorization
+        section: data.section,
+        productNewOld: data.productNewOld,
+        
+        // Status fields
+        showStatus: data.showStatus || "Order Pending",
+        rmStatus: data.rmStatus || "Pending",
+        overallStatus: data.overallStatus || "Open",
+        productionStatus: data.productionStatus || "Pending",
+        dispatchStatus: data.dispatchStatus || "Pending",
+        
+        // Additional info
+        specialRequirements: data.specialRequirements,
+        salesComments: data.salesComments,
+        orderThrough: data.orderThrough || "Direct",
+        
+        // Timestamp (audit log)
+        timestamp: timestampData as any,
+        
+        // Initialize approval fields
+        mdApproval: "Pending",
+        accountsApproval: "Pending",
+        designerApproval: "Pending",
+        ppicApproval: "Pending",
+      },
+      include: { customer: true },
+    });
+
+    console.log("PO created successfully:", po.id);
+
+    // Update customer summary if needed
+    await prisma.customer.update({
+      where: { id: customer.id },
+      data: {
+        // Add any customer summary updates here
+        updatedAt: new Date(),
+      },
+    });
+
+    // Clear cache
+    await redis.del("purchase_orders:list:*");
+    await redis.del(`po:gst:${gstNo}`);
+
+    return po;
+  } catch (error) {
+    console.error("Error in createPurchaseOrder:", error);
+    throw error;
   }
-
-  // Create the purchase order and link to customer via GST
-  const po = await prisma.purchaseOrder.create({
-    data: {
-      poNo: data.poNo,
-      gstNo: customer.gstrNo,
-      partyName: data.partyName,
-      poDate: data.poDate,
-      poQty: data.poQuantity ,
-      poRate: data.poRate,
-      amount: data.totalAmount || data.amount,
-      mrp: data.mrp ? String(data.mrp) : undefined,
-      aluAluBlisterStripBottle: data.packType,
-      brandName: data.brandName,
-      composition: data.composition,
-      packStyle: data.packStyle || undefined,
-      paymentTerms: data.paymentTerms,
-      cyc: data.cyc,
-      advance: data.advance,
-      section: data.section,
-      productNewOld: data.productType,
-      batchQty:
-        data.batchQuantity ,
-      showStatus: String(data.showStatus || "Order Pending"),
-      specialRequirements: data.specialRequirements || undefined,
-      // Initialize timestamp with creation action
-      timestamp: JSON.stringify(
-        addActionToLog(
-          null,
-          createAuditAction({
-            actionType: "CREATE",
-            performedBy: {
-              name: data.createdBy || "System",
-              department: data.createdByDept || "System",
-            },
-            description: `Purchase Order created for customer ${customer.customerName} (GST: ${customer.gstrNo})`,
-            remarks: data.remarks,
-          })
-        )
-      ),
-    },
-    include: { customer: true },
-  });
-
-  // Update customer summary fields
-  await prisma.customer.update({
-    where: { id: customer.id },
-    data: {},
-  });
-
-  // Clear cache
-  await redis.del("purchase_orders:list:*");
-
-  return po;
 };
-
-
 export const createPurchaseOrderWithCreditCheck = async (data: any) => {
-  // Find customer by GST number
-  const gstNo = data.gstNumber || data.gstNo;
-  const customer = await prisma.customer.findUnique({ where: { gstrNo: gstNo } });
+  try {
+    console.log("Creating PO with credit check:", data);
+    
+    // Find customer by GST number
+    const gstNo = data.gstNo;
+    const customer = await prisma.customer.findUnique({ 
+      where: { gstrNo: gstNo } 
+    });
 
-  if (!customer) {
-    throw new AppError(ERROR_CODES.CUSTOMER_NOT_FOUND);
+    if (!customer) {
+      throw new AppError(ERROR_CODES.CUSTOMER_NOT_FOUND);
+    }
+
+    // Blacklist check
+    if (customer.isBlacklisted) {
+      throw new AppError(ERROR_CODES.BLACKLISTED_CUSTOMER);
+    }
+
+    // Credit approval check
+    if (customer.creditApprovalStatus !== "Approved") {
+      throw new AppError(ERROR_CODES.CREDIT_NOT_APPROVED);
+    }
+
+    // Check total credit used
+    const totalCreditUsed = await getSlabLimit(customer.gstrNo);
+    const amountValue = data.amount ? parseFloat(String(data.amount)) : 0;
+    const newCreditUsage = totalCreditUsed + amountValue;
+
+    if (newCreditUsage > customer.creditLimit) {
+      throw new AppError(ERROR_CODES.CREDIT_LIMIT_EXCEEDED);
+    }
+
+    // Prepare timestamp with audit log including auto-approval
+    const timestampData: TimestampData = {
+      createdAt: new Date(),
+      createdBy: data.createdBy || "System",
+      createdByDept: data.createdByDept || "System",
+      actions: [
+        {
+          actionType: "CREATE",
+          performedBy: {
+            name: data.createdBy || "System",
+            department: data.createdByDept || "System",
+          },
+          description: `Purchase Order created with credit check for customer ${customer.customerName} (GST: ${customer.gstrNo})`,
+          timestamp: new Date(),
+        },
+        {
+          actionType: "AUTO_APPROVE",
+          performedBy: {
+            name: "System",
+            department: "System",
+          },
+          description: "Automatically approved - Credit check passed and PO meets auto-approval criteria",
+          timestamp: new Date(),
+          changes: {
+            mdApproval: "Approved",
+            accountsApproval: "Approved",
+          },
+        }
+      ]
+    };
+
+    // Create PO
+    const po = await prisma.purchaseOrder.create({
+      data: {
+        ...data,
+        gstNo: customer.gstrNo,
+        customerId: customer.id,
+        mdApproval: "Approved",
+        accountsApproval: "Approved",
+        timestamp: timestampData as any,
+      },
+      include: { customer: true },
+    });
+
+    console.log("PO created with auto-approval:", po.id);
+
+    // Clear cache
+    await redis.del("purchase_orders:list:*");
+    await redis.del(`po:gst:${gstNo}`);
+    await redis.del(`po:slab:${gstNo}`);
+
+    return po;
+  } catch (error) {
+    console.error("Error in createPurchaseOrderWithCreditCheck:", error);
+    throw error;
   }
-
-  // Blacklist check
-  if (customer.isBlacklisted) {
-    throw new AppError(ERROR_CODES.BLACKLISTED_CUSTOMER);
-  }
-
-  // Credit approval check
-  if (customer.creditApprovalStatus !== "Approved") {
-    throw new AppError(ERROR_CODES.CREDIT_NOT_APPROVED);
-  }
-
-  // Check total credit used
-  const totalCreditUsed = await getSlabLimit(customer.gstrNo);
-  const newCreditUsage = totalCreditUsed + (parseFloat(String(data.amount || 0)));
-
-  if (newCreditUsage > customer.creditLimit) {
-    throw new AppError(ERROR_CODES.CREDIT_LIMIT_EXCEEDED);
-  }
-
-  // Create PO and link to customer
-  const po = await prisma.purchaseOrder.create({
-    data: {
-      ...data,
-      gstNo: customer.gstrNo,
-      mdApproval: "Approved",
-      accountsApproval: "Approved",
-      // Initialize timestamp with creation and auto-approval actions
-      timestamp: JSON.stringify(
-        addActionToLog(
-          addActionToLog(
-            null,
-            createAuditAction({
-              actionType: "CREATE",
-              performedBy: {
-                name: data.createdBy || "System",
-                department: data.createdByDept || "System",
-              },
-              description: `Purchase Order created with credit check for customer ${customer.customerName} (GST: ${customer.gstrNo})`,
-            })
-          ),
-          createAuditAction({
-            actionType: "AUTO_APPROVE",
-            performedBy: {
-              name: "System",
-              department: "System",
-            },
-            description: "Automatically approved - Credit check passed and PO meets auto-approval criteria",
-            approvalStatus: {
-              mdApproval: "Approved",
-              accountsApproval: "Approved",
-            },
-          })
-        )
-      ),
-    },
-    include: { customer: true },
-  });
-
-  // Clear cache
-  await redis.del("purchase_orders:list:*");
-
-  return po;
 };
-
-
-
-
 /* ---------------- GET BY ID ---------------- */
 export const getPurchaseOrderById = async (id: string) => {
   const cacheKey = `purchase_orders:single:${id}`;
@@ -188,6 +277,8 @@ export const getPurchaseOrderById = async (id: string) => {
 };
 
 /* ---------------- UPDATE ---------------- */
+/* ---------------- UPDATE ---------------- */
+/* ---------------- UPDATE ---------------- */
 export const updatePurchaseOrder = async (id: string, data: any) => {
   const po = await prisma.purchaseOrder.findUnique({
     where: { id },
@@ -197,28 +288,87 @@ export const updatePurchaseOrder = async (id: string, data: any) => {
     throw new AppError(ERROR_CODES.PO_NOT_FOUND);
   }
 
-  // Track which fields were changed
-  const changes = trackFieldChanges(po, data);
+  // Type the timestamp data
+  interface TimestampAction {
+    actionType: string;
+    performedBy: {
+      employeeId?: string;
+      name: string;
+      department: string;
+    };
+    description: string;
+    timestamp: Date | string;
+    changes?: any;
+    remarks?: string;
+  }
 
-  // Get existing audit log
-  const auditLog = getAuditLog(po.timestamp);
+  interface TimestampData {
+    createdAt?: Date | string;
+    createdBy?: string;
+    createdByDept?: string;
+    importedBy?: string;
+    importedByDept?: string;
+    actions: TimestampAction[];
+  }
+
+  // Helper function to safely parse timestamp data
+  const parseTimestampData = (timestamp: any): TimestampData => {
+    if (!timestamp) {
+      return { actions: [] };
+    }
+
+    // If it's already an object with actions
+    if (typeof timestamp === 'object' && timestamp !== null) {
+      // Handle Prisma's Json type
+      const parsed = timestamp as any;
+      
+      // Ensure actions exists and is an array
+      if (Array.isArray(parsed.actions)) {
+        return {
+          createdAt: parsed.createdAt,
+          createdBy: parsed.createdBy,
+          createdByDept: parsed.createdByDept,
+          importedBy: parsed.importedBy,
+          importedByDept: parsed.importedByDept,
+          actions: parsed.actions.map((action: any) => ({
+            actionType: action.actionType || 'UNKNOWN',
+            performedBy: {
+              employeeId: action.performedBy?.employeeId,
+              name: action.performedBy?.name || 'Unknown',
+              department: action.performedBy?.department || 'Unknown',
+            },
+            description: action.description || '',
+            timestamp: action.timestamp || new Date(),
+            changes: action.changes,
+            remarks: action.remarks,
+          }))
+        };
+      }
+    }
+    
+    // Default fallback
+    return { actions: [] };
+  };
+
+  // Parse the existing timestamp data
+  const timestampData = parseTimestampData(po.timestamp);
 
   // Create new action for this update
-  const updateAction = createAuditAction({
+  const updateAction: TimestampAction = {
     actionType: "UPDATE",
     performedBy: {
       employeeId: data.updatedBy || undefined,
       name: data.updatedByName || "System",
       department: data.updatedByDept || "System",
     },
-    description: `Purchase Order updated - ${Object.keys(changes).length} field(s) modified`,
-    changes: Object.keys(changes).length > 0 ? changes : undefined,
+    description: `Purchase Order updated`,
+    timestamp: new Date(),
     remarks: data.updateRemarks,
-  });
+  };
 
-  // Add action to log
-  const updatedLog = addActionToLog(auditLog, updateAction);
-
+  // Add action to existing actions array
+  const updatedActions = [...timestampData.actions, updateAction];
+  
   // Remove audit fields from data so they're not saved directly
   const { updatedBy, updatedByName, updatedByDept, updateRemarks, ...cleanData } = data;
 
@@ -226,7 +376,10 @@ export const updatePurchaseOrder = async (id: string, data: any) => {
     where: { id },
     data: {
       ...cleanData,
-      timestamp: JSON.stringify(updatedLog),
+      timestamp: { 
+        ...timestampData, 
+        actions: updatedActions 
+      } as any,
     },
   });
 
@@ -253,20 +406,37 @@ export const deletePurchaseOrder = async (id: string) => {
   await Promise.all([
     redis.del(`purchase_orders:single:${id}`),
     redis.del("purchase_orders:list:*"),
+    redis.del(`po:gst:${po.gstNo}`),
+    redis.del(`po:slab:${po.gstNo}`),
   ]);
 };
 
-/* ---------------- ADVANCED LIST (FAST) ---------------- */
+/* ---------------- GET ALL ---------------- */
 export const getAllPurchaseOrders = async (
-  filters: any,
+  filters: {
+    gstNo?: string;
+    poNo?: string;
+    overallStatus?: string;
+    productionStatus?: string;
+    dispatchStatus?: string;
+    fromDate?: Date;
+    toDate?: Date;
+    createdByUsername: string; // REQUIRED
+  },
   page = 1,
-  limit = 10,
+  limit = 50,
   sortBy = "createdAt",
   order: "asc" | "desc" = "desc"
 ) => {
   try {
+    // 🔐 USER-AWARE CACHE KEY
     const cacheKey = getCacheKey("purchase_orders:list", {
-      filters,
+      username: filters.createdByUsername,
+      gstNo: filters.gstNo,
+      poNo: filters.poNo,
+      overallStatus: filters.overallStatus,
+      fromDate: filters.fromDate,
+      toDate: filters.toDate,
       page,
       limit,
       sortBy,
@@ -280,11 +450,30 @@ export const getAllPurchaseOrders = async (
 
     const where: any = {};
 
+    // 🔐 CRITICAL FILTER — USER CAN SEE ONLY THEIR POs
+    where.orderThrough = filters.createdByUsername;
+
+    // 🔎 Optional filters
     if (filters.gstNo) where.gstNo = filters.gstNo;
-    if (filters.poNo)
-      where.poNo = { contains: filters.poNo, mode: "insensitive" };
-    if (filters.overallStatus)
+
+    if (filters.poNo) {
+      where.poNo = {
+        contains: filters.poNo,
+        mode: "insensitive",
+      };
+    }
+
+    if (filters.overallStatus) {
       where.overallStatus = filters.overallStatus;
+    }
+
+    if (filters.productionStatus) {
+      where.productionStatus = filters.productionStatus;
+    }
+
+    if (filters.dispatchStatus) {
+      where.dispatchStatus = filters.dispatchStatus;
+    }
 
     if (filters.fromDate || filters.toDate) {
       where.poDate = {};
@@ -295,10 +484,14 @@ export const getAllPurchaseOrders = async (
     const [data, total] = await Promise.all([
       prisma.purchaseOrder.findMany({
         where,
-        include: { customer: true },
+        include: {
+          customer: true,
+        },
         skip: (page - 1) * limit,
         take: limit,
-        orderBy: { [sortBy]: order },
+        orderBy: {
+          [sortBy]: order,
+        },
       }),
       prisma.purchaseOrder.count({ where }),
     ]);
@@ -317,40 +510,10 @@ export const getAllPurchaseOrders = async (
 
     return response;
   } catch (error) {
-    console.error("Error getting all POs:", error);
+    console.error("Error getting all purchase orders:", error);
     throw error;
   }
 };
-
-// export const getPOByPoNo = async (poNo: string) => {
-//   try {
-//     const cacheKey = `po:poNo:${poNo}`;
-//     const cached = await redis.get(cacheKey);
-//     if (cached) return JSON.parse(cached);
-
-//     const po = await prisma.purchaseOrder.findUnique({
-//       where: { poNo },
-//       select: {
-//         mdApproval: true,
-//         accountsApproval: true,
-//         designerApproval: true,
-//         ppicApproval: true,
-//         showStatus: true,
-//         gstNo: true,
-//         poNo: true,
-//         poDate: true,
-//         brandName: true,
-//         partyName: true,
-//       },
-//     });
-
-//     if (po) await redis.setex(cacheKey, 120, JSON.stringify(po));
-//     return po;
-//   } catch (error) {
-//     console.error("Error getting PO by PoNo:", error);
-//     throw error;
-//   }
-// };
 
 export const getLatestPoCount = async (): Promise<number> => {
   try {
@@ -361,19 +524,20 @@ export const getLatestPoCount = async (): Promise<number> => {
 
     if (!latest?.poNo) {
       console.warn("No PO found in database");
-      return 0; // return 0 instead of throwing
+      return 0;
     }
 
+    // Extract numeric part from PO number (assuming format like "PO-1769531093987")
     const match = latest.poNo.match(/(\d+)$/);
     if (!match) {
       console.warn("Invalid PO format for latest PO:", latest.poNo);
-      return 0; // fallback
+      return 0;
     }
 
     return Number(match[1]);
   } catch (error) {
     console.error("Error getting latest PO count:", error);
-    return 0; // fallback to 0 on unexpected errors
+    return 0;
   }
 };
 
@@ -383,7 +547,10 @@ export const getPOByGST = async (gstNo: string) => {
     const cached = await redis.get(cacheKey);
     if (cached) return JSON.parse(cached);
 
-    const data = await prisma.purchaseOrder.findMany({ where: { gstNo } });
+    const data = await prisma.purchaseOrder.findMany({ 
+      where: { gstNo },
+      include: { customer: true }
+    });
 
     await redis.setex(cacheKey, 120, JSON.stringify(data));
     return data;
@@ -401,6 +568,7 @@ export const getMDApprovedPOs = async () => {
 
     const data = await prisma.purchaseOrder.findMany({
       where: { mdApproval: "Approved" },
+      include: { customer: true },
     });
 
     await redis.setex(cacheKey, 120, JSON.stringify(data));
@@ -418,11 +586,25 @@ export const getPPICApprovedBatches = async () => {
     if (cached) return JSON.parse(cached);
 
     const data = await prisma.purchaseOrder.findMany({
-      where: { ppicApproval: "Approved" },
-      select: { batchNo: true },
+      where: { 
+        ppicApproval: "Approved",
+        batchNo: { not: null }
+      },
+      select: { 
+        batchNo: true,
+        brandName: true,
+        poNo: true,
+        poQty: true,
+      },
     });
 
-    const batches = data.map(d => d.batchNo).filter(Boolean);
+    const batches = data.map(d => ({
+      batchNo: d.batchNo,
+      brandName: d.brandName,
+      poNo: d.poNo,
+      poQty: d.poQty,
+    })).filter(b => b.batchNo);
+
     await redis.setex(cacheKey, 120, JSON.stringify(batches));
     return batches;
   } catch (error) {
@@ -431,56 +613,12 @@ export const getPPICApprovedBatches = async () => {
   }
 };
 
-// export const completePO = async (poNo: string) => {
-//   try {
-//     const po = await prisma.purchaseOrder.findUnique({
-//       where: { poNo },
-//     });
-
-//     if (!po) {
-//       throw new AppError(ERROR_CODES.PO_NOT_FOUND);
-//     }
-
-//     // Get existing audit log
-//     const auditLog = getAuditLog(po.timestamp);
-
-//     // Create completion action
-//     const completionAction = createAuditAction({
-//       actionType: "COMPLETE",
-//       performedBy: {
-//         name: "System",
-//         department: "System",
-//       },
-//       description: "Purchase Order marked as completed",
-//     });
-
-//     // Add action to log
-//     const updatedLog = addActionToLog(auditLog, completionAction);
-
-//     const completedPo = await prisma.purchaseOrder.update({
-//       where: { poNo },
-//       data: {
-//         overallStatus: "Completed",
-//         timestamp: JSON.stringify(updatedLog),
-//       },
-//     });
-
-//     await redis.del(`po:poNo:${poNo}`);
-//     await redis.del("purchase_orders:list:*"); // Invalidate lists
-//     return completedPo;
-//   } catch (error) {
-//     console.error("Error completing PO:", error);
-//     throw error;
-//   }
-// };
-
 export const getSlabLimit = async (gstNo: string) => {
   try {
     const cacheKey = `po:slab:${gstNo}`;
     const cached = await redis.get(cacheKey);
     if (cached) return JSON.parse(cached);
 
-    // Get all POs for this GST and manually sum amounts (since they're now strings)
     const pos = await prisma.purchaseOrder.findMany({
       where: { gstNo },
       select: { amount: true },
@@ -510,7 +648,10 @@ export const getBatchNumbers = async () => {
       select: {
         batchNo: true,
         brandName: true,
+        poNo: true,
+        poQty: true,
       },
+      distinct: ['batchNo'],
     });
 
     await redis.setex(cacheKey, 120, JSON.stringify(data));
@@ -521,16 +662,12 @@ export const getBatchNumbers = async () => {
   }
 };
 
-
-
 export const getPOAnalytics = async (fromDate?: Date, toDate?: Date) => {
   try {
-    // Generate cache key
     const cacheKey = getCacheKey("po:analytics", { fromDate, toDate });
     const cached = await redis.get(cacheKey);
     if (cached) return JSON.parse(cached);
 
-    // Build where clause
     const where: any = {};
     if (fromDate || toDate) {
       where.poDate = {};
@@ -538,19 +675,20 @@ export const getPOAnalytics = async (fromDate?: Date, toDate?: Date) => {
       if (toDate) where.poDate.lte = toDate;
     }
 
-    // Fetch analytics in parallel
     const [
       totalPOs,
       statusCounts,
-      allPOs,  // Fetch all POs to calculate amounts manually
+      allPOs,
       posPerCustomer,
       monthlyPOs,
       approvalStats,
+      productionStats,
+      dispatchStats,
     ] = await Promise.all([
       // Total POs
       prisma.purchaseOrder.count({ where }),
 
-      // POs grouped by status
+      // POs grouped by overall status
       prisma.purchaseOrder.groupBy({
         by: ["overallStatus"],
         _count: { id: true },
@@ -586,22 +724,24 @@ export const getPOAnalytics = async (fromDate?: Date, toDate?: Date) => {
       `,
 
       // Approval stats
-      prisma.purchaseOrder.aggregate({
-        _count: {
-          mdApproval: true,
-          accountsApproval: true,
-          designerApproval: true,
-          ppicApproval: true,
-        },
-        where: {
-          ...where,
-          OR: [
-            { mdApproval: "Approved" },
-            { accountsApproval: "Approved" },
-            { designerApproval: "Approved" },
-            { ppicApproval: "Approved" },
-          ],
-        },
+      prisma.purchaseOrder.groupBy({
+        by: ["mdApproval", "accountsApproval", "designerApproval", "ppicApproval"],
+        _count: { id: true },
+        where,
+      }),
+
+      // Production status stats
+      prisma.purchaseOrder.groupBy({
+        by: ["productionStatus"],
+        _count: { id: true },
+        where,
+      }),
+
+      // Dispatch status stats
+      prisma.purchaseOrder.groupBy({
+        by: ["dispatchStatus"],
+        _count: { id: true },
+        where,
       }),
     ]);
 
@@ -616,10 +756,11 @@ export const getPOAnalytics = async (fromDate?: Date, toDate?: Date) => {
         const amount = po.amount ? parseFloat(String(po.amount)) : 0;
         return sum + (isNaN(amount) ? 0 : amount);
       }, 0),
-      averageAmount: allPOs.length > 0 ? (allPOs.reduce((sum, po) => {
-        const amount = po.amount ? parseFloat(String(po.amount)) : 0;
-        return sum + (isNaN(amount) ? 0 : amount);
-      }, 0) / allPOs.length) : 0,
+      averageAmount: allPOs.length > 0 ? 
+        allPOs.reduce((sum, po) => {
+          const amount = po.amount ? parseFloat(String(po.amount)) : 0;
+          return sum + (isNaN(amount) ? 0 : amount);
+        }, 0) / allPOs.length : 0,
       posPerCustomer: posPerCustomer.map((c) => ({
         gstNo: c.gstNo,
         count: c._count.id,
@@ -628,26 +769,30 @@ export const getPOAnalytics = async (fromDate?: Date, toDate?: Date) => {
         month: m.month.toISOString(),
         count: Number(m.count),
       })),
-      topCustomersByAmount: posPerCustomer  // Use posPerCustomer but calculate amounts
-        .map((c) => {
-          const customerPOs = allPOs.filter(po => po.gstNo === c.gstNo);
-          const totalAmount = customerPOs.reduce((sum, po) => {
-            const amount = po.amount ? parseFloat(String(po.amount)) : 0;
-            return sum + (isNaN(amount) ? 0 : amount);
-          }, 0);
-          return { gstNo: c.gstNo, totalAmount };
-        })
-        .sort((a, b) => b.totalAmount - a.totalAmount)
-        .slice(0, 10),
+      topCustomersByAmount: posPerCustomer.map((c) => {
+        const customerPOs = allPOs.filter(po => po.gstNo === c.gstNo);
+        const totalAmount = customerPOs.reduce((sum, po) => {
+          const amount = po.amount ? parseFloat(String(po.amount)) : 0;
+          return sum + (isNaN(amount) ? 0 : amount);
+        }, 0);
+        return { gstNo: c.gstNo, totalAmount };
+      }).sort((a, b) => b.totalAmount - a.totalAmount).slice(0, 10),
       approvalStats: {
-        mdApproved: approvalStats._count.mdApproval || 0,
-        accountsApproved: approvalStats._count.accountsApproval || 0,
-        designerApproved: approvalStats._count.designerApproval || 0,
-        ppicApproved: approvalStats._count.ppicApproval || 0,
+        mdApproved: approvalStats.filter(a => a.mdApproval === "Approved").reduce((sum, a) => sum + a._count.id, 0),
+        accountsApproved: approvalStats.filter(a => a.accountsApproval === "Approved").reduce((sum, a) => sum + a._count.id, 0),
+        designerApproved: approvalStats.filter(a => a.designerApproval === "Approved").reduce((sum, a) => sum + a._count.id, 0),
+        ppicApproved: approvalStats.filter(a => a.ppicApproval === "Approved").reduce((sum, a) => sum + a._count.id, 0),
       },
+      productionStats: productionStats.map((p) => ({
+        status: p.productionStatus,
+        count: p._count.id,
+      })),
+      dispatchStats: dispatchStats.map((d) => ({
+        status: d.dispatchStatus,
+        count: d._count.id,
+      })),
     };
 
-    // Cache result for 5 minutes
     await redis.setex(cacheKey, 300, JSON.stringify(response));
 
     return response;
@@ -658,23 +803,27 @@ export const getPOAnalytics = async (fromDate?: Date, toDate?: Date) => {
 };
 
 export const bulkCreatePurchaseOrders = async (purchaseOrders: any[]) => {
-  // Create audit logs for bulk import
+  // Prepare timestamp for bulk import
   const enrichedOrders = purchaseOrders.map((po) => {
-    const importAction = createAuditAction({
-      actionType: "BULK_IMPORT",
-      performedBy: {
-        name: po.importedBy || "System",
-        department: po.importedByDept || "System",
-      },
-      description: `Purchase Order imported via bulk upload - PO#: ${po.poNo}`,
-      remarks: po.importRemarks,
-    });
-
-    const auditLog = addActionToLog(null, importAction);
+    const timestampData = {
+      createdAt: new Date(),
+      importedBy: po.importedBy || "System",
+      importedByDept: po.importedByDept || "System",
+      actions: [{
+        actionType: "BULK_IMPORT",
+        performedBy: {
+          name: po.importedBy || "System",
+          department: po.importedByDept || "System",
+        },
+        description: `Purchase Order imported via bulk upload - PO#: ${po.poNo}`,
+        timestamp: new Date(),
+        remarks: po.importRemarks,
+      }]
+    };
 
     return {
       ...po,
-      timestamp: JSON.stringify(auditLog),
+      timestamp: timestampData,
     };
   });
 
@@ -688,4 +837,3 @@ export const bulkCreatePurchaseOrders = async (purchaseOrders: any[]) => {
 
   return result;
 };
-

@@ -29,6 +29,7 @@ app.use(express.urlencoded({ limit: "50mb", extended: true }));
 
 const allowedOrigins: string[] = [
   "http://localhost:8080",
+  "https://alpex-dashboard.vercel.app",
 ];
 
 
@@ -41,7 +42,7 @@ const corsOptions: CorsOptions = {
     }
   },
   credentials: true,
-  methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+  methods: ["GET", "POST", "PUT", "DELETE","PATCH", "OPTIONS"],
   allowedHeaders: [
     "Content-Type",
     "Authorization",

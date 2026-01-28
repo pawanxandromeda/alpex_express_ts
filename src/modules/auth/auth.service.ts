@@ -1,43 +1,59 @@
-  import bcrypt from "bcryptjs";
+import bcrypt from "bcryptjs";
+import {
+  generateAccessToken,
+  generateRefreshToken,
+  verifyRefreshToken,
+} from "../../common/utils/jwt";
+import prisma from "../../config/postgres";
+import { Status } from "@prisma/client";
 
-  import {
-    generateAccessToken,
-    generateRefreshToken,
-    verifyRefreshToken,
-  } from "../../common/utils/jwt";
-  import prisma from "../../config/postgres";
+interface EmployeePayload {
+  id: string;
+  role: string;
+  department: string;
+  username: string;
+  name: string;
+}
 
-  export const login = async (username: string, password: string) => {
-    const employee = await prisma.employee.findUnique({ where: { username } });
-    if (!employee) throw new Error("Invalid credentials");
+// Login function
+export const login = async (username: string, password: string) => {
+  const employee = await prisma.employee.findUnique({ where: { username } });
+  if (!employee) throw new Error("Invalid credentials");
 
-    const match = await bcrypt.compare(password, employee.password);
-    if (!match) throw new Error("Invalid credentials");
+  if (!employee.password) throw new Error("Password not set");
+
+  const match = await bcrypt.compare(password, employee.password);
+  if (!match) throw new Error("Invalid credentials");
 
   // Check approval status
-  if (employee.approvalStatus !== "Approved") {
-    throw new Error("Your account has not been approved yet. Please contact your administrator.");
+  if (employee.status !== Status.Active) {
+    throw new Error(
+      "Your account has not been approved yet. Please contact your administrator."
+    );
   }
- const accessToken = generateAccessToken({
-      id: employee.id,
-      role: employee.authorization,
-      department: employee.department,
-      username: employee.username,
-      name: employee.name,
-    });
 
-
-    const refreshToken = generateRefreshToken({ id: employee.id });
-
-    await prisma.employee.update({
-      where: { id: employee.id },
-      data: { refreshToken },
-    });
-
-    return { accessToken, refreshToken };
+  const payload: EmployeePayload = {
+    id: employee.id,
+    role: employee.role,
+    department: employee.department,
+    username: employee.username!,
+    name: employee.name,
   };
 
- export const refresh = async (token: string) => {
+  const accessToken = generateAccessToken(payload);
+  const refreshToken = generateRefreshToken({ id: employee.id });
+
+  // Save refresh token in DB
+  await prisma.employee.update({
+    where: { id: employee.id },
+    data: { refreshToken },
+  });
+
+  return { accessToken, refreshToken };
+};
+
+// Refresh token function
+export const refresh = async (token: string) => {
   const payload: any = verifyRefreshToken(token);
 
   const employee = await prisma.employee.findUnique({
@@ -49,16 +65,17 @@
 
   return generateAccessToken({
     id: employee.id,
-    role: employee.authorization,
+    role: employee.role,
     department: employee.department,
-    username: employee.username,
+    username: employee.username!,
+    name: employee.name,
   });
 };
 
-
-  export const logout = async (id: string) => {
-    await prisma.employee.update({
-      where: { id },
-      data: { refreshToken: null },
-    });
-  };
+// Logout function
+export const logout = async (id: string) => {
+  await prisma.employee.update({
+    where: { id },
+    data: { refreshToken: null },
+  });
+};

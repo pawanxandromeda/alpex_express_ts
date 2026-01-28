@@ -12,16 +12,16 @@ import {
 export const getDesignerList = async (page: number = 1, limit: number = 10) => {
   const skip = (page - 1) * limit;
 
-  const whereCondition = {
-    mdApproval: "Approved",
-    accountsApproval: "Approved",
-  };
+  // const whereCondition = {
+  //   mdApproval: "Approved",
+  //   accountsApproval: "Approved",
+  // };
 
   const [data, total] = await Promise.all([
     prisma.purchaseOrder.findMany({
       skip,
       take: limit,
-      where: whereCondition,
+      // where: whereCondition,
       orderBy: { createdAt: "desc" },
       select: {
         id: true,
@@ -48,7 +48,7 @@ export const getDesignerList = async (page: number = 1, limit: number = 10) => {
     }),
 
     prisma.purchaseOrder.count({
-      where: whereCondition,
+      // where: whereCondition,
     }),
   ]);
 
