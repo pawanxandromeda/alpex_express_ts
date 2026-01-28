@@ -19,26 +19,34 @@ export const updateDesignSpecs = async (
   next: NextFunction
 ) => {
   try {
-    const { poId } = req.params
-    const data = req.body
+    if (!req.user) {
+      return res.status(401).json({
+        success: false,
+        message: "Unauthorized",
+      });
+    }
+
+    const { poId } = req.params;
+    const data = req.body;
 
     const updated = await service.updateDesignSpecs(
       poId as string,
       data,
-      req.user.id
-    )
+      req.user.id // ✅ TS now knows req.user exists
+    );
 
     return res.status(200).json({
       success: true,
       data: updated,
-    })
+    });
   } catch (error: any) {
     return res.status(500).json({
       success: false,
       message: error.message,
-    })
+    });
   }
-}
+};
+
 
 export const uploadDesign = async (
   req: AuthRequest,
@@ -46,14 +54,21 @@ export const uploadDesign = async (
   next: NextFunction
 ) => {
   try {
-    const { poId } = req.params
-    const file = (req as any).file
+    if (!req.user) {
+      return res.status(401).json({
+        success: false,
+        message: "Unauthorized",
+      });
+    }
+
+    const { poId } = req.params;
+    const file = (req as any).file;
 
     if (!file) {
       return res.status(400).json({
         success: false,
         message: "No file uploaded",
-      })
+      });
     }
 
     const updated = await service.uploadDesign(
@@ -61,20 +76,21 @@ export const uploadDesign = async (
       file.buffer,
       file.originalname,
       file.mimetype,
-      req.user.id
-    )
+      req.user.id // ✅ now TS-safe
+    );
 
     return res.status(200).json({
       success: true,
       data: updated,
-    })
+    });
   } catch (error: any) {
     return res.status(500).json({
       success: false,
       message: error.message,
-    })
+    });
   }
-}
+};
+
 
 
 export const actionOnDesign = async (
@@ -83,24 +99,32 @@ export const actionOnDesign = async (
   next: NextFunction
 ) => {
   try {
-    const { poId } = req.params
-    const { action, comments } = req.body
+    if (!req.user) {
+      return res.status(401).json({
+        success: false,
+        message: "Unauthorized",
+      });
+    }
+
+    const { poId } = req.params;
+    const { action, comments } = req.body;
 
     const updated = await service.actionOnDesign(
       poId as string,
       action,
       comments,
-      req.user.id
-    )
+      req.user.id // ✅ TS-safe
+    );
 
     return res.status(200).json({
       success: true,
       data: updated,
-    })
+    });
   } catch (error: any) {
     return res.status(500).json({
       success: false,
       message: error.message,
-    })
+    });
   }
-}
+};
+
