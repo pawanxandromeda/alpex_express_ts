@@ -8,7 +8,13 @@ CREATE TYPE "ShiftType" AS ENUM ('Day', 'Night', 'Rotational');
 CREATE TYPE "TodoPriority" AS ENUM ('Low', 'Medium', 'High', 'Urgent');
 
 -- CreateEnum
+CREATE TYPE "TodoStatus" AS ENUM ('Open', 'InProgress', 'OnHold', 'Completed', 'Cancelled');
+
+-- CreateEnum
 CREATE TYPE "EmployeeStatus" AS ENUM ('Pending', 'Active', 'Inactive');
+
+-- CreateEnum
+CREATE TYPE "CredentialApprovalStatus" AS ENUM ('Pending', 'Approved');
 
 -- CreateTable
 CREATE TABLE "Employee" (
@@ -19,12 +25,16 @@ CREATE TABLE "Employee" (
     "role" TEXT NOT NULL,
     "department" TEXT NOT NULL,
     "status" "EmployeeStatus" NOT NULL DEFAULT 'Pending',
+    "approvedForCredentials" "CredentialApprovalStatus" NOT NULL DEFAULT 'Pending',
+    "dateOfJoining" TIMESTAMP(3),
+    "ctc" DOUBLE PRECISION,
     "createdByRole" TEXT NOT NULL,
     "username" TEXT,
     "password" TEXT,
     "approvedBy" TEXT,
     "approvedAt" TIMESTAMP(3),
     "rejectionReason" TEXT,
+    "refreshToken" TEXT,
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updatedAt" TIMESTAMP(3) NOT NULL,
 
@@ -66,6 +76,7 @@ CREATE TABLE "Todo" (
     "title" TEXT NOT NULL,
     "description" TEXT,
     "priority" "TodoPriority" NOT NULL DEFAULT 'Medium',
+    "status" "TodoStatus" NOT NULL DEFAULT 'Open',
     "createdById" TEXT NOT NULL,
     "assignedToId" TEXT,
     "completed" BOOLEAN NOT NULL DEFAULT false,
@@ -75,6 +86,29 @@ CREATE TABLE "Todo" (
     "updatedAt" TIMESTAMP(3) NOT NULL,
 
     CONSTRAINT "Todo_pkey" PRIMARY KEY ("id")
+);
+
+-- CreateTable
+CREATE TABLE "TodoMention" (
+    "id" TEXT NOT NULL,
+    "todoId" TEXT NOT NULL,
+    "employeeId" TEXT NOT NULL,
+    "mentionedAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+
+    CONSTRAINT "TodoMention_pkey" PRIMARY KEY ("id")
+);
+
+-- CreateTable
+CREATE TABLE "TodoUpdate" (
+    "id" TEXT NOT NULL,
+    "todoId" TEXT NOT NULL,
+    "description" TEXT NOT NULL,
+    "updateType" TEXT NOT NULL,
+    "oldValue" TEXT,
+    "newValue" TEXT,
+    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+
+    CONSTRAINT "TodoUpdate_pkey" PRIMARY KEY ("id")
 );
 
 -- CreateTable
@@ -167,6 +201,18 @@ CREATE TABLE "Notification" (
     CONSTRAINT "Notification_pkey" PRIMARY KEY ("id")
 );
 
+-- CreateTable
+CREATE TABLE "audit_logs" (
+    "id" TEXT NOT NULL,
+    "action" TEXT NOT NULL,
+    "performedBy" TEXT NOT NULL,
+    "targetId" TEXT NOT NULL,
+    "details" JSONB,
+    "timestamp" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+
+    CONSTRAINT "audit_logs_pkey" PRIMARY KEY ("id")
+);
+
 -- CreateIndex
 CREATE UNIQUE INDEX "Employee_email_key" ON "Employee"("email");
 
@@ -195,6 +241,24 @@ CREATE INDEX "Todo_dueDate_idx" ON "Todo"("dueDate");
 CREATE INDEX "Todo_completed_idx" ON "Todo"("completed");
 
 -- CreateIndex
+CREATE INDEX "Todo_status_idx" ON "Todo"("status");
+
+-- CreateIndex
+CREATE INDEX "TodoMention_employeeId_idx" ON "TodoMention"("employeeId");
+
+-- CreateIndex
+CREATE INDEX "TodoMention_todoId_idx" ON "TodoMention"("todoId");
+
+-- CreateIndex
+CREATE UNIQUE INDEX "TodoMention_todoId_employeeId_key" ON "TodoMention"("todoId", "employeeId");
+
+-- CreateIndex
+CREATE INDEX "TodoUpdate_todoId_idx" ON "TodoUpdate"("todoId");
+
+-- CreateIndex
+CREATE INDEX "TodoUpdate_createdAt_idx" ON "TodoUpdate"("createdAt");
+
+-- CreateIndex
 CREATE INDEX "PurchaseOrder_gstNo_idx" ON "PurchaseOrder"("gstNo");
 
 -- CreateIndex
@@ -210,10 +274,19 @@ CREATE INDEX "PurchaseOrder_overallStatus_idx" ON "PurchaseOrder"("overallStatus
 CREATE INDEX "PurchaseOrder_createdAt_idx" ON "PurchaseOrder"("createdAt");
 
 -- AddForeignKey
-ALTER TABLE "Todo" ADD CONSTRAINT "Todo_createdById_fkey" FOREIGN KEY ("createdById") REFERENCES "Employee"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+ALTER TABLE "Todo" ADD CONSTRAINT "Todo_createdById_fkey" FOREIGN KEY ("createdById") REFERENCES "Employee"("id") ON DELETE CASCADE ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE "Todo" ADD CONSTRAINT "Todo_assignedToId_fkey" FOREIGN KEY ("assignedToId") REFERENCES "Employee"("id") ON DELETE SET NULL ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "TodoMention" ADD CONSTRAINT "TodoMention_todoId_fkey" FOREIGN KEY ("todoId") REFERENCES "Todo"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "TodoMention" ADD CONSTRAINT "TodoMention_employeeId_fkey" FOREIGN KEY ("employeeId") REFERENCES "Employee"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "TodoUpdate" ADD CONSTRAINT "TodoUpdate_todoId_fkey" FOREIGN KEY ("todoId") REFERENCES "Todo"("id") ON DELETE CASCADE ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE "PurchaseOrder" ADD CONSTRAINT "PurchaseOrder_customerId_fkey" FOREIGN KEY ("customerId") REFERENCES "Customer"("id") ON DELETE SET NULL ON UPDATE CASCADE;

@@ -1,0 +1,262 @@
+// prisma/schema.prisma
+datasource db {
+  provider = "postgresql"
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+enum Status {
+  Active
+  Inactive
+}
+
+enum ShiftType {
+  Day
+  Night
+  Rotational
+}
+
+enum TodoPriority {
+  Low
+  Medium
+  High
+  Urgent
+}
+
+enum TodoStatus {
+  Open
+  InProgress
+  OnHold
+  Completed
+  Cancelled
+}
+
+enum EmployeeStatus {
+  Pending
+  Active
+  Inactive
+}
+
+enum CredentialApprovalStatus {
+  Pending
+  Approved
+}
+
+model Employee {
+  id                     String                   @id @default(uuid())
+  name                   String
+  email                  String                   @unique
+  phone                  String                   @unique
+  role                   String
+  department             String
+  status                 EmployeeStatus           @default(Pending)
+  approvedForCredentials CredentialApprovalStatus @default(Pending)
+
+  dateOfJoining          DateTime?
+  ctc                    Float?
+  
+  createdByRole          String
+  username               String?                  @unique
+  password               String?
+  approvedBy             String?
+  approvedAt             DateTime?
+  rejectionReason        String?
+  refreshToken           String?
+
+  createdTodos           Todo[]                   @relation("CreatedTodos")
+  assignedTodos          Todo[]                   @relation("AssignedTodos")
+  mentionedInTodos       TodoMention[]            @relation("MentionedEmployee")
+
+  createdAt              DateTime                 @default(now())
+  updatedAt              DateTime                 @updatedAt
+}
+
+
+model Customer {
+  id                   String   @id @default(uuid())
+  customerName         String
+  address              String?
+  creditLimit          Float    @default(0)
+  creditApprovalStatus String   @default("Pending")
+  paymentTerms         String
+  throughVia           String?
+  gstrNo               String   @unique
+  kycProfile           String?
+  contactName          String?
+  contactPhone         String?
+  contactEmail         String?
+  contacts             Json?
+  remarks              String?
+  relationshipStatus   String?
+  gstCopy              String?
+  drugLicense         String?   // License number (string)
+  dlExpiry             DateTime? // Expiry date (DateTime)
+  isBlacklisted        Boolean  @default(false)
+  blacklistReason      String?
+  blacklistedAt        DateTime?
+  purchaseOrders       PurchaseOrder[]
+  createdAt            DateTime @default(now())
+  updatedAt            DateTime @updatedAt
+}
+
+
+
+model Todo {
+  id                String       @id @default(uuid())
+  title             String
+  description       String?
+  priority          TodoPriority @default(Medium)
+  status            TodoStatus   @default(Open)
+  createdById       String
+  createdBy         Employee     @relation("CreatedTodos", fields: [createdById], references: [id], onDelete: Cascade)
+  assignedToId      String?
+  assignedTo        Employee?    @relation("AssignedTodos", fields: [assignedToId], references: [id], onDelete: SetNull)
+  mentionedEmployees TodoMention[] @relation("TodoMentions")
+  updates           TodoUpdate[] @relation("TodoUpdates")
+  completed         Boolean      @default(false)
+  completedAt       DateTime?
+  dueDate           DateTime?
+  createdAt         DateTime     @default(now())
+  updatedAt         DateTime     @updatedAt
+
+  @@index([createdById])
+  @@index([assignedToId])
+  @@index([priority])
+  @@index([dueDate])
+  @@index([completed])
+  @@index([status])
+}
+
+model TodoMention {
+  id          String   @id @default(uuid())
+  todoId      String
+  todo        Todo     @relation("TodoMentions", fields: [todoId], references: [id], onDelete: Cascade)
+  employeeId  String
+  employee    Employee @relation("MentionedEmployee", fields: [employeeId], references: [id], onDelete: Cascade)
+  mentionedAt DateTime @default(now())
+
+  @@unique([todoId, employeeId])
+  @@index([employeeId])
+  @@index([todoId])
+}
+
+model TodoUpdate {
+  id          String   @id @default(uuid())
+  todoId      String
+  todo        Todo     @relation("TodoUpdates", fields: [todoId], references: [id], onDelete: Cascade)
+  description String
+  updateType  String   // "comment", "status_change", "assignment", "mention_added", "mention_removed"
+  oldValue    String?
+  newValue    String?
+  createdAt   DateTime @default(now())
+
+  @@index([todoId])
+  @@index([createdAt])
+}
+
+model PurchaseOrder {
+  id                          String           @id @default(uuid())
+  gstNo                       String?
+  customerId                  String?
+  customer                    Customer?        @relation(fields: [customerId], references: [id])
+  poNo                        String?          @default(uuid())
+  poDate                      DateTime?
+  dispatchDate                DateTime?
+  brandName                   String?
+  partyName                   String?
+  batchNo                     String?
+  paymentTerms                String?
+  invCha                      String?
+  cylChar                     String?
+  orderThrough                String?
+  address                     String?
+  composition                 String?
+  notes                       String?
+  rmStatus                    String?
+  poQty                       String?
+  poRate                       String?
+  amount                       String?
+  mrp                         String?
+  section                      String?
+  specialRequirements          String?
+  tabletCapsuleDrySyrupBottle String?
+  roundOvalTablet              String?
+  tabletColour                 String?
+  aluAluBlisterStripBottle     String?
+  packStyle                    String?
+  productNewOld                String?
+  qaObservations               String?
+  batchQty                     String?
+  expiry                       DateTime?
+  pvcColourBase                String?
+  foil                         String?
+  lotNo                        String?
+  foilPoDate                   DateTime?
+  foilSize                     String?
+  foilPoVendor                 String?
+  foilBillDate                 DateTime?
+  foilQuantity                 String?
+  cartonPoDate                 DateTime?
+  cartonPoVendor               String?
+  cartonBillDate               DateTime?
+  cartonQuantity               String?
+  packingDate                  DateTime?
+  qtyPacked                    String?
+  noOfShippers                 String?
+  design                       String?
+  productionStatus             String?         // Status during production/manufacturing
+  overallStatus                String           @default("Pending")
+  invoiceNo                    String?
+  invoiceDate                  DateTime?
+  changePart                   String?
+  cyc                          String?
+  advance                      String?
+  showStatus                   String           @default("Order Pending")
+  mdApproval                   String           @default("Pending")
+  accountsApproval             String           @default("Pending")
+  designerApproval             String           @default("Pending")
+  ppicApproval                 String           @default("Pending")
+  designerActions              Json?
+  accountBills                 Json?
+  salesComments                String?
+  poDisputes                   Json?
+  rawImportedData              Json?           // JSON field for unmapped sheet columns
+
+  // NEW FIELDS
+  foilQuantityOrdered          String?
+  cartonQuantityOrdered        String?
+  dispatchStatus               String?         @default("Pending")
+  timestamp                    Json?           // JSON field for RM / Production / Dispatch statuses + timestamps
+
+  createdAt                    DateTime         @default(now())
+  updatedAt                    DateTime         @updatedAt
+
+  @@index([gstNo])
+  @@index([customerId])
+  @@index([poDate])
+  @@index([overallStatus])
+  @@index([createdAt])
+}
+
+
+model Notification {
+  id        String   @id @default(uuid())
+  userId    String
+  type      String
+  message   String
+  isRead    Boolean  @default(false)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+model AuditLog {
+  id          String   @id @default(uuid())
+  action      String
+  performedBy String
+  targetId    String
+  details     Json?
+  timestamp   DateTime @default(now())
+
+  @@map("audit_logs")
+}
