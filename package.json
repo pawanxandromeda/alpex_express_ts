@@ -3,15 +3,14 @@
   "version": "1.0.0",
   "description": "",
   "main": "index.js",
-"scripts": {
-  "dev": "ts-node-dev --respawn --transpile-only src/server.ts",
-  "build": "prisma generate && tsc",
-  "start": "node dist/server.js",
-  "prisma:generate": "prisma generate",
-  "prisma:migrate": "prisma migrate dev --name init",
-  "seed": "ts-node prisma/seed.ts"
-}
-,
+  "scripts": {
+    "dev": "ts-node-dev --respawn --transpile-only src/server.ts",
+    "build": "prisma generate && tsc",
+    "start": "node dist/server.js",
+    "prisma:generate": "prisma generate",
+    "prisma:migrate": "prisma migrate dev --name init",
+    "seed": "ts-node prisma/seed.ts"
+  },
   "keywords": [],
   "author": "",
   "license": "ISC",
@@ -24,9 +23,12 @@
     "bullmq": "^5.4.12",
     "cors": "^2.8.5",
     "crypto-js": "^4.2.0",
+    "csv-parser": "^3.2.0",
     "dotenv": "^17.2.3",
+    "exceljs": "^4.4.0",
     "express": "^5.2.1",
     "fast-csv": "^5.0.1",
+    "googleapis": "^171.0.0",
     "helmet": "^8.1.0",
     "ioredis": "^5.9.1",
     "jsonwebtoken": "^9.0.3",

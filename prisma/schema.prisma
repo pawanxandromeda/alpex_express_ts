@@ -260,3 +260,48 @@ model AuditLog {
 
   @@map("audit_logs")
 }
+
+
+
+model ChangePartMaster {
+  id                     String   @id @default(uuid())
+  partPictureUrl         String?          
+  code                   String?          
+  boxSizeAutoCalculated  String?         
+  cartonRates            Decimal?         
+  baseFoilConsumption    Decimal?         
+  printedFoilConsumption Decimal?         
+  tabSize                String?          
+  range                  String?          
+  foilSize               String?          
+  createdAt              DateTime @default(now())
+  updatedAt              DateTime @updatedAt
+}
+
+
+model CompositionMaster {
+  id                   String   @id @default(uuid())
+  composition          String? 
+  formType             String? 
+  packingType          String? 
+  layerType            String? 
+  color                String? 
+  flavor               String? 
+  coating              String? 
+  changePartOptions    String[] @default([])  // fixed
+  shelfLifeMonths      Int? 
+  review               String? 
+  createdAt            DateTime @default(now())
+  updatedAt            DateTime @updatedAt
+}
+
+
+
+model ApiMaster {
+  id                   String   @id @default(uuid())
+  rmActive             String
+  factorCalculation    String
+  finalKg              String
+  createdAt            DateTime @default(now())
+  updatedAt            DateTime @updatedAt
+}

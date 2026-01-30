@@ -12,6 +12,7 @@ import purchaseOrderRoutes from "./modules/purchaseOrder/purchaseOrder.routes";
 import designerRoutes from "./modules/designer/designer.routes";
 import accountsRoutes from "./modules/accounts/accounts.routes";
 import ppicRoutes from "./modules/ppic/ppic.routes";
+import masterRoutes from "./modules/master/master.routes";
 
 
 
@@ -61,6 +62,7 @@ app.use("/api/po", purchaseOrderRoutes);
 app.use("/api/designer", designerRoutes);
 app.use("/api/accounts", accountsRoutes);
 app.use("/api/ppic", ppicRoutes);
+app.use("/api/master", masterRoutes);
 
 
 
