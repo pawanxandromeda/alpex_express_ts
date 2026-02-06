@@ -318,7 +318,7 @@ async parseCompositionFile(
   async createApiMaster(data: any) {
     return await prisma.apiMaster.create({ data });
   }
-
+  
   async getAllApiMasters() {
     return await prisma.apiMaster.findMany();
   }
@@ -333,5 +333,158 @@ async parseCompositionFile(
 
   async deleteApiMaster(id: string) {
     return await prisma.apiMaster.delete({ where: { id } });
+  }
+
+  async bulkImportApiMaster(
+    file: Express.Multer.File,
+    fieldMapping?: Record<string, string>
+  ) {
+    const imported: any[] = [];
+    const failed: any[] = [];
+    const errors: any[] = [];
+
+    try {
+      const workbook = XLSX.read(file.buffer, { type: "buffer" });
+      const sheet = workbook.Sheets[workbook.SheetNames[0]];
+      const rows: any[] = XLSX.utils.sheet_to_json(sheet);
+
+      const getMappedValue = (fieldName: string, row: any): any => {
+        const mappedName = fieldMapping?.[fieldName] || fieldName;
+        return row[mappedName];
+      };
+
+      for (let i = 0; i < rows.length; i++) {
+        const row = rows[i];
+
+        try {
+          const record = await prisma.apiMaster.create({
+            data: {
+              drugName: getMappedValue('drugName', row) || '',
+              drugQuantity: getMappedValue('drugQuantity', row)?.toString() || null,
+            },
+          });
+
+          imported.push(record);
+        } catch (rowError: any) {
+          failed.push(row);
+          errors.push({
+            row: i + 2,
+            message: rowError.message,
+            data: row,
+          });
+        }
+      }
+
+      return {
+        success: true,
+        importedCount: imported.length,
+        failedCount: failed.length,
+        errors: errors.length > 0 ? errors : undefined,
+      };
+    } catch (error: any) {
+      throw new Error(`Bulk import failed: ${error.message}`);
+    } finally {
+      if (file?.path && fs.existsSync(file.path)) {
+        fs.unlinkSync(file.path);
+      }
+    }
+  }
+
+  async createVendorMaster(data: any) {
+    return await prisma.vendorMaster.create({ data });
+  }
+
+  async getAllVendorMasters(page: number = 1, limit: number = 10) {
+    const skip = (page - 1) * limit;
+    const take = limit;
+
+    const [data, total] = await Promise.all([
+      prisma.vendorMaster.findMany({ skip, take, orderBy: { createdAt: 'desc' } }),
+      prisma.vendorMaster.count(),
+    ]);
+
+    return {
+      data,
+      total,
+      page,
+      totalPages: Math.ceil(total / limit),
+    };
+  }
+
+  async getVendorMasterById(id: string) {
+    return await prisma.vendorMaster.findUnique({ where: { id } });
+  }
+
+  async updateVendorMaster(id: string, data: any) {
+    return await prisma.vendorMaster.update({ where: { id }, data });
+  }
+
+  async deleteVendorMaster(id: string) {
+    return await prisma.vendorMaster.delete({ where: { id } });
+  }
+
+  async bulkImportVendorMaster(
+    file: Express.Multer.File,
+    fieldMapping?: Record<string, string>
+  ) {
+    const imported: any[] = [];
+    const failed: any[] = [];
+    const errors: any[] = [];
+
+    try {
+      const workbook = XLSX.read(file.buffer, { type: "buffer" });
+      const sheet = workbook.Sheets[workbook.SheetNames[0]];
+      const rows: any[] = XLSX.utils.sheet_to_json(sheet);
+
+      const getMappedValue = (fieldName: string, row: any): any => {
+        const mappedName = fieldMapping?.[fieldName] || fieldName;
+        return row[mappedName];
+      };
+
+      for (let i = 0; i < rows.length; i++) {
+        const row = rows[i];
+
+        try {
+          const record = await prisma.vendorMaster.create({
+            data: {
+              vendorName: getMappedValue('vendorName', row) || '',
+              vendorCode: getMappedValue('vendorCode', row)?.toString() || null,
+              contactPerson: getMappedValue('contactPerson', row)?.toString() || null,
+              vendorEmail: getMappedValue('vendorEmail', row)?.toString() || null,
+              vendorPhone: getMappedValue('vendorPhone', row)?.toString() || null,
+              vendorAdress: getMappedValue('vendorAdress', row)?.toString() || null,
+              vendorState: getMappedValue('vendorState', row)?.toString() || null,
+              vendorGSTNo: getMappedValue('vendorGSTNo', row)?.toString() || null,
+              paymentTerms: getMappedValue('paymentTerms', row)?.toString() || null,
+              vendorBankName: getMappedValue('vendorBankName', row)?.toString() || null,
+              vendorAccountNumber: getMappedValue('vendorAccountNumber', row)?.toString() || null,
+              vendorIFSC: getMappedValue('vendorIFSC', row)?.toString() || null,
+            },
+          });
+
+          imported.push(record);
+        } catch (rowError: any) {
+          failed.push(row);
+          errors.push({
+            row: i + 2,
+            message: rowError.message,
+            data: row,
+          });
+        }
+      }
+
+      return {
+        success: true,
+        importedCount: imported.length,
+        failedCount: failed.length,
+        errors: errors.length > 0 ? errors : undefined,
+      };
+    } catch (error: any) {
+      throw new Error(`Bulk import failed: ${error.message}`);
+    } finally {
+      if (file?.path && fs.existsSync(file.path)) {
+        fs.unlinkSync(file.path);
+      }
+    }
   }
 }

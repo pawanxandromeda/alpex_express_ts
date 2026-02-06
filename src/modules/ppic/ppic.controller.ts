@@ -303,6 +303,43 @@ async getAllPOs(req: Request, res: Response, next: NextFunction) {
       next(err);
     }
   }
+    /**
+   * Mark purchase order as RFD
+   * PATCH /api/ppic/pos/:id/mark-rfd
+   */
+  async markRFD(req: Request, res: Response, next: NextFunction) {
+    try {
+      const { id } = req.params;
+
+      if (!id) {
+        return sendError(res, ERROR_CODES.VALIDATION_ERROR, "Purchase Order ID is required");
+      }
+
+      const updatedPO = await PPICService.markRFD(id as string);
+      return sendSuccess(res, updatedPO, "Purchase order marked as RFD", 200);
+    } catch (err) {
+      next(err);
+    }
+  }
+
+  /**
+   * Mark purchase order as cancelled
+   * PATCH /api/ppic/pos/:id/mark-cancelled
+   */
+  async markCancelled(req: Request, res: Response, next: NextFunction) {
+    try {
+      const { id } = req.params;
+
+      if (!id) {
+        return sendError(res, ERROR_CODES.VALIDATION_ERROR, "Purchase Order ID is required");
+      }
+
+      const updatedPO = await PPICService.markCancelled(id as string);
+      return sendSuccess(res, updatedPO, "Purchase order marked as cancelled", 200);
+    } catch (err) {
+      next(err);
+    }
+  }
 
   /**
    * Export purchase orders to CSV/XLSX/JSON
@@ -366,5 +403,6 @@ async getAllPOs(req: Request, res: Response, next: NextFunction) {
     return "unknown";
   }
 }
+
 
 export const ppicController = new PPICController();

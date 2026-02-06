@@ -1,7 +1,11 @@
 import prisma from "../../config/postgres";
 import { AppError, ERROR_CODES } from "../../common/utils/errorMessages";
 
-export const createCustomer = async (data: any) => {
+export const createCustomer = async (
+  data: any,
+  employeeId: string,
+  employeeName?: string
+) => {
   const existing = await prisma.customer.findUnique({
     where: { gstrNo: data.gstrNo },
   });
@@ -10,15 +14,18 @@ export const createCustomer = async (data: any) => {
     throw new AppError(ERROR_CODES.CUSTOMER_ALREADY_EXISTS);
   }
 
-  // Direct mapping to match your Prisma schema
   return prisma.customer.create({
     data: {
       customerName: data.customerName,
       gstrNo: data.gstrNo,
       paymentTerms: data.paymentTerms || "Cash",
-      throughVia: data.throughVia || null,
-      drugLicense: data.drugLicense || null, // Use drugLicense (not drugLicenseNumber)
-      dlExpiry: data.dlExpiry ? new Date(data.dlExpiry) : null, // Use dlExpiry (not drugLicenseExpiry)
+
+      // ✅ IMPORTANT PART
+      createdByEmployeeId: employeeId,
+      throughVia: employeeName || data.throughVia || null,
+
+      drugLicense: data.drugLicense || null,
+      dlExpiry: data.dlExpiry ? new Date(data.dlExpiry) : null,
       address: data.address || null,
       contacts: data.contacts || [],
       remarks: data.remarks || null,
@@ -29,12 +36,13 @@ export const createCustomer = async (data: any) => {
       contactName: data.contactName || null,
       contactPhone: data.contactPhone || null,
       contactEmail: data.contactEmail || null,
-      creditApprovalStatus: "Pending", // Default from schema
+      creditApprovalStatus: "Pending",
       kycProfile: data.kycProfile || null,
       gstCopy: data.gstCopy || null,
-    }
+    },
   });
 };
+
 export const loginCustomer = async (gstrNo: string, customerID: string) => {
   const customer = await prisma.customer.findFirst({
     where: { gstrNo},
@@ -45,11 +53,13 @@ export const loginCustomer = async (gstrNo: string, customerID: string) => {
   return customer;
 };
 
-export const getAllCustomers = async () => {
+export const getAllCustomers = async (employeeId: string) => {
   return prisma.customer.findMany({
+    where: {
+      createdByEmployeeId: employeeId
+    },
     select: {
       id: true,
-      
       customerName: true,
       address: true,
       creditLimit: true,
@@ -57,7 +67,7 @@ export const getAllCustomers = async () => {
       throughVia: true,
       gstrNo: true,
       kycProfile: true,
-      contacts:true,
+      contacts: true,
       isBlacklisted: true,
       relationshipStatus: true,
       gstCopy: true,
@@ -67,6 +77,7 @@ export const getAllCustomers = async () => {
     }
   });
 };
+
 
 
 export const getCustomerGSTList = async () => {

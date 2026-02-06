@@ -20,6 +20,9 @@ router.post("/test-mapping", ppicController.testMapping);
 router.get("/batch/:batchId", ppicController.getBatchStatus);
 router.get("/po-fields", ppicController.getPOFields);
 
+router.patch("/pos/:id/mark-rfd", ppicController.markRFD);
+router.patch("/pos/:id/mark-cancelled", ppicController.markCancelled);
+
 router.get("/export", ppicController.exportPOs);
 router.get("/pos", encryptResponse, ppicController.getAllPOs);
 router.get("/pos/search", encryptResponse, ppicController.searchPOs);

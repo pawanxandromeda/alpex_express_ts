@@ -56,7 +56,7 @@ model Employee {
 
   dateOfJoining          DateTime?
   ctc                    Float?
-  
+    createdCustomers       Customer[]
   createdByRole          String
   username               String?                  @unique
   password               String?
@@ -83,6 +83,8 @@ model Customer {
   paymentTerms         String
   throughVia           String?
   gstrNo               String   @unique
+    createdByEmployeeId  String?
+  createdByEmployee    Employee? @relation(fields: [createdByEmployeeId], references: [id])
   kycProfile           String?
   contactName          String?
   contactPhone         String?
@@ -229,7 +231,8 @@ model PurchaseOrder {
   cartonQuantityOrdered        String?
   dispatchStatus               String?         @default("Pending")
   timestamp                    Json?           // JSON field for RM / Production / Dispatch statuses + timestamps
-
+  isCancelled                 Boolean? @default(false)
+  isRFD                       Boolean? @default(false)
   createdAt                    DateTime         @default(now())
   updatedAt                    DateTime         @updatedAt
 
@@ -299,9 +302,28 @@ model CompositionMaster {
 
 model ApiMaster {
   id                   String   @id @default(uuid())
-  rmActive             String
-  factorCalculation    String
-  finalKg              String
+  drugName             String
+  drugQuantity         String?
   createdAt            DateTime @default(now())
   updatedAt            DateTime @updatedAt
+}
+
+
+model VendorMaster{
+    id                   String   @id @default(uuid())
+    vendorName           String
+    vendorCode           String?
+    contactPerson        String?
+    vendorEmail          String?
+    vendorPhone          String?
+    vendorAdress         String?
+    vendorState          String?
+    vendorGSTNo          String?
+    paymentTerms         String?
+    vendorBankName       String?
+    vendorAccountNumber  String?
+    vendorIFSC           String?
+    createdAt            DateTime @default(now())
+    updatedAt            DateTime @updatedAt
+
 }

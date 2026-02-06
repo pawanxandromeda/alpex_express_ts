@@ -13,12 +13,23 @@ import {
 } from "./../../common/utils/customer.import.utils";
 import { sendSuccess, sendError, handleError } from "../../common/utils/responseFormatter";
 import { ERROR_CODES } from "../../common/utils/errorMessages";
+import { AuthRequest } from "../../common/middleware/auth.middleware";
 
 
-export const createCustomer = async (req: Request, res: Response) => {
+export const createCustomer = async (req: AuthRequest, res: Response) => {
   try {
+    if (!req.user?.id) {
+      return res.status(401).json({ message: "Unauthorized" });
+    }
+
     const payload = createCustomerSchema.parse(req.body);
-    const customer = await service.createCustomer(payload);
+
+    const customer = await service.createCustomer(
+      payload,
+      req.user.id,     
+      req.user.name     
+    );
+
     return sendSuccess(res, customer, "Customer created successfully", 201);
   } catch (err: any) {
     return handleError(res, err);
@@ -52,10 +63,16 @@ export const verifyToken = (req: Request, res: Response) => {
   }
 };
 
-export const getCustomers = async (_: Request, res: Response) => {
-  const customers = await service.getAllCustomers();
-  (res as any).encryptAndSend(customers);
+export const getCustomers = async (req: AuthRequest, res: Response) => {
+  if (!req.user?.id) {
+    return res.status(401).json({ message: "Unauthorized" });
+  }
+
+  const customer = await service.getAllCustomers(req.user.id);
+  console.log("Fetched customer for user:", req.user.id, customer);
+  (res as any).encryptAndSend(customer);
 };
+
 
 export const getGSTCustomers = async (_: Request, res: Response) => {
   res.json(await service.getCustomerGSTList());
@@ -171,13 +188,22 @@ export const importCustomers = async (req: Request, res: Response) => {
 };
 
 
-export const exportCustomers = async (_: Request, res: Response) => {
-  const customers = await service.getAllCustomers();
+export const exportCustomers = async (req: AuthRequest, res: Response) => {
+  if (!req.user?.id) {
+    return res.status(401).json({ message: "Unauthorized" });
+  }
 
-  const worksheet = XLSX.utils.json_to_sheet(customers);
+  const customer = await service.getAllCustomers(req.user.id);
+
+  if (!customer) {
+    return res.status(404).json({ message: "Customer not found" });
+  }
+
+  // XLSX expects array of objects
+  const worksheet = XLSX.utils.json_to_sheet([customer]);
   const workbook = XLSX.utils.book_new();
 
-  XLSX.utils.book_append_sheet(workbook, worksheet, "Customers");
+  XLSX.utils.book_append_sheet(workbook, worksheet, "Customer");
 
   const buffer = XLSX.write(workbook, {
     type: "buffer",
@@ -186,8 +212,13 @@ export const exportCustomers = async (_: Request, res: Response) => {
 
   res.setHeader(
     "Content-Disposition",
-    "attachment; filename=customers.xlsx"
+    "attachment; filename=customer.xlsx"
   );
+  res.setHeader(
+    "Content-Type",
+    "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+  );
+
   res.send(buffer);
 };
 

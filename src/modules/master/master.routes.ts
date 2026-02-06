@@ -42,7 +42,26 @@ router.post(
 router.post('/api-master', masterController.createApiMaster);
 router.get('/api-master', masterController.getAllApiMasters);
 router.get('/api-master/:id', masterController.getApiMasterById);
-router.put('/api-master/:id', masterController.updateApiMaster);
-router.delete('/api-master/:id', masterController.deleteApiMaster);
+router.put('/api-master/:id', authorize(["admin", "manager"]), masterController.updateApiMaster);
+router.delete('/api-master/:id', authorize(["admin"]), masterController.deleteApiMaster);
+router.post(
+  '/api-master/bulk-import',
+  upload.single('file'),
+  authorize(["admin", "manager"]),
+  masterController.bulkImportApiMaster
+);
+
+// VendorMaster routes
+router.post('/vendor-master', masterController.createVendorMaster);
+router.get('/vendor-master', masterController.getAllVendorMasters);
+router.get('/vendor-master/:id', masterController.getVendorMasterById);
+router.put('/vendor-master/:id', authorize(["admin", "manager"]), masterController.updateVendorMaster);
+router.delete('/vendor-master/:id', authorize(["admin"]), masterController.deleteVendorMaster);
+router.post(
+  '/vendor-master/bulk-import',
+  upload.single('file'),
+  authorize(["admin", "manager"]),
+  masterController.bulkImportVendorMaster
+);
 
 export default router;

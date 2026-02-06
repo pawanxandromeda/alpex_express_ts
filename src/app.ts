@@ -13,6 +13,7 @@ import designerRoutes from "./modules/designer/designer.routes";
 import accountsRoutes from "./modules/accounts/accounts.routes";
 import ppicRoutes from "./modules/ppic/ppic.routes";
 import masterRoutes from "./modules/master/master.routes";
+import ppicfilterRoutes from "./modules/ppic/ppic-advanced-filter.routes";
 
 
 
@@ -63,6 +64,7 @@ app.use("/api/designer", designerRoutes);
 app.use("/api/accounts", accountsRoutes);
 app.use("/api/ppic", ppicRoutes);
 app.use("/api/master", masterRoutes);
+app.use("/api/ppicfilter", ppicfilterRoutes);
 
 
 

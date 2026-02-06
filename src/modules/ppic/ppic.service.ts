@@ -782,4 +782,36 @@ private static async createSinglePurchaseOrder(
       throw new Error(`XLSX generation failed: ${(err as Error).message}`);
     }
   }
+
+  /**
+   * Mark purchase order as RFD (Request for Debit)
+   */
+  static async markRFD(poId: string) {
+    try {
+      const updatedPO = await prisma.purchaseOrder.update({
+        where: { id: poId },
+        data: { isRFD: true },
+        include: { customer: true },
+      });
+      return updatedPO;
+    } catch (err) {
+      throw new AppError(`Failed to mark RFD: ${(err as Error).message}`);
+    }
+  }
+
+  /**
+   * Mark purchase order as cancelled
+   */
+  static async markCancelled(poId: string) {
+    try {
+      const updatedPO = await prisma.purchaseOrder.update({
+        where: { id: poId },
+        data: { isCancelled: true },
+        include: { customer: true },
+      });
+      return updatedPO;
+    } catch (err) {
+      throw new AppError(`Failed to mark as cancelled: ${(err as Error).message}`);
+    }
+  }
 }

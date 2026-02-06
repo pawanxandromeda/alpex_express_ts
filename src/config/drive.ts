@@ -13,7 +13,7 @@ export const uploadToDrive = async (file: Express.Multer.File) => {
     throw new Error("File buffer missing");
   }
 
-  const bufferStream = Readable.from(file.buffer); // ✅ convert buffer → stream
+  const bufferStream = Readable.from(file.buffer); 
 
   const response = await drive.files.create({
     requestBody: {
@@ -22,7 +22,7 @@ export const uploadToDrive = async (file: Express.Multer.File) => {
     },
     media: {
       mimeType: file.mimetype,
-      body: bufferStream, // ✅ FIXED
+      body: bufferStream, 
     },
   });
 

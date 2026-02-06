@@ -273,4 +273,126 @@ async bulkCreateCompositionMasters(req: Request, res: Response) {
       }
     }
   }
+
+  async bulkImportApiMaster(req: Request, res: Response) {
+    try {
+      if (!req.file) {
+        return res.status(400).json({ error: "No file uploaded" });
+      }
+
+      const fieldMapping = req.body.fieldMapping 
+        ? JSON.parse(req.body.fieldMapping)
+        : {};
+
+      const result = await masterService.bulkImportApiMaster(
+        req.file,
+        fieldMapping
+      );
+
+      res.status(201).json(result);
+    } catch (error) {
+      console.error('Bulk import error:', error);
+      res.status(500).json({ 
+        success: false,
+        error: (error as Error).message 
+      });
+    }
+  }
+
+  async createVendorMaster(req: Request, res: Response) {
+    try {
+      const result = await masterService.createVendorMaster(req.body);
+      res.status(201).json(result);
+    } catch (error) {
+      if (error instanceof Error) {
+        res.status(500).json({ error: error.message });
+      } else {
+        res.status(500).json({ error: 'An unknown error occurred' });
+      }
+    }
+  }
+
+  async getAllVendorMasters(req: Request, res: Response) {
+    try {
+      const page = parseInt(req.query.page as string) || 1;
+      const limit = parseInt(req.query.limit as string) || 10;
+
+      const result = await masterService.getAllVendorMasters(page, limit);
+
+      res.status(200).json(result);
+    } catch (error) {
+      if (error instanceof Error) {
+        res.status(500).json({ error: error.message });
+      } else {
+        res.status(500).json({ error: 'An unknown error occurred' });
+      }
+    }
+  }
+
+  async getVendorMasterById(req: Request, res: Response) {
+    try {
+      const id = req.params.id as string;
+      const result = await masterService.getVendorMasterById(id);
+      res.status(200).json(result);
+    } catch (error) {
+      if (error instanceof Error) {
+        res.status(500).json({ error: error.message });
+      } else {
+        res.status(500).json({ error: 'An unknown error occurred' });
+      }
+    }
+  }
+
+  async updateVendorMaster(req: Request, res: Response) {
+    try {
+      const id = req.params.id as string;
+      const result = await masterService.updateVendorMaster(id, req.body);
+      res.status(200).json(result);
+    } catch (error) {
+      if (error instanceof Error) {
+        res.status(500).json({ error: error.message });
+      } else {
+        res.status(500).json({ error: 'An unknown error occurred' });
+      }
+    }
+  }
+
+  async deleteVendorMaster(req: Request, res: Response) {
+    try {
+      const id = req.params.id as string;
+      const result = await masterService.deleteVendorMaster(id);
+      res.status(200).json(result);
+    } catch (error) {
+      if (error instanceof Error) {
+        res.status(500).json({ error: error.message });
+      } else {
+        res.status(500).json({ error: 'An unknown error occurred' });
+      }
+    }
+  }
+
+  async bulkImportVendorMaster(req: Request, res: Response) {
+    try {
+      if (!req.file) {
+        return res.status(400).json({ error: "No file uploaded" });
+      }
+
+      const fieldMapping = req.body.fieldMapping 
+        ? JSON.parse(req.body.fieldMapping)
+        : {};
+
+      const result = await masterService.bulkImportVendorMaster(
+        req.file,
+        fieldMapping
+      );
+
+      res.status(201).json(result);
+    } catch (error) {
+      console.error('Bulk import error:', error);
+      res.status(500).json({ 
+        success: false,
+        error: (error as Error).message 
+      });
+    }
+  }
 }
