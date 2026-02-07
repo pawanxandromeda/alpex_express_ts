@@ -31,7 +31,7 @@ app.use(express.urlencoded({ limit: "50mb", extended: true }));
 
 const allowedOrigins: string[] = [
   "http://localhost:8080",
-  "https://alpex-dashboard.vercel.app",
+  "https://www.thealpex.com ",
 ];
 
 

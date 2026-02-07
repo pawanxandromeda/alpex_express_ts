@@ -16,8 +16,8 @@ async function main() {
       name: "System Admin",
       email: "admin@example.com",    // required
       phone: "9999999999",           // required
-      role: "Admin",
-      department: "Admin",
+      role: "admin",
+      department: "admin",
       status: "Active",
       createdByRole: "Superuser",
     },

@@ -423,81 +423,93 @@ private static async createSinglePurchaseOrder(
   /**
    * Get all imported purchase orders with pagination
    */
-  static async getAllImportedPOs(
-    page: number = 1,
-    limit: number = 50,
-    sortBy: string = "createdAt",
-    sortOrder: "asc" | "desc" = "desc"
-  ): Promise<{
-    data: any[];
-    pagination: {
-      total: number;
-      page: number;
-      limit: number;
-      totalPages: number;
-      hasNext: boolean;
-      hasPrev: boolean;
-    };
-  }> {
-    try {
-      // Validate pagination parameters
-      const pageNum = Math.max(1, page);
-      const limitNum = Math.max(1, Math.min(limit, 100)); // Max 100 per page
-      const skip = (pageNum - 1) * limitNum;
+static async getAllImportedPOs(
+  page: number = 1,
+  limit: number = 50,
+  sortBy: string = "createdAt",
+  sortOrder: "asc" | "desc" = "desc"
+): Promise<{
+  data: any[];
+  pagination: {
+    total: number;
+    page: number;
+    limit: number;
+    totalPages: number;
+    hasNext: boolean;
+    hasPrev: boolean;
+  };
+}> {
+  try {
+    // Validate pagination parameters
+    const pageNum = Math.max(1, page);
+    const limitNum = Math.max(1, Math.min(limit, 100));
+    const skip = (pageNum - 1) * limitNum;
 
-      // Valid sort fields
-      const validSortFields = [
-        "createdAt",
-        "updatedAt",
-        "poNo",
-        "poDate",
-        "amount",
-        "poQty",
-      ];
-      const sortField = validSortFields.includes(sortBy) ? sortBy : "createdAt";
+    // Valid sort fields
+    const validSortFields = [
+      "createdAt",
+      "updatedAt",
+      "poNo",
+      "poDate",
+      "amount",
+      "poQty",
+    ];
+    const sortField = validSortFields.includes(sortBy)
+      ? sortBy
+      : "createdAt";
 
-      // Get total count
-      const total = await prisma.purchaseOrder.count();
+    // Get total count
+    const total = await prisma.purchaseOrder.count();
 
-      // Get paginated data
-      const data = await prisma.purchaseOrder.findMany({
-        skip,
-        take: limitNum,
-        orderBy: {
-          [sortField]: sortOrder,
-        },
-        include: {
-          customer: {
-            select: {
-              id: true,
-              customerName: true,
-              gstrNo: true,
-              contactEmail: true,
-              contactPhone: true,
-            },
+    // Get paginated data
+    const data = await prisma.purchaseOrder.findMany({
+      skip,
+      take: limitNum,
+      orderBy: {
+        [sortField]: sortOrder,
+      },
+      include: {
+        customer: {
+          select: {
+            id: true,
+            customerName: true,
+            gstrNo: true,
+            contactEmail: true,
+            contactPhone: true,
           },
         },
-      });
+      },
+    });
 
-      const totalPages = Math.ceil(total / limitNum);
-      const hasNext = pageNum < totalPages;
-      const hasPrev = pageNum > 1;
+    const totalPages = Math.ceil(total / limitNum);
+    const hasNext = pageNum < totalPages;
+    const hasPrev = pageNum > 1;
 
-      return {
-        data,
-        pagination: {
-          total,
-          page: pageNum,
-          limit: limitNum,
-          totalPages,
-          hasNext,
-          hasPrev,
-        },
-      };
-    } catch (err) {
-      throw new Error(`Failed to fetch purchase orders: ${(err as Error).message}`);
-    }
+    const result = {
+      data,
+      pagination: {
+        total,
+        page: pageNum,
+        limit: limitNum,
+        totalPages,
+        hasNext,
+        hasPrev,
+      },
+    };
+
+    // 🔥 CONSOLE OUTPUT
+    console.log("📦 getAllImportedPOs RESULT:");
+    console.log(JSON.stringify(result, null, 2));
+
+    return result;
+  } catch (err) {
+    console.error("❌ Error in getAllImportedPOs:", err);
+    throw new Error(
+      `Failed to fetch purchase orders: ${(err as Error).message}`
+    );
   }
+}
+
 
   /**
    * Get purchase order by ID

@@ -6,6 +6,7 @@ const getEmployeeIdFromUsername = async (username: string) => {
     where: { username: username },
     select: { id: true },
   });
+  console.log(`🔍 Looking up employee ID for username "${username}": ${employee?.id}`);
   return employee?.id;
 };
 

@@ -2,7 +2,7 @@ import "dotenv/config";
 import prisma from "../src/config/postgres";
 
 async function main() {
-  const result = await prisma.customer.deleteMany({});
+  const result = await prisma.purchaseOrder.deleteMany({});
 
   console.log(`🗑️ Deleted ${result.count} customers`);
 }

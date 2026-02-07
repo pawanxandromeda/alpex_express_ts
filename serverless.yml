@@ -1,0 +1,41 @@
+service: alpex-backend
+
+frameworkVersion: '4'
+
+provider:
+  name: aws
+  runtime: nodejs18.x
+  region: ap-south-1
+  environment:
+    DATABASE_URL: ${env:DATABASE_URL}
+    JWT_SECRET: ${env:JWT_SECRET}
+    JWT_EXPIRES_IN: ${env:JWT_EXPIRES_IN}
+    JWT_REFRESH_SECRET: ${env:JWT_REFRESH_SECRET}
+    JWT_REFRESH_EXPIRES_IN: ${env:JWT_REFRESH_EXPIRES_IN}
+    REDIS_URL: ${env:REDIS_URL}
+    ENCRYPT_KEY: ${env:ENCRYPT_KEY}
+
+functions:
+  api:
+    handler: lambda.handler
+    events:
+      - httpApi:
+          path: /{proxy+}
+          method: ANY
+
+plugins:
+  - serverless-offline
+  
+
+package:
+  exclude:
+    - node_modules/**
+    - .gitignore
+    - .env
+  include:
+    - node_modules/@prisma/client/**
+    - prisma/schema.prisma
+
+custom:
+  serverless-offline:
+    httpPort: 5000
