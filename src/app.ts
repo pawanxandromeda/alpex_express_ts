@@ -30,7 +30,7 @@ app.use(express.json({ limit: "50mb" }));
 app.use(express.urlencoded({ limit: "50mb", extended: true }));
 
 const allowedOrigins: string[] = [
-  "http://localhost:8080",
+  // "http://localhost:8080",
   "https://www.thealpex.com ",
 ];
 
