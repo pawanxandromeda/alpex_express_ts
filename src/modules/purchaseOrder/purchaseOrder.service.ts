@@ -8,8 +8,16 @@ import {
   getAuditLog,
   trackFieldChanges,
 } from "../../common/utils/auditLog";
-
-const CACHE_TTL = 60;
+import {
+  CACHE_TTL,
+  CACHE_KEYS,
+  CACHE_INVALIDATION_MAP,
+  invalidateCache,
+  invalidateBatchKeys,
+  getOrSet,
+  setWithWriteThrough,
+  warmCache,
+} from "../../common/utils/cacheManager";
 
 interface TimestampAction {
   actionType: string;
@@ -153,9 +161,26 @@ export const createPurchaseOrder = async (data: any) => {
       },
     });
 
-    // Clear cache
-    await redis.del("purchase_orders:list:*");
-    await redis.del(`po:gst:${gstNo}`);
+    // 🔥 Invalidate cache and warm frequently accessed data
+    await invalidateBatchKeys(CACHE_INVALIDATION_MAP.CREATE);
+    
+    // Warm cache with the newly created PO
+    await warmCache([
+      {
+        key: CACHE_KEYS.PO_SINGLE(po.id),
+        ttl: CACHE_TTL.MEDIUM,
+        fetch: async () => po,
+      },
+      {
+        key: CACHE_KEYS.PO_BY_GST(gstNo),
+        ttl: CACHE_TTL.MEDIUM,
+        fetch: async () =>
+          prisma.purchaseOrder.findMany({
+            where: { gstNo },
+            include: { customer: true },
+          }),
+      },
+    ]);
 
     return po;
   } catch (error) {
@@ -242,10 +267,35 @@ export const createPurchaseOrderWithCreditCheck = async (data: any) => {
 
     console.log("PO created with auto-approval:", po.id);
 
-    // Clear cache
-    await redis.del("purchase_orders:list:*");
-    await redis.del(`po:gst:${gstNo}`);
-    await redis.del(`po:slab:${gstNo}`);
+    // 🔥 Invalidate cache and warm frequently accessed data
+    await invalidateBatchKeys(CACHE_INVALIDATION_MAP.CREATE);
+    
+    // Warm cache with the newly created PO
+    await warmCache([
+      {
+        key: CACHE_KEYS.PO_SINGLE(po.id),
+        ttl: CACHE_TTL.MEDIUM,
+        fetch: async () => po,
+      },
+      {
+        key: CACHE_KEYS.PO_BY_GST(gstNo),
+        ttl: CACHE_TTL.MEDIUM,
+        fetch: async () =>
+          prisma.purchaseOrder.findMany({
+            where: { gstNo },
+            include: { customer: true },
+          }),
+      },
+      {
+        key: CACHE_KEYS.PO_MD_APPROVED(),
+        ttl: CACHE_TTL.LONG,
+        fetch: async () =>
+          prisma.purchaseOrder.findMany({
+            where: { mdApproval: "Approved" },
+            include: { customer: true },
+          }),
+      },
+    ]);
 
     return po;
   } catch (error) {
@@ -255,25 +305,20 @@ export const createPurchaseOrderWithCreditCheck = async (data: any) => {
 };
 /* ---------------- GET BY ID ---------------- */
 export const getPurchaseOrderById = async (id: string) => {
-  const cacheKey = `purchase_orders:single:${id}`;
+  const cacheKey = CACHE_KEYS.PO_SINGLE(id);
+  
+  return getOrSet(cacheKey, CACHE_TTL.MEDIUM, async () => {
+    const po = await prisma.purchaseOrder.findUnique({
+      where: { id },
+      include: { customer: true },
+    });
 
-  const cached = await redis.get(cacheKey);
-  if (cached) {
-    return JSON.parse(cached);
-  }
+    if (!po) {
+      throw new AppError(ERROR_CODES.PO_NOT_FOUND);
+    }
 
-  const po = await prisma.purchaseOrder.findUnique({
-    where: { id },
-    include: { customer: true },
+    return po;
   });
-
-  if (!po) {
-    throw new AppError(ERROR_CODES.PO_NOT_FOUND);
-  }
-
-  await redis.setex(cacheKey, CACHE_TTL, JSON.stringify(po));
-
-  return po;
 };
 
 /* ---------------- UPDATE ---------------- */
@@ -383,9 +428,40 @@ export const updatePurchaseOrder = async (id: string, data: any) => {
     },
   });
 
-  await Promise.all([
-    redis.del(`purchase_orders:single:${id}`),
-    redis.del("purchase_orders:list:*"),
+  // 🔥 Invalidate related cache and warm frequently accessed data
+  const invalidationKeys = CACHE_INVALIDATION_MAP.UPDATE(id, po.gstNo as string);
+  await invalidateBatchKeys(invalidationKeys);
+
+  // Warm cache with updated PO
+  await warmCache([
+    {
+      key: CACHE_KEYS.PO_SINGLE(id),
+      ttl: CACHE_TTL.MEDIUM,
+      fetch: async () => updated,
+    },
+    {
+      key: CACHE_KEYS.PO_BY_GST(po.gstNo as string),
+      ttl: CACHE_TTL.MEDIUM,
+      fetch: async () =>
+        prisma.purchaseOrder.findMany({
+          where: { gstNo: po.gstNo },
+          include: { customer: true },
+        }),
+    },
+    {
+      key: CACHE_KEYS.PO_SLAB_LIMIT(po.gstNo as string),
+      ttl: CACHE_TTL.SHORT,
+      fetch: async () => {
+        const pos = await prisma.purchaseOrder.findMany({
+          where: { gstNo: po.gstNo },
+          select: { amount: true },
+        });
+        return pos.reduce((sum, p) => {
+          const amount = p.amount ? parseFloat(String(p.amount)) : 0;
+          return sum + (isNaN(amount) ? 0 : amount);
+        }, 0);
+      },
+    },
   ]);
 
   return updated;
@@ -403,12 +479,9 @@ export const deletePurchaseOrder = async (id: string) => {
 
   await prisma.purchaseOrder.delete({ where: { id } });
 
-  await Promise.all([
-    redis.del(`purchase_orders:single:${id}`),
-    redis.del("purchase_orders:list:*"),
-    redis.del(`po:gst:${po.gstNo}`),
-    redis.del(`po:slab:${po.gstNo}`),
-  ]);
+  // 🔥 Invalidate related cache
+  const invalidationKeys = CACHE_INVALIDATION_MAP.DELETE(id, po.gstNo as string);
+  await invalidateBatchKeys(invalidationKeys);
 };
 
 /* ---------------- GET ALL ---------------- */
@@ -429,8 +502,8 @@ export const getAllPurchaseOrders = async (
   order: "asc" | "desc" = "desc"
 ) => {
   try {
-    // 🔐 USER-AWARE CACHE KEY
-    const cacheKey = getCacheKey("purchase_orders:list", {
+    // 🔐 USER-AWARE CACHE KEY using cache manager
+    const cacheKey = CACHE_KEYS.PO_LIST("all", {
       username: filters.createdByUsername,
       gstNo: filters.gstNo,
       poNo: filters.poNo,
@@ -443,72 +516,65 @@ export const getAllPurchaseOrders = async (
       order,
     });
 
-    const cached = await redis.get(cacheKey);
-    if (cached) {
-      return JSON.parse(cached);
-    }
+    return getOrSet(cacheKey, CACHE_TTL.SHORT, async () => {
+      const where: any = {};
 
-    const where: any = {};
+      // 🔐 CRITICAL FILTER — USER CAN SEE ONLY THEIR POs
+      where.orderThrough = filters.createdByUsername;
 
-    // 🔐 CRITICAL FILTER — USER CAN SEE ONLY THEIR POs
-    where.orderThrough = filters.createdByUsername;
+      // 🔎 Optional filters
+      if (filters.gstNo) where.gstNo = filters.gstNo;
 
-    // 🔎 Optional filters
-    if (filters.gstNo) where.gstNo = filters.gstNo;
+      if (filters.poNo) {
+        where.poNo = {
+          contains: filters.poNo,
+          mode: "insensitive",
+        };
+      }
 
-    if (filters.poNo) {
-      where.poNo = {
-        contains: filters.poNo,
-        mode: "insensitive",
+      if (filters.overallStatus) {
+        where.overallStatus = filters.overallStatus;
+      }
+
+      if (filters.productionStatus) {
+        where.productionStatus = filters.productionStatus;
+      }
+
+      if (filters.dispatchStatus) {
+        where.dispatchStatus = filters.dispatchStatus;
+      }
+
+      if (filters.fromDate || filters.toDate) {
+        where.poDate = {};
+        if (filters.fromDate) where.poDate.gte = filters.fromDate;
+        if (filters.toDate) where.poDate.lte = filters.toDate;
+      }
+
+      const [data, total] = await Promise.all([
+        prisma.purchaseOrder.findMany({
+          where,
+          include: {
+            customer: true,
+          },
+          skip: (page - 1) * limit,
+          take: limit,
+          orderBy: {
+            [sortBy]: order,
+          },
+        }),
+        prisma.purchaseOrder.count({ where }),
+      ]);
+
+      return {
+        data,
+        pagination: {
+          total,
+          page,
+          limit,
+          totalPages: Math.ceil(total / limit),
+        },
       };
-    }
-
-    if (filters.overallStatus) {
-      where.overallStatus = filters.overallStatus;
-    }
-
-    if (filters.productionStatus) {
-      where.productionStatus = filters.productionStatus;
-    }
-
-    if (filters.dispatchStatus) {
-      where.dispatchStatus = filters.dispatchStatus;
-    }
-
-    if (filters.fromDate || filters.toDate) {
-      where.poDate = {};
-      if (filters.fromDate) where.poDate.gte = filters.fromDate;
-      if (filters.toDate) where.poDate.lte = filters.toDate;
-    }
-
-    const [data, total] = await Promise.all([
-      prisma.purchaseOrder.findMany({
-        where,
-        include: {
-          customer: true,
-        },
-        skip: (page - 1) * limit,
-        take: limit,
-        orderBy: {
-          [sortBy]: order,
-        },
-      }),
-      prisma.purchaseOrder.count({ where }),
-    ]);
-
-    const response = {
-      data,
-      pagination: {
-        total,
-        page,
-        limit,
-        totalPages: Math.ceil(total / limit),
-      },
-    };
-
-    await redis.setex(cacheKey, CACHE_TTL, JSON.stringify(response));
-
-    return response;
+    });
   } catch (error) {
     console.error("Error getting all purchase orders:", error);
     throw error;
@@ -543,17 +609,14 @@ export const getLatestPoCount = async (): Promise<number> => {
 
 export const getPOByGST = async (gstNo: string) => {
   try {
-    const cacheKey = `po:gst:${gstNo}`;
-    const cached = await redis.get(cacheKey);
-    if (cached) return JSON.parse(cached);
-
-    const data = await prisma.purchaseOrder.findMany({ 
-      where: { gstNo },
-      include: { customer: true }
+    const cacheKey = CACHE_KEYS.PO_BY_GST(gstNo);
+    
+    return getOrSet(cacheKey, CACHE_TTL.MEDIUM, async () => {
+      return prisma.purchaseOrder.findMany({ 
+        where: { gstNo },
+        include: { customer: true }
+      });
     });
-
-    await redis.setex(cacheKey, 120, JSON.stringify(data));
-    return data;
   } catch (error) {
     console.error("Error getting PO by GST:", error);
     throw error;
@@ -562,17 +625,14 @@ export const getPOByGST = async (gstNo: string) => {
 
 export const getMDApprovedPOs = async () => {
   try {
-    const cacheKey = `po:md_approved`;
-    const cached = await redis.get(cacheKey);
-    if (cached) return JSON.parse(cached);
-
-    const data = await prisma.purchaseOrder.findMany({
-      where: { mdApproval: "Approved" },
-      include: { customer: true },
+    const cacheKey = CACHE_KEYS.PO_MD_APPROVED();
+    
+    return getOrSet(cacheKey, CACHE_TTL.LONG, async () => {
+      return prisma.purchaseOrder.findMany({
+        where: { mdApproval: "Approved" },
+        include: { customer: true },
+      });
     });
-
-    await redis.setex(cacheKey, 120, JSON.stringify(data));
-    return data;
   } catch (error) {
     console.error("Error getting MD approved POs:", error);
     throw error;
@@ -581,32 +641,29 @@ export const getMDApprovedPOs = async () => {
 
 export const getPPICApprovedBatches = async () => {
   try {
-    const cacheKey = `po:ppic_approved_batches`;
-    const cached = await redis.get(cacheKey);
-    if (cached) return JSON.parse(cached);
+    const cacheKey = CACHE_KEYS.PO_PPIC_APPROVED_BATCHES();
+    
+    return getOrSet(cacheKey, CACHE_TTL.LONG, async () => {
+      const data = await prisma.purchaseOrder.findMany({
+        where: { 
+          ppicApproval: "Approved",
+          batchNo: { not: null }
+        },
+        select: { 
+          batchNo: true,
+          brandName: true,
+          poNo: true,
+          poQty: true,
+        },
+      });
 
-    const data = await prisma.purchaseOrder.findMany({
-      where: { 
-        ppicApproval: "Approved",
-        batchNo: { not: null }
-      },
-      select: { 
-        batchNo: true,
-        brandName: true,
-        poNo: true,
-        poQty: true,
-      },
+      return data.map(d => ({
+        batchNo: d.batchNo,
+        brandName: d.brandName,
+        poNo: d.poNo,
+        poQty: d.poQty,
+      })).filter(b => b.batchNo);
     });
-
-    const batches = data.map(d => ({
-      batchNo: d.batchNo,
-      brandName: d.brandName,
-      poNo: d.poNo,
-      poQty: d.poQty,
-    })).filter(b => b.batchNo);
-
-    await redis.setex(cacheKey, 120, JSON.stringify(batches));
-    return batches;
   } catch (error) {
     console.error("Error getting PPIC approved batches:", error);
     throw error;
@@ -615,22 +672,19 @@ export const getPPICApprovedBatches = async () => {
 
 export const getSlabLimit = async (gstNo: string) => {
   try {
-    const cacheKey = `po:slab:${gstNo}`;
-    const cached = await redis.get(cacheKey);
-    if (cached) return JSON.parse(cached);
+    const cacheKey = CACHE_KEYS.PO_SLAB_LIMIT(gstNo);
+    
+    return getOrSet(cacheKey, CACHE_TTL.SHORT, async () => {
+      const pos = await prisma.purchaseOrder.findMany({
+        where: { gstNo },
+        select: { amount: true },
+      });
 
-    const pos = await prisma.purchaseOrder.findMany({
-      where: { gstNo },
-      select: { amount: true },
+      return pos.reduce((sum, po) => {
+        const amount = po.amount ? parseFloat(String(po.amount)) : 0;
+        return sum + (isNaN(amount) ? 0 : amount);
+      }, 0);
     });
-
-    const total = pos.reduce((sum, po) => {
-      const amount = po.amount ? parseFloat(String(po.amount)) : 0;
-      return sum + (isNaN(amount) ? 0 : amount);
-    }, 0);
-
-    await redis.setex(cacheKey, 120, JSON.stringify(total));
-    return total;
   } catch (error) {
     console.error("Error getting slab limit:", error);
     throw error;
@@ -639,23 +693,20 @@ export const getSlabLimit = async (gstNo: string) => {
 
 export const getBatchNumbers = async () => {
   try {
-    const cacheKey = `po:batch_numbers`;
-    const cached = await redis.get(cacheKey);
-    if (cached) return JSON.parse(cached);
-
-    const data = await prisma.purchaseOrder.findMany({
-      where: { batchNo: { not: null } },
-      select: {
-        batchNo: true,
-        brandName: true,
-        poNo: true,
-        poQty: true,
-      },
-      distinct: ['batchNo'],
+    const cacheKey = CACHE_KEYS.PO_BATCH_NUMBERS();
+    
+    return getOrSet(cacheKey, CACHE_TTL.LONG, async () => {
+      return prisma.purchaseOrder.findMany({
+        where: { batchNo: { not: null } },
+        select: {
+          batchNo: true,
+          brandName: true,
+          poNo: true,
+          poQty: true,
+        },
+        distinct: ['batchNo'],
+      });
     });
-
-    await redis.setex(cacheKey, 120, JSON.stringify(data));
-    return data;
   } catch (error) {
     console.error("Error getting batch numbers:", error);
     throw error;
@@ -664,138 +715,134 @@ export const getBatchNumbers = async () => {
 
 export const getPOAnalytics = async (fromDate?: Date, toDate?: Date) => {
   try {
-    const cacheKey = getCacheKey("po:analytics", { fromDate, toDate });
-    const cached = await redis.get(cacheKey);
-    if (cached) return JSON.parse(cached);
+    const cacheKey = CACHE_KEYS.PO_ANALYTICS("analytics", { fromDate, toDate });
+    
+    return getOrSet(cacheKey, CACHE_TTL.LONG, async () => {
+      const where: any = {};
+      if (fromDate || toDate) {
+        where.poDate = {};
+        if (fromDate) where.poDate.gte = fromDate;
+        if (toDate) where.poDate.lte = toDate;
+      }
 
-    const where: any = {};
-    if (fromDate || toDate) {
-      where.poDate = {};
-      if (fromDate) where.poDate.gte = fromDate;
-      if (toDate) where.poDate.lte = toDate;
-    }
+      const [
+        totalPOs,
+        statusCounts,
+        allPOs,
+        posPerCustomer,
+        monthlyPOs,
+        approvalStats,
+        productionStats,
+        dispatchStats,
+      ] = await Promise.all([
+        // Total POs
+        prisma.purchaseOrder.count({ where }),
 
-    const [
-      totalPOs,
-      statusCounts,
-      allPOs,
-      posPerCustomer,
-      monthlyPOs,
-      approvalStats,
-      productionStats,
-      dispatchStats,
-    ] = await Promise.all([
-      // Total POs
-      prisma.purchaseOrder.count({ where }),
+        // POs grouped by overall status
+        prisma.purchaseOrder.groupBy({
+          by: ["overallStatus"],
+          _count: { id: true },
+          where,
+        }),
 
-      // POs grouped by overall status
-      prisma.purchaseOrder.groupBy({
-        by: ["overallStatus"],
-        _count: { id: true },
-        where,
-      }),
+        // Fetch all POs for manual amount calculation
+        prisma.purchaseOrder.findMany({
+          select: { amount: true, gstNo: true },
+          where,
+        }),
 
-      // Fetch all POs for manual amount calculation
-      prisma.purchaseOrder.findMany({
-        select: { amount: true, gstNo: true },
-        where,
-      }),
+        // Top 10 customers by PO count
+        prisma.purchaseOrder.groupBy({
+          by: ["gstNo"],
+          _count: { id: true },
+          where,
+          orderBy: { _count: { id: "desc" } },
+          take: 10,
+        }),
 
-      // Top 10 customers by PO count
-      prisma.purchaseOrder.groupBy({
-        by: ["gstNo"],
-        _count: { id: true },
-        where,
-        orderBy: { _count: { id: "desc" } },
-        take: 10,
-      }),
+        // Monthly POs (last 12 months)
+        prisma.$queryRaw<Array<{ month: Date; count: bigint }>>`
+          SELECT 
+            DATE_TRUNC('month', "poDate") as month,
+            COUNT(*) as count
+          FROM "PurchaseOrder"
+          WHERE (${fromDate ? `"poDate" >= ${fromDate}` : 'TRUE'})
+            AND (${toDate ? `"poDate" <= ${toDate}` : 'TRUE'})
+          GROUP BY month
+          ORDER BY month DESC
+          LIMIT 12
+        `,
 
-      // Monthly POs (last 12 months)
-      prisma.$queryRaw<Array<{ month: Date; count: bigint }>>`
-        SELECT 
-          DATE_TRUNC('month', "poDate") as month,
-          COUNT(*) as count
-        FROM "PurchaseOrder"
-        WHERE (${fromDate ? `"poDate" >= ${fromDate}` : 'TRUE'})
-          AND (${toDate ? `"poDate" <= ${toDate}` : 'TRUE'})
-        GROUP BY month
-        ORDER BY month DESC
-        LIMIT 12
-      `,
+        // Approval stats
+        prisma.purchaseOrder.groupBy({
+          by: ["mdApproval", "accountsApproval", "designerApproval", "ppicApproval"],
+          _count: { id: true },
+          where,
+        }),
 
-      // Approval stats
-      prisma.purchaseOrder.groupBy({
-        by: ["mdApproval", "accountsApproval", "designerApproval", "ppicApproval"],
-        _count: { id: true },
-        where,
-      }),
+        // Production status stats
+        prisma.purchaseOrder.groupBy({
+          by: ["productionStatus"],
+          _count: { id: true },
+          where,
+        }),
 
-      // Production status stats
-      prisma.purchaseOrder.groupBy({
-        by: ["productionStatus"],
-        _count: { id: true },
-        where,
-      }),
+        // Dispatch status stats
+        prisma.purchaseOrder.groupBy({
+          by: ["dispatchStatus"],
+          _count: { id: true },
+          where,
+        }),
+      ]);
 
-      // Dispatch status stats
-      prisma.purchaseOrder.groupBy({
-        by: ["dispatchStatus"],
-        _count: { id: true },
-        where,
-      }),
-    ]);
-
-    // Prepare response
-    const response = {
-      totalPOs,
-      statusCounts: statusCounts.map((s) => ({
-        status: s.overallStatus,
-        count: s._count.id,
-      })),
-      totalAmount: allPOs.reduce((sum, po) => {
-        const amount = po.amount ? parseFloat(String(po.amount)) : 0;
-        return sum + (isNaN(amount) ? 0 : amount);
-      }, 0),
-      averageAmount: allPOs.length > 0 ? 
-        allPOs.reduce((sum, po) => {
+      // Prepare response
+      return {
+        totalPOs,
+        statusCounts: statusCounts.map((s) => ({
+          status: s.overallStatus,
+          count: s._count.id,
+        })),
+        totalAmount: allPOs.reduce((sum, po) => {
           const amount = po.amount ? parseFloat(String(po.amount)) : 0;
           return sum + (isNaN(amount) ? 0 : amount);
-        }, 0) / allPOs.length : 0,
-      posPerCustomer: posPerCustomer.map((c) => ({
-        gstNo: c.gstNo,
-        count: c._count.id,
-      })),
-      monthlyPOs: monthlyPOs.map((m) => ({
-        month: m.month.toISOString(),
-        count: Number(m.count),
-      })),
-      topCustomersByAmount: posPerCustomer.map((c) => {
-        const customerPOs = allPOs.filter(po => po.gstNo === c.gstNo);
-        const totalAmount = customerPOs.reduce((sum, po) => {
-          const amount = po.amount ? parseFloat(String(po.amount)) : 0;
-          return sum + (isNaN(amount) ? 0 : amount);
-        }, 0);
-        return { gstNo: c.gstNo, totalAmount };
-      }).sort((a, b) => b.totalAmount - a.totalAmount).slice(0, 10),
-      approvalStats: {
-        mdApproved: approvalStats.filter(a => a.mdApproval === "Approved").reduce((sum, a) => sum + a._count.id, 0),
-        accountsApproved: approvalStats.filter(a => a.accountsApproval === "Approved").reduce((sum, a) => sum + a._count.id, 0),
-        designerApproved: approvalStats.filter(a => a.designerApproval === "Approved").reduce((sum, a) => sum + a._count.id, 0),
-        ppicApproved: approvalStats.filter(a => a.ppicApproval === "Approved").reduce((sum, a) => sum + a._count.id, 0),
-      },
-      productionStats: productionStats.map((p) => ({
-        status: p.productionStatus,
-        count: p._count.id,
-      })),
-      dispatchStats: dispatchStats.map((d) => ({
-        status: d.dispatchStatus,
-        count: d._count.id,
-      })),
-    };
-
-    await redis.setex(cacheKey, 300, JSON.stringify(response));
-
-    return response;
+        }, 0),
+        averageAmount: allPOs.length > 0 ? 
+          allPOs.reduce((sum, po) => {
+            const amount = po.amount ? parseFloat(String(po.amount)) : 0;
+            return sum + (isNaN(amount) ? 0 : amount);
+          }, 0) / allPOs.length : 0,
+        posPerCustomer: posPerCustomer.map((c) => ({
+          gstNo: c.gstNo,
+          count: c._count.id,
+        })),
+        monthlyPOs: monthlyPOs.map((m) => ({
+          month: m.month.toISOString(),
+          count: Number(m.count),
+        })),
+        topCustomersByAmount: posPerCustomer.map((c) => {
+          const customerPOs = allPOs.filter(po => po.gstNo === c.gstNo);
+          const totalAmount = customerPOs.reduce((sum, po) => {
+            const amount = po.amount ? parseFloat(String(po.amount)) : 0;
+            return sum + (isNaN(amount) ? 0 : amount);
+          }, 0);
+          return { gstNo: c.gstNo, totalAmount };
+        }).sort((a, b) => b.totalAmount - a.totalAmount).slice(0, 10),
+        approvalStats: {
+          mdApproved: approvalStats.filter(a => a.mdApproval === "Approved").reduce((sum, a) => sum + a._count.id, 0),
+          accountsApproved: approvalStats.filter(a => a.accountsApproval === "Approved").reduce((sum, a) => sum + a._count.id, 0),
+          designerApproved: approvalStats.filter(a => a.designerApproval === "Approved").reduce((sum, a) => sum + a._count.id, 0),
+          ppicApproved: approvalStats.filter(a => a.ppicApproval === "Approved").reduce((sum, a) => sum + a._count.id, 0),
+        },
+        productionStats: productionStats.map((p) => ({
+          status: p.productionStatus,
+          count: p._count.id,
+        })),
+        dispatchStats: dispatchStats.map((d) => ({
+          status: d.dispatchStatus,
+          count: d._count.id,
+        })),
+      };
+    });
   } catch (error) {
     console.error("Error getting PO analytics:", error);
     throw error;
@@ -832,8 +879,32 @@ export const bulkCreatePurchaseOrders = async (purchaseOrders: any[]) => {
     skipDuplicates: true,
   });
 
-  // Clear cache for bulk operations
-  await redis.del("purchase_orders:list:*");
+  // 🔥 Invalidate cache and warm frequently accessed data after bulk import
+  await invalidateBatchKeys(CACHE_INVALIDATION_MAP.BULK_CREATE);
+
+  // Warm analytics cache after bulk operations
+  await warmCache([
+    {
+      key: CACHE_KEYS.PO_ANALYTICS("analytics", {}),
+      ttl: CACHE_TTL.LONG,
+      fetch: async () => getPOAnalytics(),
+    },
+    {
+      key: CACHE_KEYS.PO_BATCH_NUMBERS(),
+      ttl: CACHE_TTL.LONG,
+      fetch: async () =>
+        prisma.purchaseOrder.findMany({
+          where: { batchNo: { not: null } },
+          select: {
+            batchNo: true,
+            brandName: true,
+            poNo: true,
+            poQty: true,
+          },
+          distinct: ['batchNo'],
+        }),
+    },
+  ]);
 
   return result;
 };
@@ -843,24 +914,21 @@ export const getPendingPOApprovalsApi = async (filters?: {
   gstNo?: string;
 }) => {
   try {
-    const cacheKey = getCacheKey("po:pending_md_approvals", filters || {});
-    const cached = await redis.get(cacheKey);
-    if (cached) return JSON.parse(cached);
+    const cacheKey = CACHE_KEYS.PO_PENDING_APPROVALS("pending", filters || {});
+    
+    return getOrSet(cacheKey, CACHE_TTL.SHORT, async () => {
+      const where: any = { mdApproval: "Pending" };
 
-    const where: any = { mdApproval: "Pending" };
+      if (filters?.gstNo) {
+        where.gstNo = filters.gstNo;
+      }
 
-    if (filters?.gstNo) {
-      where.gstNo = filters.gstNo;
-    }
-
-    const data = await prisma.purchaseOrder.findMany({
-      where,
-      include: { customer: true },
-      orderBy: { createdAt: "desc" },
+      return prisma.purchaseOrder.findMany({
+        where,
+        include: { customer: true },
+        orderBy: { createdAt: "desc" },
+      });
     });
-
-    await redis.setex(cacheKey, 120, JSON.stringify(data));
-    return data;
   } catch (error) {
     console.error("Error getting pending MD PO approvals:", error);
     throw error;
@@ -911,11 +979,40 @@ export const approvePOApi = async (
       include: { customer: true },
     });
 
-    // Clear cache
-    await Promise.all([
-      redis.del(`purchase_orders:single:${id}`),
-      redis.del("purchase_orders:list:*"),
-      redis.del("po:pending_md_approvals:*"),
+    // 🔥 Invalidate related cache and warm frequently accessed data
+    await invalidateBatchKeys([
+      CACHE_KEYS.PO_SINGLE(id),
+      "po:list:*",
+      "po:pending_approvals:*",
+      CACHE_KEYS.PO_MD_APPROVED(),
+    ]);
+
+    // Warm cache with updated PO and approval list
+    await warmCache([
+      {
+        key: CACHE_KEYS.PO_SINGLE(id),
+        ttl: CACHE_TTL.MEDIUM,
+        fetch: async () => updated,
+      },
+      {
+        key: CACHE_KEYS.PO_MD_APPROVED(),
+        ttl: CACHE_TTL.LONG,
+        fetch: async () =>
+          prisma.purchaseOrder.findMany({
+            where: { mdApproval: "Approved" },
+            include: { customer: true },
+          }),
+      },
+      {
+        key: CACHE_KEYS.PO_PENDING_APPROVALS("pending", {}),
+        ttl: CACHE_TTL.SHORT,
+        fetch: async () =>
+          prisma.purchaseOrder.findMany({
+            where: { mdApproval: "Pending" },
+            include: { customer: true },
+            orderBy: { createdAt: "desc" },
+          }),
+      },
     ]);
 
     return updated;
@@ -969,11 +1066,30 @@ export const rejectPOApi = async (
       include: { customer: true },
     });
 
-    // Clear cache
-    await Promise.all([
-      redis.del(`purchase_orders:single:${id}`),
-      redis.del("purchase_orders:list:*"),
-      redis.del("po:pending_md_approvals:*"),
+    // 🔥 Invalidate related cache and warm frequently accessed data
+    await invalidateBatchKeys([
+      CACHE_KEYS.PO_SINGLE(id),
+      "po:list:*",
+      "po:pending_approvals:*",
+    ]);
+
+    // Warm cache with updated PO and pending approvals list
+    await warmCache([
+      {
+        key: CACHE_KEYS.PO_SINGLE(id),
+        ttl: CACHE_TTL.MEDIUM,
+        fetch: async () => updated,
+      },
+      {
+        key: CACHE_KEYS.PO_PENDING_APPROVALS("pending", {}),
+        ttl: CACHE_TTL.SHORT,
+        fetch: async () =>
+          prisma.purchaseOrder.findMany({
+            where: { mdApproval: "Pending" },
+            include: { customer: true },
+            orderBy: { createdAt: "desc" },
+          }),
+      },
     ]);
 
     return updated;

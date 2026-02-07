@@ -140,7 +140,7 @@ export const getAllPOs = async (req: AuthRequest, res: Response) => {
     // 🔐 Logged-in user (from auth middleware)
     const loggedInUser = req.user;
 
-    if (!loggedInUser?.name) {
+    if (!loggedInUser?.username) {
       throw new Error("Unauthorized: username missing");
     }
 
@@ -152,8 +152,8 @@ export const getAllPOs = async (req: AuthRequest, res: Response) => {
         fromDate: fromDate ? new Date(fromDate as string) : undefined,
         toDate: toDate ? new Date(toDate as string) : undefined,
 
-        // 🔐 enforce ownership
-        createdByUsername: loggedInUser.name,
+        // 🔐 enforce ownership (use username if available)
+        createdByUsername: loggedInUser.username || loggedInUser.name || loggedInUser.id,
       },
       Number(page),
       Number(limit),
@@ -436,20 +436,20 @@ export const exportPurchaseOrders = async (req: Request, res: Response) => {
 export const getPendingApprovalsApi = async (req: AuthRequest, res: Response) => {
   try {
     const filters = {
-      approvalType: req.query.approvalType as any,
       gstNo: req.query.gstNo as string,
     };
 
     const data = await service.getPendingPOApprovalsApi(filters);
 
     return sendSuccess(res, {
-      message: "Pending approvals fetched successfully",
+      message: "Pending PO approvals fetched successfully",
       data,
     });
   } catch (error) {
     return handleError(res, error);
   }
 };
+
 
 export const approvePoApi = async (req: AuthRequest, res: Response) => {
   try {
