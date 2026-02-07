@@ -837,3 +837,183 @@ export const bulkCreatePurchaseOrders = async (purchaseOrders: any[]) => {
 
   return result;
 };
+
+/* ---------------- APPROVALS (MD ONLY) ---------------- */
+export const getPendingPOApprovalsApi = async (filters?: {
+  gstNo?: string;
+}) => {
+  try {
+    const cacheKey = getCacheKey("po:pending_md_approvals", filters || {});
+    const cached = await redis.get(cacheKey);
+    if (cached) return JSON.parse(cached);
+
+    const where: any = { mdApproval: "Pending" };
+
+    if (filters?.gstNo) {
+      where.gstNo = filters.gstNo;
+    }
+
+    const data = await prisma.purchaseOrder.findMany({
+      where,
+      include: { customer: true },
+      orderBy: { createdAt: "desc" },
+    });
+
+    await redis.setex(cacheKey, 120, JSON.stringify(data));
+    return data;
+  } catch (error) {
+    console.error("Error getting pending MD PO approvals:", error);
+    throw error;
+  }
+};
+
+export const approvePOApi = async (
+  id: string,
+  approvalData: {
+    approvedBy: string;
+    approvedByDept: string;
+    remarks?: string;
+  }
+) => {
+  try {
+    const po = await prisma.purchaseOrder.findUnique({
+      where: { id },
+    });
+
+    if (!po) {
+      throw new AppError(ERROR_CODES.PO_NOT_FOUND);
+    }
+
+    // Parse existing timestamp data
+    const timestampData = parseTimestampData(po.timestamp);
+
+    // Create MD approval action
+    const approvalAction: TimestampAction = {
+      actionType: "MD_APPROVED",
+      performedBy: {
+        name: approvalData.approvedBy,
+        department: approvalData.approvedByDept,
+      },
+      description: `Purchase Order approved by MD`,
+      timestamp: new Date(),
+      remarks: approvalData.remarks,
+    };
+
+    const updated = await prisma.purchaseOrder.update({
+      where: { id },
+      data: {
+        mdApproval: "Approved",
+        timestamp: {
+          ...timestampData,
+          actions: [...timestampData.actions, approvalAction],
+        } as any,
+      },
+      include: { customer: true },
+    });
+
+    // Clear cache
+    await Promise.all([
+      redis.del(`purchase_orders:single:${id}`),
+      redis.del("purchase_orders:list:*"),
+      redis.del("po:pending_md_approvals:*"),
+    ]);
+
+    return updated;
+  } catch (error) {
+    console.error("Error approving PO:", error);
+    throw error;
+  }
+};
+
+export const rejectPOApi = async (
+  id: string,
+  rejectData: {
+    reason: string;
+    rejectedBy: string;
+    rejectedByDept: string;
+  }
+) => {
+  try {
+    const po = await prisma.purchaseOrder.findUnique({
+      where: { id },
+    });
+
+    if (!po) {
+      throw new AppError(ERROR_CODES.PO_NOT_FOUND);
+    }
+
+    // Parse existing timestamp data
+    const timestampData = parseTimestampData(po.timestamp);
+
+    // Create MD rejection action
+    const rejectionAction: TimestampAction = {
+      actionType: "MD_REJECTED",
+      performedBy: {
+        name: rejectData.rejectedBy,
+        department: rejectData.rejectedByDept,
+      },
+      description: `Purchase Order rejected by MD: ${rejectData.reason}`,
+      timestamp: new Date(),
+      remarks: rejectData.reason,
+    };
+
+    const updated = await prisma.purchaseOrder.update({
+      where: { id },
+      data: {
+        mdApproval: "Rejected",
+        timestamp: {
+          ...timestampData,
+          actions: [...timestampData.actions, rejectionAction],
+        } as any,
+      },
+      include: { customer: true },
+    });
+
+    // Clear cache
+    await Promise.all([
+      redis.del(`purchase_orders:single:${id}`),
+      redis.del("purchase_orders:list:*"),
+      redis.del("po:pending_md_approvals:*"),
+    ]);
+
+    return updated;
+  } catch (error) {
+    console.error("Error rejecting PO:", error);
+    throw error;
+  }
+};
+
+// Helper function to safely parse timestamp data
+const parseTimestampData = (timestamp: any): TimestampData => {
+  if (!timestamp) {
+    return { actions: [] };
+  }
+
+  if (typeof timestamp === 'object' && timestamp !== null) {
+    const parsed = timestamp as any;
+    
+    if (Array.isArray(parsed.actions)) {
+      return {
+        createdAt: parsed.createdAt,
+        createdBy: parsed.createdBy,
+        createdByDept: parsed.createdByDept,
+        importedBy: parsed.importedBy,
+        importedByDept: parsed.importedByDept,
+        actions: parsed.actions.map((action: any) => ({
+          actionType: action.actionType || 'UNKNOWN',
+          performedBy: {
+            employeeId: action.performedBy?.employeeId,
+            name: action.performedBy?.name || 'Unknown',
+            department: action.performedBy?.department || 'Unknown',
+          },
+          description: action.description || '',
+          timestamp: action.timestamp || new Date(),
+          changes: action.changes,
+          remarks: action.remarks,
+        }))
+      };
+    }
+  }
+  
+  return { actions: [] };
+};

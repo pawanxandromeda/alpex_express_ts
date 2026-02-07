@@ -20,8 +20,13 @@ router.post("/test-mapping", ppicController.testMapping);
 router.get("/batch/:batchId", ppicController.getBatchStatus);
 router.get("/po-fields", ppicController.getPOFields);
 
+router.patch("/pos/bulk/mark-rfd", ppicController.bulkMarkRFD);
+router.patch("/pos/bulk/mark-cancelled", ppicController.bulkMarkCancelled);
+router.patch("/pos/bulk/mark-dispatched", ppicController.bulkMarkDispatched);
+
 router.patch("/pos/:id/mark-rfd", ppicController.markRFD);
 router.patch("/pos/:id/mark-cancelled", ppicController.markCancelled);
+router.patch("/pos/:id/mark-dispatched", ppicController.markDispatched);
 
 router.get("/export", ppicController.exportPOs);
 router.get("/pos", encryptResponse, ppicController.getAllPOs);

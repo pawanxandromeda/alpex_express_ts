@@ -826,4 +826,60 @@ static async getAllImportedPOs(
       throw new AppError(`Failed to mark as cancelled: ${(err as Error).message}`);
     }
   }
+
+  static async markDispatched(poId: string) {
+    try {
+      const updatedPO = await prisma.purchaseOrder.update({
+        where: { id: poId },
+        data: { dispatchStatus: "Dispatched" },
+        include: { customer: true },
+      });
+      return updatedPO;
+    } catch (err) {
+      throw new AppError(`Failed to mark as dispatched: ${(err as Error).message}`);
+    }
+  }
+
+  /**
+   * Bulk mark purchase orders as RFD
+   */
+  static async bulkMarkRFD(poIds: string[]) {
+    try {
+      return await prisma.purchaseOrder.updateMany({
+        where: { id: { in: poIds } },
+        data: { isRFD: true },
+      });
+    } catch (err) {
+      throw new AppError(`Failed to bulk mark RFD: ${(err as Error).message}`);
+    }
+  }
+
+  /**
+   * Bulk mark purchase orders as cancelled
+   */
+  static async bulkMarkCancelled(poIds: string[]) {
+    try {
+      return await prisma.purchaseOrder.updateMany({
+        where: { id: { in: poIds } },
+        data: { isCancelled: true },
+      });
+    } catch (err) {
+      throw new AppError(`Failed to bulk mark cancelled: ${(err as Error).message}`);
+    }
+  }
+
+  /**
+   * Bulk mark purchase orders as dispatched
+   */
+  static async bulkMarkDispatched(poIds: string[]) {
+    try {
+      return await prisma.purchaseOrder.updateMany({
+        where: { id: { in: poIds } },
+        data: { dispatchStatus: "Dispatched" },
+      });
+    } catch (err) {
+      throw new AppError(`Failed to bulk mark dispatched: ${(err as Error).message}`);
+    }
+  }
 }
+

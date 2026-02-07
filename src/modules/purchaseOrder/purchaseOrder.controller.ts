@@ -431,3 +431,78 @@ export const exportPurchaseOrders = async (req: Request, res: Response) => {
     });
   }
 };
+
+/* ============ APPROVALS ============ */
+export const getPendingApprovalsApi = async (req: AuthRequest, res: Response) => {
+  try {
+    const filters = {
+      approvalType: req.query.approvalType as any,
+      gstNo: req.query.gstNo as string,
+    };
+
+    const data = await service.getPendingPOApprovalsApi(filters);
+
+    return sendSuccess(res, {
+      message: "Pending approvals fetched successfully",
+      data,
+    });
+  } catch (error) {
+    return handleError(res, error);
+  }
+};
+
+export const approvePoApi = async (req: AuthRequest, res: Response) => {
+  try {
+    if (!req.user) {
+      return sendError(res, ERROR_CODES.UNAUTHORIZED);
+    }
+
+    const { id } = req.params;
+    const { remarks } = req.body;
+
+    const approvalData = {
+      approvedBy: req.user.username || req.user.name || "System",
+      approvedByDept: req.user.department || "System",
+      remarks,
+    };
+
+    const po = await service.approvePOApi(id as string, approvalData);
+
+    return sendSuccess(res, {
+      message: `Purchase Order approved by MD successfully`,
+      data: po,
+    });
+  } catch (error) {
+    return handleError(res, error);
+  }
+};
+
+export const rejectPoApi = async (req: AuthRequest, res: Response) => {
+  try {
+    if (!req.user) {
+      return sendError(res, ERROR_CODES.UNAUTHORIZED);
+    }
+
+    const { id } = req.params;
+    const { reason } = req.body;
+
+    if (!reason) {
+      return handleError(res, { code: "INVALID_REQUEST", message: "Reason is required" });
+    }
+
+    const rejectData = {
+      reason,
+      rejectedBy: req.user.username || req.user.name || "System",
+      rejectedByDept: req.user.department || "System",
+    };
+
+    const po = await service.rejectPOApi(id as string, rejectData);
+
+    return sendSuccess(res, {
+      message: "Purchase Order rejected successfully",
+      data: po,
+    });
+  } catch (error) {
+    return handleError(res, error);
+  }
+};

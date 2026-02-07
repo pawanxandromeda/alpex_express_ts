@@ -341,6 +341,79 @@ async getAllPOs(req: Request, res: Response, next: NextFunction) {
     }
   }
 
+  async markDispatched(req: Request, res: Response, next: NextFunction) {
+    try {
+      const { id } = req.params;
+
+      if (!id) {
+        return sendError(res, ERROR_CODES.VALIDATION_ERROR, "Purchase Order ID is required");
+      }
+
+      const updatedPO = await PPICService.markDispatched(id as string);
+      return sendSuccess(res, updatedPO, "Purchase order marked as dispatched", 200);
+    } catch (err) {
+      next(err);
+    }
+  }
+
+  /**
+   * Bulk mark purchase orders as RFD
+   * PATCH /api/ppic/pos/bulk/mark-rfd
+   */
+  async bulkMarkRFD(req: Request, res: Response, next: NextFunction) {
+    try {
+      const { ids } = req.body as { ids?: string[] };
+
+      if (!ids || !Array.isArray(ids) || ids.length === 0) {
+        return sendError(res, ERROR_CODES.VALIDATION_ERROR, "Purchase Order IDs are required");
+      }
+
+      const result = await PPICService.bulkMarkRFD(ids);
+      return sendSuccess(res, result, "Purchase orders marked as RFD", 200);
+    } catch (err) {
+      next(err);
+    }
+  }
+
+  /**
+   * Bulk mark purchase orders as cancelled
+   * PATCH /api/ppic/pos/bulk/mark-cancelled
+   */
+  async bulkMarkCancelled(req: Request, res: Response, next: NextFunction) {
+    try {
+      const { ids } = req.body as { ids?: string[] };
+
+      if (!ids || !Array.isArray(ids) || ids.length === 0) {
+        return sendError(res, ERROR_CODES.VALIDATION_ERROR, "Purchase Order IDs are required");
+      }
+
+      const result = await PPICService.bulkMarkCancelled(ids);
+      return sendSuccess(res, result, "Purchase orders marked as cancelled", 200);
+    } catch (err) {
+      next(err);
+    }
+  }
+
+  /**
+   * Bulk mark purchase orders as dispatched
+   * PATCH /api/ppic/pos/bulk/mark-dispatched
+   */
+  async bulkMarkDispatched(req: Request, res: Response, next: NextFunction) {
+    try {
+      const { ids } = req.body as { ids?: string[] };
+
+      if (!ids || !Array.isArray(ids) || ids.length === 0) {
+        return sendError(res, ERROR_CODES.VALIDATION_ERROR, "Purchase Order IDs are required");
+      }
+
+      const result = await PPICService.bulkMarkDispatched(ids);
+      return sendSuccess(res, result, "Purchase orders marked as dispatched", 200);
+    } catch (err) {
+      next(err);
+    }
+  }
+  
+
   /**
    * Export purchase orders to CSV/XLSX/JSON
    * GET /api/ppic/export?format=csv&gstNo=XXX&poNo=XXX&status=XXX
