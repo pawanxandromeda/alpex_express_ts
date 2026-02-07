@@ -1,9 +1,11 @@
 import dotenv from "dotenv";
 dotenv.config();
-import express, { Application } from "express";
-import cors, { CorsOptions } from "cors";
 
+import express, { Application } from "express";
+import cors from "cors";
 import helmet from "helmet";
+
+// Routes
 import employeeRoutes from "./modules/employee/employee.routes";
 import authRoutes from "./modules/auth/auth.routes";
 import customerRoutes from "./modules/customer/customer.routes";
@@ -15,46 +17,51 @@ import ppicRoutes from "./modules/ppic/ppic.routes";
 import masterRoutes from "./modules/master/master.routes";
 import ppicfilterRoutes from "./modules/ppic/ppic-advanced-filter.routes";
 
-
-
-
 const app: Application = express();
+
+/* -------------------- SECURITY -------------------- */
 app.use(
   helmet({
     crossOriginResourcePolicy: false,
   })
 );
 
-
+/* -------------------- BODY PARSERS -------------------- */
 app.use(express.json({ limit: "50mb" }));
-app.use(express.urlencoded({ limit: "50mb", extended: true }));
+app.use(express.urlencoded({ extended: true, limit: "50mb" }));
 
-const allowedOrigins: string[] = [
-  // "http://localhost:8080",
+/* -------------------- CORS -------------------- */
+const allowedOrigins = [
   "https://www.thealpex.com",
+  "http://localhost:3000",
 ];
 
+app.use(
+  cors({
+    origin: (origin, callback) => {
+      // Allow server-to-server & tools like Postman
+      if (!origin) return callback(null, true);
 
-const corsOptions: CorsOptions = {
-  origin: (origin, callback) => {
-    if (!origin || allowedOrigins.includes(origin)) {
-      callback(null, true);
-    } else {
-      callback(new Error("Not allowed by CORS"));
-    }
-  },
-  credentials: true,
-  methods: ["GET", "POST", "PUT", "DELETE","PATCH", "OPTIONS"],
-  allowedHeaders: [
-    "Content-Type",
-    "Authorization",
-    "X-Requested-With",
-  ],
-};
+      if (allowedOrigins.includes(origin)) {
+        return callback(null, true);
+      }
 
-app.use(cors(corsOptions));
-app.options(/.*/, cors(corsOptions));
+      return callback(new Error("CORS not allowed"));
+    },
+    credentials: true,
+    methods: ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
+    allowedHeaders: [
+      "Content-Type",
+      "Authorization",
+      "X-Requested-With",
+    ],
+  })
+);
 
+// VERY IMPORTANT for preflight
+app.options("*", cors());
+
+/* -------------------- ROUTES -------------------- */
 app.use("/api/employees", employeeRoutes);
 app.use("/api/auth", authRoutes);
 app.use("/api/customers", customerRoutes);
@@ -66,7 +73,9 @@ app.use("/api/ppic", ppicRoutes);
 app.use("/api/master", masterRoutes);
 app.use("/api/ppicfilter", ppicfilterRoutes);
 
-
-
+/* -------------------- HEALTH CHECK -------------------- */
+app.get("/health", (_req, res) => {
+  res.status(200).json({ status: "OK" });
+});
 
 export default app;
