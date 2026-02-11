@@ -19,6 +19,7 @@ async function main() {
       role: "admin",
       department: "admin",
       status: "Active",
+      approvedForCredentials:"Approved",
       createdByRole: "Superuser",
     },
   });

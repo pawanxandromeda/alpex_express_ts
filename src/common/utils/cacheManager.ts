@@ -1,4 +1,4 @@
-import redis from "../../config/redis";
+import redis, { ensureRedisConnection } from "../../config/redis";
 import crypto from "crypto";
 
 /**
@@ -118,25 +118,44 @@ export const CACHE_INVALIDATION_MAP = {
  */
 export const invalidateCache = async (patterns: string[]): Promise<void> => {
   try {
+    if (!redis) {
+      console.log(`⊘ Redis disabled, skipping cache invalidation`);
+      return;
+    }
+
+    // Ensure connection before invalidation
+    try {
+      await ensureRedisConnection();
+    } catch (connError) {
+      const message = connError instanceof Error ? connError.message : String(connError);
+      console.warn(`⚠️ Redis connection failed for invalidation: ${message}`);
+      return; // Don't block on cache failure
+    }
+
     for (const pattern of patterns) {
-      // Handle wildcard patterns
-      if (pattern.includes("*")) {
-        const keys = await redis.keys(pattern);
-        if (keys.length > 0) {
-          await redis.del(...keys);
-          console.log(`🗑️ Invalidated ${keys.length} cache keys matching pattern: ${pattern}`);
+      try {
+        // Handle wildcard patterns
+        if (pattern.includes("*")) {
+          const keys = await redis.keys(pattern);
+          if (keys.length > 0) {
+            await redis.del(...keys);
+            console.log(`🗑️ Invalidated ${keys.length} cache keys matching pattern: ${pattern}`);
+          }
+        } else {
+          // Direct key deletion
+          const result = await redis.del(pattern);
+          if (result > 0) {
+            console.log(`🗑️ Invalidated cache key: ${pattern}`);
+          }
         }
-      } else {
-        // Direct key deletion
-        const result = await redis.del(pattern);
-        if (result > 0) {
-          console.log(`🗑️ Invalidated cache key: ${pattern}`);
-        }
+      } catch (patternError) {
+        console.error(`Error invalidating pattern ${pattern}:`, patternError);
+        // Continue with next pattern
       }
     }
   } catch (error) {
-    console.error("Error invalidating cache:", error);
-    throw error;
+    console.error("Error in invalidateCache:", error);
+    // Don't throw - cache invalidation failure shouldn't break the operation
   }
 };
 
@@ -150,6 +169,22 @@ export const getOrSet = async <T>(
   fetchFn: () => Promise<T>
 ): Promise<T> => {
   try {
+    if (!redis) {
+      // Redis not configured, skip caching and fetch directly
+      console.log(`⊘ Redis disabled, fetching directly: ${key}`);
+      return fetchFn();
+    }
+
+    // Ensure Redis connection is ready before attempting cache get
+    try {
+      await ensureRedisConnection();
+    } catch (connError) {
+      console.warn(`⚠️ Redis connection failed: ${connError}, skipping cache get`);
+      // Continue to fetch from source even if cache fails
+      const data = await fetchFn();
+      return data;
+    }
+
     // Try to get from cache
     const cached = await redis.get(key);
     if (cached) {
@@ -161,15 +196,26 @@ export const getOrSet = async <T>(
     console.log(`✗ Cache miss: ${key} - fetching from source`);
     const data = await fetchFn();
 
-    // Store in cache
+    // Store in cache (non-blocking, log failures but don't throw)
     if (data !== null && data !== undefined) {
-      await redis.setex(key, ttl, JSON.stringify(data));
-      console.log(`✓ Cached: ${key} (TTL: ${ttl}s)`);
+      redis
+        .setex(key, ttl, JSON.stringify(data))
+        .then(() => {
+          console.log(`✓ Cached: ${key} (TTL: ${ttl}s)`);
+        })
+        .catch((err) => {
+          console.warn(`⚠️ Failed to cache ${key}:`, err.message);
+          // Don't throw - cache failure shouldn't block the response
+        });
     }
 
     return data;
   } catch (error) {
     console.error(`Error in getOrSet for key ${key}:`, error);
+    // Fallback: fetch data directly if caching fails entirely
+    if (error instanceof Error && error.message.includes("Redis")) {
+      return fetchFn();
+    }
     throw error;
   }
 };
@@ -183,13 +229,28 @@ export const setWithWriteThrough = async <T>(
   ttl: number,
   data: T
 ): Promise<void> => {
+  if (!redis) {
+    console.log(`⊘ Redis disabled, skipping write-through for: ${key}`);
+    return;
+  }
+
   try {
+    // Ensure connection before write
+    try {
+      await ensureRedisConnection();
+    } catch (connError) {
+      const message = connError instanceof Error ? connError.message : String(connError);
+      console.warn(`⚠️ Redis connection failed for write-through: ${message}`);
+      return; // Don't block on cache failure
+    }
+
     // Write to cache
     await redis.setex(key, ttl, JSON.stringify(data));
     console.log(`✓ Write-through cached: ${key}`);
   } catch (error) {
-    console.error(`Error in setWithWriteThrough for key ${key}:`, error);
-    throw error;
+    const message = error instanceof Error ? error.message : String(error);
+    console.warn(`⚠️ Cache write-through failed for key ${key}:`, message);
+    // Don't throw - write-through failure shouldn't break the operation
   }
 };
 
@@ -232,13 +293,27 @@ export const warmCache = async (
   }>
 ): Promise<void> => {
   try {
+    if (!redis) {
+      console.log(`⊘ Redis disabled, skipping cache warming`);
+      return;
+    }
+
+    // Ensure connection before warming
+    try {
+      await ensureRedisConnection();
+    } catch (connError) {
+      const message = connError instanceof Error ? connError.message : String(connError);
+      console.warn(`⚠️ Redis connection failed for cache warming: ${message}`);
+      return; // Don't block on cache failure
+    }
+
     console.log(`🔥 Warming ${fetchFns.length} cache entries...`);
     
     const warmingPromises = fetchFns.map(async (item) => {
       try {
         const data = await item.fetch();
         if (data !== null && data !== undefined) {
-          await redis.setex(item.key, item.ttl, JSON.stringify(data));
+          await redis!.setex(item.key, item.ttl, JSON.stringify(data));
           console.log(`🔥 Warmed: ${item.key}`);
         }
       } catch (error) {
@@ -259,7 +334,21 @@ export const warmCache = async (
  * Get cache statistics for monitoring
  */
 export const getCacheStats = async (): Promise<{ keys: number; memory: string }> => {
+  if (!redis) {
+    console.log(`⊘ Redis disabled, returning empty stats`);
+    return { keys: 0, memory: "N/A" };
+  }
+
   try {
+    // Ensure connection before stats retrieval
+    try {
+      await ensureRedisConnection();
+    } catch (connError) {
+      const message = connError instanceof Error ? connError.message : String(connError);
+      console.warn(`⚠️ Redis connection failed for stats: ${message}`);
+      return { keys: 0, memory: "N/A" };
+    }
+
     const info = await redis.info("memory");
     const dbSize = await redis.dbsize();
     
@@ -273,10 +362,11 @@ export const getCacheStats = async (): Promise<{ keys: number; memory: string }>
   }
 };
 
-/**
- * Clear all cache (use with caution - typically for development/testing)
- */
+
 export const clearAllCache = async (): Promise<void> => {
+  if (!redis) {
+      throw new Error("Redis client is not initialized");
+    }
   try {
     await redis.flushdb();
     console.log("🗑️ All cache cleared");

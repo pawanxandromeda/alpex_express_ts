@@ -74,3 +74,17 @@ export const remove = async (req: AuthRequest, res: Response) =>
     message: "Deleted", 
     data: await service.deleteEmployee(req.params.id as string) 
   });
+
+export const activate = async (req: AuthRequest, res: Response) => {
+  try {
+    const adminId = req.user!.id;
+    const employee = await service.activateEmployee(req.params.id as string, adminId);
+    res.json({ 
+      success: true, 
+      message: "Employee activated successfully", 
+      data: employee 
+    });
+  } catch (error) {
+    res.status(400).json({ success: false, message: (error as Error).message });
+  }
+};

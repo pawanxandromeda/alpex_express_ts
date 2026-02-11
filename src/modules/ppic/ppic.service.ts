@@ -301,7 +301,40 @@ private static async createSinglePurchaseOrder(
           // timestamp is already processed, skip it
           continue;
         }
-        sanitized[key] = value;
+        if (key === "expiry" && (value !== null && value !== undefined)) {
+          const norm = String(value)
+            .trim()
+            .replace(/([A-Za-z]+)?\s*(\d+)\s*([A-Za-z]+)?/g, "$1 $2 $3")
+            .replace(/\s+/g, " ")
+            .trim();
+
+          const match = norm.match(/(\d+)\s*(year|years|yr|yrs|month|months|mo|mos|day|days|d)/i);
+          if (match) {
+            const num = parseInt(match[1], 10);
+            const unit = match[2].toLowerCase();
+
+            let baseDate: Date;
+            if (data && data.packingDate) baseDate = new Date(String(data.packingDate));
+            else if (data && data.poDate) baseDate = new Date(String(data.poDate));
+            else baseDate = new Date();
+            if (isNaN(baseDate.getTime())) baseDate = new Date();
+
+            const expiryDate = new Date(baseDate);
+            if (unit.startsWith("year") || unit.startsWith("yr")) {
+              expiryDate.setFullYear(expiryDate.getFullYear() + num);
+            } else if (unit.startsWith("month") || unit.startsWith("mo")) {
+              expiryDate.setMonth(expiryDate.getMonth() + num);
+            } else {
+              expiryDate.setDate(expiryDate.getDate() + num);
+            }
+
+            sanitized[key] = expiryDate;
+          } else {
+            sanitized[key] = norm;
+          }
+        } else {
+          sanitized[key] = value;
+        }
       } else {
         // Unknown field - store in unmappedData for rawImportedData
         unmappedData[key] = value;

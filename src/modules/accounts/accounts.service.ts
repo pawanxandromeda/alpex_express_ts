@@ -1,6 +1,6 @@
 // src/services/accounts.service.ts
 import prisma from "../../config/postgres";
-import redis from "../../config/redis";
+import redis, { ensureRedisConnection } from "../../config/redis";
 import { randomUUID, createHash } from "crypto";
 import {
   createAuditAction,
@@ -33,8 +33,20 @@ const computeDueDays = (dueDate: string | undefined | null) => {
 export const getBills = async (page = 1, limit = 10) => {
   const cacheKey = getCacheKey("bills:list", { page, limit });
 
-  const cached = await redis.get(cacheKey);
-  if (cached) return JSON.parse(cached);
+  try {
+    if (redis) {
+      try {
+        await ensureRedisConnection();
+        const cached = await redis.get(cacheKey);
+        if (cached) return JSON.parse(cached);
+      } catch (redisError) {
+        const message = redisError instanceof Error ? redisError.message : String(redisError);
+        console.warn(`⚠️ Redis cache lookup failed: ${message}`);
+      }
+    }
+  } catch (error) {
+    console.error("Error accessing cache:", error);
+  }
 
   const pos: any[] = await prisma.purchaseOrder.findMany({
     orderBy: { createdAt: "desc" },
@@ -81,7 +93,12 @@ export const getBills = async (page = 1, limit = 10) => {
     limit,
   };
 
-  await redis.setex(cacheKey, CACHE_TTL, JSON.stringify(response));
+  // Cache the result (non-blocking)
+  if (redis) {
+    redis
+      .setex(cacheKey, CACHE_TTL, JSON.stringify(response))
+      .catch((err) => console.warn(`⚠️ Failed to cache bills: ${err.message}`));
+  }
 
   return response;
 };
@@ -152,12 +169,17 @@ export const createBill = async (payload: any) => {
     } as any,
   });
 
-  await Promise.all([
-    redis.del(`purchase_orders:single:${purchaseOrderId}`),
-    redis.del("purchase_orders:list:*"),
-    redis.del("bills:list:*"),
-    redis.del(`bills:by_po:${purchaseOrderId}`),
-  ]);
+  // Invalidate related cache keys (non-blocking)
+  if (redis) {
+    Promise.all([
+      redis.del(`purchase_orders:single:${purchaseOrderId}`),
+      redis.del("purchase_orders:list:*"),
+      redis.del("bills:list:*"),
+      redis.del(`bills:by_po:${purchaseOrderId}`),
+    ]).catch((err) => {
+      console.warn(`⚠️ Failed to invalidate cache: ${err.message}`);
+    });
+  }
 
   return newBill;
 };
@@ -208,12 +230,17 @@ export const raiseDispute = async (billId: string, employeeId: string, comments:
         } as any,
       });
 
-      await Promise.all([
-        redis.del(`purchase_orders:single:${po.id}`),
-        redis.del("purchase_orders:list:*"),
-        redis.del("bills:list:*"),
-        redis.del(`bills:by_po:${po.id}`),
-      ]);
+      // Invalidate related cache keys (non-blocking)
+      if (redis) {
+        Promise.all([
+          redis.del(`purchase_orders:single:${po.id}`),
+          redis.del("purchase_orders:list:*"),
+          redis.del("bills:list:*"),
+          redis.del(`bills:by_po:${po.id}`),
+        ]).catch((err) => {
+          console.warn(`⚠️ Failed to invalidate cache: ${err.message}`);
+        });
+      }
 
       return newDispute;
     }
@@ -335,8 +362,20 @@ export const raisePoDispute = async (
 export const getBillsByPo = async (poId: string, page = 1, limit = 100) => {
   const cacheKey = getCacheKey("bills:by_po", { poId, page, limit });
 
-  const cached = await redis.get(cacheKey);
-  if (cached) return JSON.parse(cached);
+  try {
+    if (redis) {
+      try {
+        await ensureRedisConnection();
+        const cached = await redis.get(cacheKey);
+        if (cached) return JSON.parse(cached);
+      } catch (redisError) {
+        const message = redisError instanceof Error ? redisError.message : String(redisError);
+        console.warn(`⚠️ Redis cache lookup failed: ${message}`);
+      }
+    }
+  } catch (error) {
+    console.error("Error accessing cache:", error);
+  }
 
   const po: any = await prisma.purchaseOrder.findUnique({ where: { id: poId }, include: { customer: true } });
   if (!po) throw new Error("PurchaseOrder not found");
@@ -395,7 +434,12 @@ export const getBillsByPo = async (poId: string, page = 1, limit = 100) => {
 
   const response = { data, total, page, limit, po: poSummary };
 
-  await redis.setex(cacheKey, CACHE_TTL, JSON.stringify(response));
+  // Cache the result (non-blocking)
+  if (redis) {
+    redis
+      .setex(cacheKey, CACHE_TTL, JSON.stringify(response))
+      .catch((err) => console.warn(`⚠️ Failed to cache bills: ${err.message}`));
+  }
 
   return response;
 };

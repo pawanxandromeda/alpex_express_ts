@@ -2,18 +2,33 @@ import { PrismaClient, Prisma } from '@prisma/client';
 import prisma from '../../config/postgres';
 import XLSX from 'xlsx';
 import fs from 'fs';
-import { uploadToDrive } from '../../config/drive';
+
+import { uploadBufferToS3 } from '../../common/utils/s3';
+import path from 'path/win32';
 
 
 
 export class MasterService {
  
-async createChangePartMaster(data: any, file?: Express.Multer.File) {
+async createChangePartMaster(
+  data: any,
+  file?: Express.Multer.File
+) {
   try {
     let pictureUrl: string | null = null;
 
-    if (file && file.buffer) {   // ✅ FIXED
-      pictureUrl = await uploadToDrive(file); 
+    if (file?.buffer) {
+      // 🔑 Create unique S3 key
+      const ext = path.extname(file.originalname);
+      const key = `change-parts/${Date.now()}-${Math.random()
+        .toString(36)
+        .substring(2)}${ext}`;
+
+      pictureUrl = await uploadBufferToS3(
+        file.buffer,
+        key,
+        file.mimetype
+      );
     }
 
     return await prisma.changePartMaster.create({
@@ -22,7 +37,6 @@ async createChangePartMaster(data: any, file?: Express.Multer.File) {
         tabSize: data.tabSize ?? null,
         range: data.range ?? null,
         foilSize: data.foilSize ?? null,
-
         boxSizeAutoCalculated: data.boxSizeAutoCalculated ?? null,
 
         cartonRates: data.cartonRates
@@ -37,7 +51,7 @@ async createChangePartMaster(data: any, file?: Express.Multer.File) {
           ? new Prisma.Decimal(data.printedFoilConsumption)
           : null,
 
-        partPictureUrl: pictureUrl,  // only from upload
+        partPictureUrl: pictureUrl, // ✅ S3 URL
       },
     });
   } catch (error) {
@@ -79,7 +93,7 @@ async createChangePartMaster(data: any, file?: Express.Multer.File) {
 async bulkPortChangePartMaster(
   file: Express.Multer.File,
   images?: Express.Multer.File[],
-  fieldMapping?: Record<string, string> // Add field mapping parameter
+  fieldMapping?: Record<string, string>
 ) {
   const imported: any[] = [];
   const failed: any[] = [];
@@ -99,8 +113,14 @@ async bulkPortChangePartMaster(
       imageMap.set(img.originalname, img);
     });
 
+    // Helper for field mapping
+    const getMappedValue = (row: any, fieldName: string) => {
+      const mappedName = fieldMapping?.[fieldName] || fieldName;
+      return row[mappedName];
+    };
+
     // ───────────────────────────────────────
-    // 2. Process each row
+    // 2. Process rows
     // ───────────────────────────────────────
     for (let i = 0; i < rows.length; i++) {
       const row = rows[i];
@@ -108,47 +128,50 @@ async bulkPortChangePartMaster(
       try {
         let pictureUrl: string | null = null;
 
-        // Get image filename using field mapping or default
-        const imageColumnName = fieldMapping?.['Change Part Picture'] || 'Change Part Picture';
+        const imageColumnName =
+          fieldMapping?.["Change Part Picture"] || "Change Part Picture";
+
         const imageFileName = row[imageColumnName]?.toString().trim();
 
         if (imageFileName && imageMap.has(imageFileName)) {
-          pictureUrl = await uploadToDrive(imageMap.get(imageFileName)!);
-        }
+          const imageFile = imageMap.get(imageFileName)!;
 
-        // Helper function to get value with field mapping
-        const getMappedValue = (fieldName: string): any => {
-          const mappedName = fieldMapping?.[fieldName] || fieldName;
-          return row[mappedName];
-        };
+          const ext = path.extname(imageFile.originalname);
+          const key = `change-parts/bulk/${Date.now()}-${i}${ext}`;
+
+          pictureUrl = await uploadBufferToS3(
+            imageFile.buffer,
+            key,
+            imageFile.mimetype
+          );
+        }
 
         const record = await prisma.changePartMaster.create({
           data: {
             partPictureUrl: pictureUrl,
-            // Use field mapping to get values
-            code: getMappedValue('code')?.toString() || null,
-            
-            // Handle boxSizeAutoCalculated as String as per Prisma model
-            boxSizeAutoCalculated: getMappedValue('boxSizeAutoCalculated') !== undefined
-              ? String(getMappedValue('boxSizeAutoCalculated'))
+
+            code: getMappedValue(row, "code")?.toString() || null,
+
+            boxSizeAutoCalculated:
+              getMappedValue(row, "boxSizeAutoCalculated") !== undefined
+                ? String(getMappedValue(row, "boxSizeAutoCalculated"))
+                : null,
+
+            cartonRates: getMappedValue(row, "cartonRates")
+              ? new Prisma.Decimal(getMappedValue(row, "cartonRates"))
               : null,
-            
-            // Convert to Decimal (use Prisma.Decimal or string)
-            cartonRates: getMappedValue('cartonRates') 
-              ? new Prisma.Decimal(getMappedValue('cartonRates')) // Use Prisma.Decimal
+
+            baseFoilConsumption: getMappedValue(row, "baseFoilConsumption")
+              ? new Prisma.Decimal(getMappedValue(row, "baseFoilConsumption"))
               : null,
-            
-            baseFoilConsumption: getMappedValue('baseFoilConsumption')
-              ? new Prisma.Decimal(getMappedValue('baseFoilConsumption'))
+
+            printedFoilConsumption: getMappedValue(row, "printedFoilConsumption")
+              ? new Prisma.Decimal(getMappedValue(row, "printedFoilConsumption"))
               : null,
-            
-            printedFoilConsumption: getMappedValue('printedFoilConsumption')
-              ? new Prisma.Decimal(getMappedValue('printedFoilConsumption'))
-              : null,
-            
-            tabSize: getMappedValue('tabSize')?.toString() || null,
-            range: getMappedValue('range')?.toString() || null,
-            foilSize: getMappedValue('foilSize')?.toString() || null,
+
+            tabSize: getMappedValue(row, "tabSize")?.toString() || null,
+            range: getMappedValue(row, "range")?.toString() || null,
+            foilSize: getMappedValue(row, "foilSize")?.toString() || null,
           },
         });
 
@@ -158,7 +181,7 @@ async bulkPortChangePartMaster(
         errors.push({
           row: i + 2, // Excel row number
           message: rowError.message,
-          data: row, // Include row data for debugging
+          data: row,
         });
       }
     }
@@ -168,12 +191,10 @@ async bulkPortChangePartMaster(
       importedCount: imported.length,
       failedCount: failed.length,
       errors: errors.length > 0 ? errors : undefined,
-      driveLink: 'https://drive.google.com/drive/folders/1WUVaaJnsh8BYUIppzFVsZ5QOC1VPkhgd',
     };
   } catch (error: any) {
-    throw new Error(`Bulk port failed: ${error.message}`);
+    throw new Error(`Bulk import failed: ${error.message}`);
   } finally {
-    // Cleanup uploaded Excel file if stored on disk
     if (file?.path && fs.existsSync(file.path)) {
       fs.unlinkSync(file.path);
     }

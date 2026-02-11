@@ -49,7 +49,8 @@ function expires(key: string): string | number {
 
 export const env = {
   /** Server */
-  port: number("PORT"),
+port: Number(process.env.PORT ?? 3000),
+
   nodeEnv: process.env.NODE_ENV ?? "development",
 
   /** Database */

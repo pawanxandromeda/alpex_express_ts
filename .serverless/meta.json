@@ -10,13 +10,37 @@
         "name": "aws",
         "runtime": "nodejs18.x",
         "region": "ap-south-1",
+        "httpApi": {
+          "cors": {
+            "allowedOrigins": [
+              "https://www.thealpex.com",
+              "https://thealpex.com",
+              "http://localhost:3000"
+            ],
+            "allowedHeaders": [
+              "Content-Type",
+              "Authorization",
+              "X-Requested-With"
+            ],
+            "allowedMethods": [
+              "OPTIONS",
+              "GET",
+              "POST",
+              "PUT",
+              "PATCH",
+              "DELETE"
+            ],
+            "allowCredentials": "<REDACTED>",
+            "maxAge": 86400
+          }
+        },
         "environment": {
           "DATABASE_URL": "postgresql://alpexdb:Alpex.123@alpexdb.cn04iiwskkcr.ap-south-1.rds.amazonaws.com:5432/postgres?sslmode=require",
           "JWT_SECRET": "<REDACTED>",
           "JWT_EXPIRES_IN": "15m",
           "JWT_REFRESH_SECRET": "<REDACTED>",
           "JWT_REFRESH_EXPIRES_IN": "7d",
-          "REDIS_URL": "redis://default:HjyypbOStGQxxZdbNjpHsHnsGUMrAPPi@redis.railway.internal:6379",
+          "REDIS_URL": "redis://default:AcMuAAIncDJlZDEwN2NiZjI3MzE0ZTRiOTkzODE2ZmY0YTk3MjVjYXAyNDk5NjY@solid-bug-49966.upstash.io:6379",
           "ENCRYPT_KEY": "HDpYo6m1zyIkt13JZ4kzptQp6fKKrlIM"
         },
         "stage": "dev",
@@ -114,12 +138,12 @@
               "Properties": {
                 "Code": {
                   "S3Bucket": "serverless-framework-deployments-ap-south-1-f479eb84-69f4",
-                  "S3Key": "serverless/alpex-backend/dev/1770489931386-2026-02-07T18:45:31.386Z/alpex-backend.zip"
+                  "S3Key": "serverless/alpex-backend/dev/1770738137464-2026-02-10T15:42:17.464Z/alpex-backend.zip"
                 },
                 "Handler": "lambda.handler",
                 "Runtime": "nodejs18.x",
                 "FunctionName": "alpex-backend-dev-api",
-                "MemorySize": 1024,
+                "MemorySize": 2048,
                 "Timeout": 6,
                 "Environment": {
                   "Variables": {
@@ -128,7 +152,7 @@
                     "JWT_EXPIRES_IN": "15m",
                     "JWT_REFRESH_SECRET": "<REDACTED>",
                     "JWT_REFRESH_EXPIRES_IN": "7d",
-                    "REDIS_URL": "redis://default:HjyypbOStGQxxZdbNjpHsHnsGUMrAPPi@redis.railway.internal:6379",
+                    "REDIS_URL": "redis://default:AcMuAAIncDJlZDEwN2NiZjI3MzE0ZTRiOTkzODE2ZmY0YTk3MjVjYXAyNDk5NjY@solid-bug-49966.upstash.io:6379",
                     "ENCRYPT_KEY": "HDpYo6m1zyIkt13JZ4kzptQp6fKKrlIM",
                     "NODE_OPTIONS": "--enable-source-maps"
                   }
@@ -144,21 +168,43 @@
                 "ApiLogGroup"
               ]
             },
-            "ApiLambdaVersionYuWPIltKH6BRBM96bPfK5nPiVxdCV9ENlIfhhp4g8": {
+            "ApiLambdaVersionHUfnB927CDLpgvfTIoRJOXHV9artAkO1vejCSSwZHI": {
               "Type": "AWS::Lambda::Version",
               "DeletionPolicy": "Retain",
               "Properties": {
                 "FunctionName": {
                   "Ref": "ApiLambdaFunction"
                 },
-                "CodeSha256": "Iao0xoGz5Mi/wVGe8Z8X3xPfkJRdM2zrYoctB7gbyvk="
+                "CodeSha256": "BmXL2d+jEFy41HCMmfdGX4sAkHyzqw8DM3y2t9WaQt0="
               }
             },
             "HttpApi": {
               "Type": "AWS::ApiGatewayV2::Api",
               "Properties": {
                 "Name": "dev-alpex-backend",
-                "ProtocolType": "HTTP"
+                "ProtocolType": "HTTP",
+                "CorsConfiguration": {
+                  "AllowCredentials": "<REDACTED>",
+                  "AllowHeaders": [
+                    "Content-Type",
+                    "Authorization",
+                    "X-Requested-With"
+                  ],
+                  "AllowMethods": [
+                    "OPTIONS",
+                    "GET",
+                    "POST",
+                    "PUT",
+                    "PATCH",
+                    "DELETE"
+                  ],
+                  "AllowOrigins": [
+                    "https://www.thealpex.com",
+                    "https://thealpex.com",
+                    "http://localhost:3000"
+                  ],
+                  "MaxAge": 86400
+                }
               }
             },
             "HttpApiStage": {
@@ -228,6 +274,27 @@
                 "TimeoutInMillis": 30000
               }
             },
+            "HttpApiRouteAny": {
+              "Type": "AWS::ApiGatewayV2::Route",
+              "Properties": {
+                "ApiId": {
+                  "Ref": "HttpApi"
+                },
+                "RouteKey": "ANY /",
+                "Target": {
+                  "Fn::Join": [
+                    "/",
+                    [
+                      "integrations",
+                      {
+                        "Ref": "HttpApiIntegrationApi"
+                      }
+                    ]
+                  ]
+                }
+              },
+              "DependsOn": "HttpApiIntegrationApi"
+            },
             "HttpApiRouteAnyProxyVar": {
               "Type": "AWS::ApiGatewayV2::Route",
               "Properties": {
@@ -260,7 +327,7 @@
             "ApiLambdaFunctionQualifiedArn": {
               "Description": "Current Lambda function version",
               "Value": {
-                "Ref": "ApiLambdaVersionYuWPIltKH6BRBM96bPfK5nPiVxdCV9ENlIfhhp4g8"
+                "Ref": "ApiLambdaVersionHUfnB927CDLpgvfTIoRJOXHV9artAkO1vejCSSwZHI"
               },
               "Export": {
                 "Name": "sls-alpex-backend-dev-ApiLambdaFunctionQualifiedArn"
@@ -307,7 +374,16 @@
       "functions": {
         "api": {
           "handler": "lambda.handler",
+          "memorySize": 2048,
           "events": [
+            {
+              "httpApi": {
+                "path": "/",
+                "method": "ANY"
+              },
+              "resolvedMethod": "ANY",
+              "resolvedPath": "/"
+            },
             {
               "httpApi": {
                 "path": "/{proxy+}",
@@ -322,30 +398,28 @@
             "NODE_OPTIONS": "--enable-source-maps"
           },
           "package": {},
-          "memory": 1024,
+          "memory": 2048,
           "timeout": 6,
           "runtime": "nodejs18.x",
           "vpc": {},
-          "versionLogicalId": "ApiLambdaVersionYuWPIltKH6BRBM96bPfK5nPiVxdCV9ENlIfhhp4g8"
+          "versionLogicalId": "ApiLambdaVersionHUfnB927CDLpgvfTIoRJOXHV9artAkO1vejCSSwZHI"
         }
       },
       "plugins": [
         "serverless-offline"
       ],
       "package": {
-        "exclude": [
-          "node_modules/**",
-          ".gitignore",
-          ".env"
-        ],
-        "include": [
+        "patterns": [
+          "!node_modules/aws-sdk/**",
+          "node_modules/.prisma/**",
+          "node_modules/@prisma/**",
           "node_modules/@prisma/client/**",
           "prisma/schema.prisma"
         ],
         "artifactsS3KeyDirname": "serverless/alpex-backend/dev/code-artifacts",
         "deploymentBucket": "serverless-framework-deployments-ap-south-1-f479eb84-69f4",
         "artifact": "D:\\alpex-pharma-backend\\.serverless\\build\\alpex-backend.zip",
-        "artifactDirectoryName": "serverless/alpex-backend/dev/1770489931386-2026-02-07T18:45:31.386Z"
+        "artifactDirectoryName": "serverless/alpex-backend/dev/1770738137464-2026-02-10T15:42:17.464Z"
       },
       "custom": {
         "serverless-offline": {
@@ -357,13 +431,37 @@
       "name": "aws",
       "runtime": "nodejs18.x",
       "region": "ap-south-1",
+      "httpApi": {
+        "cors": {
+          "allowedOrigins": [
+            "https://www.thealpex.com",
+            "https://thealpex.com",
+            "http://localhost:3000"
+          ],
+          "allowedHeaders": [
+            "Content-Type",
+            "Authorization",
+            "X-Requested-With"
+          ],
+          "allowedMethods": [
+            "OPTIONS",
+            "GET",
+            "POST",
+            "PUT",
+            "PATCH",
+            "DELETE"
+          ],
+          "allowCredentials": "<REDACTED>",
+          "maxAge": 86400
+        }
+      },
       "environment": {
         "DATABASE_URL": "postgresql://alpexdb:Alpex.123@alpexdb.cn04iiwskkcr.ap-south-1.rds.amazonaws.com:5432/postgres?sslmode=require",
         "JWT_SECRET": "<REDACTED>",
         "JWT_EXPIRES_IN": "15m",
         "JWT_REFRESH_SECRET": "<REDACTED>",
         "JWT_REFRESH_EXPIRES_IN": "7d",
-        "REDIS_URL": "redis://default:HjyypbOStGQxxZdbNjpHsHnsGUMrAPPi@redis.railway.internal:6379",
+        "REDIS_URL": "redis://default:AcMuAAIncDJlZDEwN2NiZjI3MzE0ZTRiOTkzODE2ZmY0YTk3MjVjYXAyNDk5NjY@solid-bug-49966.upstash.io:6379",
         "ENCRYPT_KEY": "HDpYo6m1zyIkt13JZ4kzptQp6fKKrlIM"
       },
       "stage": "dev",
@@ -461,12 +559,12 @@
             "Properties": {
               "Code": {
                 "S3Bucket": "serverless-framework-deployments-ap-south-1-f479eb84-69f4",
-                "S3Key": "serverless/alpex-backend/dev/1770489931386-2026-02-07T18:45:31.386Z/alpex-backend.zip"
+                "S3Key": "serverless/alpex-backend/dev/1770738137464-2026-02-10T15:42:17.464Z/alpex-backend.zip"
               },
               "Handler": "lambda.handler",
               "Runtime": "nodejs18.x",
               "FunctionName": "alpex-backend-dev-api",
-              "MemorySize": 1024,
+              "MemorySize": 2048,
               "Timeout": 6,
               "Environment": {
                 "Variables": {
@@ -475,7 +573,7 @@
                   "JWT_EXPIRES_IN": "15m",
                   "JWT_REFRESH_SECRET": "<REDACTED>",
                   "JWT_REFRESH_EXPIRES_IN": "7d",
-                  "REDIS_URL": "redis://default:HjyypbOStGQxxZdbNjpHsHnsGUMrAPPi@redis.railway.internal:6379",
+                  "REDIS_URL": "redis://default:AcMuAAIncDJlZDEwN2NiZjI3MzE0ZTRiOTkzODE2ZmY0YTk3MjVjYXAyNDk5NjY@solid-bug-49966.upstash.io:6379",
                   "ENCRYPT_KEY": "HDpYo6m1zyIkt13JZ4kzptQp6fKKrlIM",
                   "NODE_OPTIONS": "--enable-source-maps"
                 }
@@ -491,21 +589,43 @@
               "ApiLogGroup"
             ]
           },
-          "ApiLambdaVersionYuWPIltKH6BRBM96bPfK5nPiVxdCV9ENlIfhhp4g8": {
+          "ApiLambdaVersionHUfnB927CDLpgvfTIoRJOXHV9artAkO1vejCSSwZHI": {
             "Type": "AWS::Lambda::Version",
             "DeletionPolicy": "Retain",
             "Properties": {
               "FunctionName": {
                 "Ref": "ApiLambdaFunction"
               },
-              "CodeSha256": "Iao0xoGz5Mi/wVGe8Z8X3xPfkJRdM2zrYoctB7gbyvk="
+              "CodeSha256": "BmXL2d+jEFy41HCMmfdGX4sAkHyzqw8DM3y2t9WaQt0="
             }
           },
           "HttpApi": {
             "Type": "AWS::ApiGatewayV2::Api",
             "Properties": {
               "Name": "dev-alpex-backend",
-              "ProtocolType": "HTTP"
+              "ProtocolType": "HTTP",
+              "CorsConfiguration": {
+                "AllowCredentials": "<REDACTED>",
+                "AllowHeaders": [
+                  "Content-Type",
+                  "Authorization",
+                  "X-Requested-With"
+                ],
+                "AllowMethods": [
+                  "OPTIONS",
+                  "GET",
+                  "POST",
+                  "PUT",
+                  "PATCH",
+                  "DELETE"
+                ],
+                "AllowOrigins": [
+                  "https://www.thealpex.com",
+                  "https://thealpex.com",
+                  "http://localhost:3000"
+                ],
+                "MaxAge": 86400
+              }
             }
           },
           "HttpApiStage": {
@@ -575,6 +695,27 @@
               "TimeoutInMillis": 30000
             }
           },
+          "HttpApiRouteAny": {
+            "Type": "AWS::ApiGatewayV2::Route",
+            "Properties": {
+              "ApiId": {
+                "Ref": "HttpApi"
+              },
+              "RouteKey": "ANY /",
+              "Target": {
+                "Fn::Join": [
+                  "/",
+                  [
+                    "integrations",
+                    {
+                      "Ref": "HttpApiIntegrationApi"
+                    }
+                  ]
+                ]
+              }
+            },
+            "DependsOn": "HttpApiIntegrationApi"
+          },
           "HttpApiRouteAnyProxyVar": {
             "Type": "AWS::ApiGatewayV2::Route",
             "Properties": {
@@ -607,7 +748,7 @@
           "ApiLambdaFunctionQualifiedArn": {
             "Description": "Current Lambda function version",
             "Value": {
-              "Ref": "ApiLambdaVersionYuWPIltKH6BRBM96bPfK5nPiVxdCV9ENlIfhhp4g8"
+              "Ref": "ApiLambdaVersionHUfnB927CDLpgvfTIoRJOXHV9artAkO1vejCSSwZHI"
             },
             "Export": {
               "Name": "sls-alpex-backend-dev-ApiLambdaFunctionQualifiedArn"
@@ -660,7 +801,7 @@
       "serviceProvider": null,
       "instanceParameters": null
     },
-    "serviceRawFile": "service: alpex-backend\r\n\r\nframeworkVersion: '4'\r\n\r\nprovider:\r\n  name: aws\r\n  runtime: nodejs18.x\r\n  region: ap-south-1\r\n  environment:\r\n    DATABASE_URL: ${env:DATABASE_URL}\r\n    JWT_SECRET: ${env:JWT_SECRET}\r\n    JWT_EXPIRES_IN: ${env:JWT_EXPIRES_IN}\r\n    JWT_REFRESH_SECRET: ${env:JWT_REFRESH_SECRET}\r\n    JWT_REFRESH_EXPIRES_IN: ${env:JWT_REFRESH_EXPIRES_IN}\r\n    REDIS_URL: ${env:REDIS_URL}\r\n    ENCRYPT_KEY: ${env:ENCRYPT_KEY}\r\n\r\nfunctions:\r\n  api:\r\n    handler: lambda.handler\r\n    events:\r\n      - httpApi:\r\n          path: /{proxy+}\r\n          method: ANY\r\n\r\nplugins:\r\n  - serverless-offline\r\n  \r\n\r\npackage:\r\n  exclude:\r\n    - node_modules/**\r\n    - .gitignore\r\n    - .env\r\n  include:\r\n    - node_modules/@prisma/client/**\r\n    - prisma/schema.prisma\r\n\r\ncustom:\r\n  serverless-offline:\r\n    httpPort: 5000\r\n",
+    "serviceRawFile": "service: alpex-backend\r\nframeworkVersion: '4'\r\n\r\nprovider:\r\n  name: aws\r\n  runtime: nodejs18.x\r\n  region: ap-south-1\r\n\r\n  httpApi:\r\n    cors:\r\n      allowedOrigins:\r\n        - https://www.thealpex.com\r\n        - https://thealpex.com\r\n        - http://localhost:3000\r\n      allowedHeaders:\r\n        - Content-Type\r\n        - Authorization\r\n        - X-Requested-With\r\n      allowedMethods:\r\n        - OPTIONS\r\n        - GET\r\n        - POST\r\n        - PUT\r\n        - PATCH\r\n        - DELETE\r\n      allowCredentials: true\r\n      maxAge: 86400\r\n\r\n  environment:\r\n    DATABASE_URL: ${env:DATABASE_URL}\r\n    JWT_SECRET: ${env:JWT_SECRET}\r\n    JWT_EXPIRES_IN: ${env:JWT_EXPIRES_IN}\r\n    JWT_REFRESH_SECRET: ${env:JWT_REFRESH_SECRET}\r\n    JWT_REFRESH_EXPIRES_IN: ${env:JWT_REFRESH_EXPIRES_IN}\r\n    REDIS_URL: ${env:REDIS_URL}\r\n    ENCRYPT_KEY: ${env:ENCRYPT_KEY}\r\n\r\nfunctions:\r\n  api:\r\n    handler: lambda.handler\r\n    memorySize : 2048 \r\n    events:\r\n      - httpApi:\r\n          path: /\r\n          method: ANY\r\n      - httpApi:\r\n          path: /{proxy+}\r\n          method: ANY\r\n\r\nplugins:\r\n  - serverless-offline\r\n\r\n# 🔥 CRITICAL FOR PRISMA IN LAMBDA\r\npackage:\r\n  patterns:\r\n    - '!node_modules/aws-sdk/**'\r\n    - 'node_modules/.prisma/**'\r\n    - 'node_modules/@prisma/**'\r\n    - 'node_modules/@prisma/client/**'\r\n    - 'prisma/schema.prisma'\r\n\r\ncustom:\r\n  serverless-offline:\r\n    httpPort: 5000\r\n",
     "command": [
       "deploy"
     ],
@@ -673,12 +814,12 @@
     "serviceProviderAwsCfStackName": "alpex-backend-dev",
     "serviceProviderAwsCfStackId": "arn:aws:cloudformation:ap-south-1:038932158802:stack/alpex-backend-dev/d77b0ab0-043c-11f1-9c2e-02646738e33f",
     "serviceProviderAwsCfStackCreated": "2026-02-07T15:51:19.126Z",
-    "serviceProviderAwsCfStackUpdated": "2026-02-07T18:43:16.151Z",
+    "serviceProviderAwsCfStackUpdated": "2026-02-10T14:10:57.159Z",
     "serviceProviderAwsCfStackStatus": "UPDATE_COMPLETE",
     "serviceProviderAwsCfStackOutputs": [
       {
         "OutputKey": "ApiLambdaFunctionQualifiedArn",
-        "OutputValue": "arn:aws:lambda:ap-south-1:038932158802:function:alpex-backend-dev-api:2",
+        "OutputValue": "arn:aws:lambda:ap-south-1:038932158802:function:alpex-backend-dev-api:31",
         "Description": "Current Lambda function version",
         "ExportName": "sls-alpex-backend-dev-ApiLambdaFunctionQualifiedArn"
       },
@@ -793,12 +934,12 @@
           "Properties": {
             "Code": {
               "S3Bucket": "serverless-framework-deployments-ap-south-1-f479eb84-69f4",
-              "S3Key": "serverless/alpex-backend/dev/1770489931386-2026-02-07T18:45:31.386Z/alpex-backend.zip"
+              "S3Key": "serverless/alpex-backend/dev/1770738137464-2026-02-10T15:42:17.464Z/alpex-backend.zip"
             },
             "Handler": "lambda.handler",
             "Runtime": "nodejs18.x",
             "FunctionName": "alpex-backend-dev-api",
-            "MemorySize": 1024,
+            "MemorySize": 2048,
             "Timeout": 6,
             "Environment": {
               "Variables": {
@@ -807,7 +948,7 @@
                 "JWT_EXPIRES_IN": "15m",
                 "JWT_REFRESH_SECRET": "<REDACTED>",
                 "JWT_REFRESH_EXPIRES_IN": "7d",
-                "REDIS_URL": "redis://default:HjyypbOStGQxxZdbNjpHsHnsGUMrAPPi@redis.railway.internal:6379",
+                "REDIS_URL": "redis://default:AcMuAAIncDJlZDEwN2NiZjI3MzE0ZTRiOTkzODE2ZmY0YTk3MjVjYXAyNDk5NjY@solid-bug-49966.upstash.io:6379",
                 "ENCRYPT_KEY": "HDpYo6m1zyIkt13JZ4kzptQp6fKKrlIM",
                 "NODE_OPTIONS": "--enable-source-maps"
               }
@@ -823,21 +964,43 @@
             "ApiLogGroup"
           ]
         },
-        "ApiLambdaVersionYuWPIltKH6BRBM96bPfK5nPiVxdCV9ENlIfhhp4g8": {
+        "ApiLambdaVersionHUfnB927CDLpgvfTIoRJOXHV9artAkO1vejCSSwZHI": {
           "Type": "AWS::Lambda::Version",
           "DeletionPolicy": "Retain",
           "Properties": {
             "FunctionName": {
               "Ref": "ApiLambdaFunction"
             },
-            "CodeSha256": "Iao0xoGz5Mi/wVGe8Z8X3xPfkJRdM2zrYoctB7gbyvk="
+            "CodeSha256": "BmXL2d+jEFy41HCMmfdGX4sAkHyzqw8DM3y2t9WaQt0="
           }
         },
         "HttpApi": {
           "Type": "AWS::ApiGatewayV2::Api",
           "Properties": {
             "Name": "dev-alpex-backend",
-            "ProtocolType": "HTTP"
+            "ProtocolType": "HTTP",
+            "CorsConfiguration": {
+              "AllowCredentials": "<REDACTED>",
+              "AllowHeaders": [
+                "Content-Type",
+                "Authorization",
+                "X-Requested-With"
+              ],
+              "AllowMethods": [
+                "OPTIONS",
+                "GET",
+                "POST",
+                "PUT",
+                "PATCH",
+                "DELETE"
+              ],
+              "AllowOrigins": [
+                "https://www.thealpex.com",
+                "https://thealpex.com",
+                "http://localhost:3000"
+              ],
+              "MaxAge": 86400
+            }
           }
         },
         "HttpApiStage": {
@@ -907,6 +1070,27 @@
             "TimeoutInMillis": 30000
           }
         },
+        "HttpApiRouteAny": {
+          "Type": "AWS::ApiGatewayV2::Route",
+          "Properties": {
+            "ApiId": {
+              "Ref": "HttpApi"
+            },
+            "RouteKey": "ANY /",
+            "Target": {
+              "Fn::Join": [
+                "/",
+                [
+                  "integrations",
+                  {
+                    "Ref": "HttpApiIntegrationApi"
+                  }
+                ]
+              ]
+            }
+          },
+          "DependsOn": "HttpApiIntegrationApi"
+        },
         "HttpApiRouteAnyProxyVar": {
           "Type": "AWS::ApiGatewayV2::Route",
           "Properties": {
@@ -939,7 +1123,7 @@
         "ApiLambdaFunctionQualifiedArn": {
           "Description": "Current Lambda function version",
           "Value": {
-            "Ref": "ApiLambdaVersionYuWPIltKH6BRBM96bPfK5nPiVxdCV9ENlIfhhp4g8"
+            "Ref": "ApiLambdaVersionHUfnB927CDLpgvfTIoRJOXHV9artAkO1vejCSSwZHI"
           },
           "Export": {
             "Name": "sls-alpex-backend-dev-ApiLambdaFunctionQualifiedArn"

@@ -21,9 +21,14 @@ function normalizeName(name: string): string {
     .replace(/\s+/g, ""); // rahul sharma → rahulsharma
 }
 
+// Helper: Extract first name from full name
+function getFirstName(fullName: string): string {
+  return fullName.split(" ")[0].toLowerCase();
+}
+
 // Helper: Generate username with collision check
-async function generateUniqueUsername(baseName: string): Promise<string> {
-  let username = `${baseName}.alpex`;
+async function generateUniqueUsername(firstName: string, department: string): Promise<string> {
+  let username = `${firstName}.${department}`.toLowerCase();
   let attempt = 1;
 
   while (true) {
@@ -35,19 +40,14 @@ async function generateUniqueUsername(baseName: string): Promise<string> {
 
     if (!conflict) return username;
 
-    username = `${baseName}${attempt}.alpex`;
+    username = `${firstName}${attempt}.${department}`.toLowerCase();
     attempt++;
   }
 }
 
-// Helper: Generate password from last 4 phone digits
-function generatePasswordFromPhone(phone: string): string {
-  const digits = phone.replace(/\D/g, ""); // remove +, -, spaces, etc.
-  if (digits.length < 4) {
-    throw new Error("Phone number must have at least 4 digits");
-  }
-  const last4 = digits.slice(-4);
-  return `user@${last4}`;
+// Helper: Generate password from first name
+function generatePasswordFromFirstName(firstName: string): string {
+  return `${firstName.toLowerCase()}@1234`;
 }
 
 // Create employee – now auto-generates username + password if created by Admin/Superuser
@@ -75,9 +75,9 @@ export const createEmployee = async (data: EmployeeData) => {
 
   if (isAdminCreated) {
     // Auto-approve → generate credentials immediately
-    const baseName = normalizeName(data.name);
-    username = await generateUniqueUsername(baseName);
-    plainPassword = generatePasswordFromPhone(data.phone);
+    const firstName = getFirstName(data.name);
+    username = await generateUniqueUsername(firstName, data.department);
+    plainPassword = generatePasswordFromFirstName(firstName);
     hashedPassword = await bcrypt.hash(plainPassword, 10);
   }
 
@@ -168,9 +168,9 @@ export const approveEmployee = async (employeeId: string, adminId: string) => {
   if (employee.status !== "Active") throw new Error("Only active employees can be approved for credentials");
   if (employee.approvedForCredentials !== "Pending") throw new Error("Employee credentials are not pending approval");
 
-  const baseName = normalizeName(employee.name);
-  const username = await generateUniqueUsername(baseName);
-  const plainPassword = generatePasswordFromPhone(employee.phone);
+  const firstName = getFirstName(employee.name);
+  const username = await generateUniqueUsername(firstName, employee.department);
+  const plainPassword = generatePasswordFromFirstName(firstName);
   const hashedPassword = await bcrypt.hash(plainPassword, 10);
 
   const updatedEmployee = await prisma.employee.update({
@@ -273,6 +273,38 @@ export const updateEmployee = async (id: string, data: any) => {
   });
 };
 
+
+// Activate employee
+export const activateEmployee = async (id: string, adminId: string) => {
+  const employee = await prisma.employee.findUnique({ 
+    where: { id } 
+  });
+  
+  if (!employee) throw new Error("Employee not found");
+  if (employee.status === "Active") throw new Error("Employee is already active");
+
+  const updated = await prisma.employee.update({
+    where: { id },
+    data: { status: "Active" },
+  });
+
+  try {
+    await logAction({
+      action: "ACTIVATE_EMPLOYEE",
+      performedBy: adminId,
+      targetId: id,
+      details: { 
+        status: "Active",
+        previousStatus: employee.status
+      },
+    });
+  } catch (logError) {
+    console.error('Error logging activate action:', logError);
+    // Don't throw - just log the error and continue
+  }
+
+  return updated;
+};
 
 // Soft delete
 export const deleteEmployee = async (id: string) =>

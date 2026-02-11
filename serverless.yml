@@ -1,11 +1,31 @@
 service: alpex-backend
-
 frameworkVersion: '4'
 
 provider:
   name: aws
   runtime: nodejs18.x
   region: ap-south-1
+
+  httpApi:
+    cors:
+      allowedOrigins:
+        - https://www.thealpex.com
+        - https://thealpex.com
+        - http://localhost:3000
+      allowedHeaders:
+        - Content-Type
+        - Authorization
+        - X-Requested-With
+      allowedMethods:
+        - OPTIONS
+        - GET
+        - POST
+        - PUT
+        - PATCH
+        - DELETE
+      allowCredentials: true
+      maxAge: 86400
+
   environment:
     DATABASE_URL: ${env:DATABASE_URL}
     JWT_SECRET: ${env:JWT_SECRET}
@@ -18,23 +38,26 @@ provider:
 functions:
   api:
     handler: lambda.handler
+    memorySize : 2048 
     events:
+      - httpApi:
+          path: /
+          method: ANY
       - httpApi:
           path: /{proxy+}
           method: ANY
 
 plugins:
   - serverless-offline
-  
 
+# 🔥 CRITICAL FOR PRISMA IN LAMBDA
 package:
-  exclude:
-    - node_modules/**
-    - .gitignore
-    - .env
-  include:
-    - node_modules/@prisma/client/**
-    - prisma/schema.prisma
+  patterns:
+    - '!node_modules/aws-sdk/**'
+    - 'node_modules/.prisma/**'
+    - 'node_modules/@prisma/**'
+    - 'node_modules/@prisma/client/**'
+    - 'prisma/schema.prisma'
 
 custom:
   serverless-offline:

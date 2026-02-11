@@ -1,11 +1,7 @@
-import dotenv from "dotenv";
-dotenv.config();
-
-import express, { Application } from "express";
-import cors from "cors";
+import express, { Application, Request, Response } from "express";
 import helmet from "helmet";
 
-// Routes
+/* ROUTES */
 import employeeRoutes from "./modules/employee/employee.routes";
 import authRoutes from "./modules/auth/auth.routes";
 import customerRoutes from "./modules/customer/customer.routes";
@@ -19,49 +15,27 @@ import ppicfilterRoutes from "./modules/ppic/ppic-advanced-filter.routes";
 
 const app: Application = express();
 
-/* -------------------- SECURITY -------------------- */
-app.use(
-  helmet({
-    crossOriginResourcePolicy: false,
-  })
-);
-
-/* -------------------- BODY PARSERS -------------------- */
+app.use(helmet({ crossOriginResourcePolicy: false }));
 app.use(express.json({ limit: "50mb" }));
 app.use(express.urlencoded({ extended: true, limit: "50mb" }));
 
-/* -------------------- CORS -------------------- */
-const allowedOrigins = [
-  "https://www.thealpex.com",
-  "http://localhost:3000",
-];
+// 🔥 Let API Gateway handle CORS, just allow OPTIONS to pass
+// Let API Gateway handle CORS, just allow OPTIONS to pass
+app.use((req, res, next) => {
+  if (req.method === "OPTIONS") {
+    res.setHeader("Access-Control-Allow-Origin", (req.headers.origin as string) || "*");
+    res.setHeader("Access-Control-Allow-Methods", "GET,POST,PUT,PATCH,DELETE,OPTIONS");
+    res.setHeader(
+      "Access-Control-Allow-Headers",
+      "Content-Type,Authorization,X-Requested-With,Access-Control-Request-Method,Access-Control-Request-Headers"
+    );
+    res.setHeader("Access-Control-Allow-Credentials", "true");
+    return res.sendStatus(204);
+  }
+  next();
+});
 
-app.use(
-  cors({
-    origin: (origin, callback) => {
-      // Allow server-to-server & tools like Postman
-      if (!origin) return callback(null, true);
-
-      if (allowedOrigins.includes(origin)) {
-        return callback(null, true);
-      }
-
-      return callback(new Error("CORS not allowed"));
-    },
-    credentials: true,
-    methods: ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
-    allowedHeaders: [
-      "Content-Type",
-      "Authorization",
-      "X-Requested-With",
-    ],
-  })
-);
-
-// VERY IMPORTANT for preflight
-app.options("*", cors());
-
-/* -------------------- ROUTES -------------------- */
+/* ROUTES */
 app.use("/api/employees", employeeRoutes);
 app.use("/api/auth", authRoutes);
 app.use("/api/customers", customerRoutes);
@@ -73,9 +47,8 @@ app.use("/api/ppic", ppicRoutes);
 app.use("/api/master", masterRoutes);
 app.use("/api/ppicfilter", ppicfilterRoutes);
 
-/* -------------------- HEALTH CHECK -------------------- */
-app.get("/health", (_req, res) => {
-  res.status(200).json({ status: "OK" });
-});
+app.get("/health", (_req, res) => res.status(200).json({ status: "OK" }));
+
+app.use((_req, res) => res.status(404).json({ message: "Route not found" }));
 
 export default app;
