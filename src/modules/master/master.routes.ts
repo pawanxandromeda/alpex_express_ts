@@ -13,7 +13,7 @@ const masterController = new MasterController();
 // ChangePartMaster routes
 router.post(
   '/change-part-master',
-  upload.single('file'), // MUST match FormData key
+  upload.single('partPicture'), 
   masterController.createChangePartMaster
 );
 router.get('/change-part-master', masterController.getAllChangePartMasters);

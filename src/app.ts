@@ -1,5 +1,6 @@
 import express, { Application, Request, Response } from "express";
 import helmet from "helmet";
+import cors from "cors";
 
 /* ROUTES */
 import employeeRoutes from "./modules/employee/employee.routes";
@@ -12,6 +13,8 @@ import accountsRoutes from "./modules/accounts/accounts.routes";
 import ppicRoutes from "./modules/ppic/ppic.routes";
 import masterRoutes from "./modules/master/master.routes";
 import ppicfilterRoutes from "./modules/ppic/ppic-advanced-filter.routes";
+import leadRoutes from "./modules/lead/lead.routes";
+import HrRoutes from "./modules/hr/hr.routes";
 
 const app: Application = express();
 
@@ -19,22 +22,43 @@ app.use(helmet({ crossOriginResourcePolicy: false }));
 app.use(express.json({ limit: "50mb" }));
 app.use(express.urlencoded({ extended: true, limit: "50mb" }));
 
-// 🔥 Let API Gateway handle CORS, just allow OPTIONS to pass
-// Let API Gateway handle CORS, just allow OPTIONS to pass
-app.use((req, res, next) => {
-  if (req.method === "OPTIONS") {
-    res.setHeader("Access-Control-Allow-Origin", (req.headers.origin as string) || "*");
-    res.setHeader("Access-Control-Allow-Methods", "GET,POST,PUT,PATCH,DELETE,OPTIONS");
-    res.setHeader(
-      "Access-Control-Allow-Headers",
-      "Content-Type,Authorization,X-Requested-With,Access-Control-Request-Method,Access-Control-Request-Headers"
-    );
-    res.setHeader("Access-Control-Allow-Credentials", "true");
-    return res.sendStatus(204);
-  }
-  next();
-});
 
+// app.use((req, res, next) => {
+//   if (req.method === "OPTIONS") {
+//     res.setHeader("Access-Control-Allow-Origin", (req.headers.origin as string) || "*");
+//     res.setHeader("Access-Control-Allow-Methods", "GET,POST,PUT,PATCH,DELETE,OPTIONS");
+//     res.setHeader(
+//       "Access-Control-Allow-Headers",
+//       "Content-Type,Authorization,X-Requested-With,Access-Control-Request-Method,Access-Control-Request-Headers"
+//     );
+//     res.setHeader("Access-Control-Allow-Credentials", "true");
+//     return res.sendStatus(204);
+//   }
+//   next();
+// });
+
+const allowedOrigins = [
+  "http://localhost:8080",
+  "http://127.0.0.1:8080"
+];
+
+app.use(
+  cors({
+    origin: (origin, callback) => {
+      // allow non-browser tools like Postman
+      if (!origin) return callback(null, true);
+
+      if (allowedOrigins.includes(origin)) {
+        callback(null, true);
+      } else {
+        callback(new Error("Not allowed by CORS"));
+      }
+    },
+    credentials: true,
+    methods: ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
+    allowedHeaders: ["Content-Type", "Authorization"]
+  })
+);
 /* ROUTES */
 app.use("/api/employees", employeeRoutes);
 app.use("/api/auth", authRoutes);
@@ -46,6 +70,8 @@ app.use("/api/accounts", accountsRoutes);
 app.use("/api/ppic", ppicRoutes);
 app.use("/api/master", masterRoutes);
 app.use("/api/ppicfilter", ppicfilterRoutes);
+app.use("/api/lead", leadRoutes);
+app.use("/api/hr", HrRoutes);
 
 app.get("/health", (_req, res) => res.status(200).json({ status: "OK" }));
 

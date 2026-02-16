@@ -91,7 +91,7 @@
       "Properties": {
         "Code": {
           "S3Bucket": "serverless-framework-deployments-ap-south-1-f479eb84-69f4",
-          "S3Key": "serverless/alpex-backend/dev/1770738137464-2026-02-10T15:42:17.464Z/alpex-backend.zip"
+          "S3Key": "serverless/alpex-backend/dev/1770994356729-2026-02-13T14:52:36.729Z/alpex-backend.zip"
         },
         "Handler": "lambda.handler",
         "Runtime": "nodejs18.x",
@@ -106,6 +106,8 @@
             "JWT_REFRESH_SECRET": "ALPEX_REFRESH_SECRET",
             "JWT_REFRESH_EXPIRES_IN": "7d",
             "REDIS_URL": "redis://default:AcMuAAIncDJlZDEwN2NiZjI3MzE0ZTRiOTkzODE2ZmY0YTk3MjVjYXAyNDk5NjY@solid-bug-49966.upstash.io:6379",
+            "CUSTOMER_REFERENCE_URL": "https://docs.google.com/spreadsheets/d/1DWGf5OCEJ3_ssfZzOw2D-qPdCIWjJ_PnuXB6C2mOYuA/edit?pli=1&gid=0",
+            "S3_BUCKET": "alpexbuckets",
             "ENCRYPT_KEY": "HDpYo6m1zyIkt13JZ4kzptQp6fKKrlIM",
             "NODE_OPTIONS": "--enable-source-maps"
           }
@@ -121,14 +123,14 @@
         "ApiLogGroup"
       ]
     },
-    "ApiLambdaVersionHUfnB927CDLpgvfTIoRJOXHV9artAkO1vejCSSwZHI": {
+    "ApiLambdaVersionRZ0N9KROrXeP49vC88EVTkF5JfJvWe1f02EVKFSM": {
       "Type": "AWS::Lambda::Version",
       "DeletionPolicy": "Retain",
       "Properties": {
         "FunctionName": {
           "Ref": "ApiLambdaFunction"
         },
-        "CodeSha256": "BmXL2d+jEFy41HCMmfdGX4sAkHyzqw8DM3y2t9WaQt0="
+        "CodeSha256": "z6GDmrugQCFeV+YkB0oZaaqW0NGUzb8HvDbWGq4YAuA="
       }
     },
     "HttpApi": {
@@ -154,7 +156,7 @@
           "AllowOrigins": [
             "https://www.thealpex.com",
             "https://thealpex.com",
-            "http://localhost:3000"
+            "http://localhost:8080"
           ],
           "MaxAge": 86400
         }
@@ -280,7 +282,7 @@
     "ApiLambdaFunctionQualifiedArn": {
       "Description": "Current Lambda function version",
       "Value": {
-        "Ref": "ApiLambdaVersionHUfnB927CDLpgvfTIoRJOXHV9artAkO1vejCSSwZHI"
+        "Ref": "ApiLambdaVersionRZ0N9KROrXeP49vC88EVTkF5JfJvWe1f02EVKFSM"
       },
       "Export": {
         "Name": "sls-alpex-backend-dev-ApiLambdaFunctionQualifiedArn"

@@ -6,6 +6,7 @@ import { Request, Response, NextFunction } from "express";
 import { PPICService } from "./ppic.service";
 import { sendSuccess, sendError } from "../../common/utils/responseFormatter";
 import { ERROR_CODES } from "../../common/utils/errorMessages";
+import { AuthRequest } from "../../common/middleware/auth.middleware";
 
 class PPICController {
   /**
@@ -307,111 +308,147 @@ async getAllPOs(req: Request, res: Response, next: NextFunction) {
    * Mark purchase order as RFD
    * PATCH /api/ppic/pos/:id/mark-rfd
    */
-  async markRFD(req: Request, res: Response, next: NextFunction) {
-    try {
-      const { id } = req.params;
+ async markRFD(req: AuthRequest, res: Response, next: NextFunction) {
+  try {
+    const { id } = req.params;
+    const userId = req.user?.id;
 
-      if (!id) {
-        return sendError(res, ERROR_CODES.VALIDATION_ERROR, "Purchase Order ID is required");
-      }
-
-      const updatedPO = await PPICService.markRFD(id as string);
-      return sendSuccess(res, updatedPO, "Purchase order marked as RFD", 200);
-    } catch (err) {
-      next(err);
+    if (!id) {
+      return sendError(
+        res,
+        ERROR_CODES.VALIDATION_ERROR,
+        "Purchase Order ID is required"
+      );
     }
+
+    const updatedPO = await PPICService.markRFD(id as string, userId);
+    return sendSuccess(res, updatedPO, "Purchase order marked as RFD", 200);
+  } catch (err) {
+    next(err);
   }
+}
+
 
   /**
    * Mark purchase order as cancelled
    * PATCH /api/ppic/pos/:id/mark-cancelled
    */
-  async markCancelled(req: Request, res: Response, next: NextFunction) {
-    try {
-      const { id } = req.params;
+  async markCancelled(req: AuthRequest, res: Response, next: NextFunction) {
+  try {
+    const { id } = req.params;
+    const userId = req.user?.id;
 
-      if (!id) {
-        return sendError(res, ERROR_CODES.VALIDATION_ERROR, "Purchase Order ID is required");
-      }
-
-      const updatedPO = await PPICService.markCancelled(id as string);
-      return sendSuccess(res, updatedPO, "Purchase order marked as cancelled", 200);
-    } catch (err) {
-      next(err);
+    if (!id) {
+      return sendError(
+        res,
+        ERROR_CODES.VALIDATION_ERROR,
+        "Purchase Order ID is required"
+      );
     }
+
+    const updatedPO = await PPICService.markCancelled(id as string, userId);
+    return sendSuccess(res, updatedPO, "Purchase order marked as cancelled", 200);
+  } catch (err) {
+    next(err);
   }
+}
 
-  async markDispatched(req: Request, res: Response, next: NextFunction) {
-    try {
-      const { id } = req.params;
 
-      if (!id) {
-        return sendError(res, ERROR_CODES.VALIDATION_ERROR, "Purchase Order ID is required");
-      }
+  async markDispatched(req: AuthRequest, res: Response, next: NextFunction) {
+  try {
+    const { id } = req.params;
+    const userId = req.user?.id;
 
-      const updatedPO = await PPICService.markDispatched(id as string);
-      return sendSuccess(res, updatedPO, "Purchase order marked as dispatched", 200);
-    } catch (err) {
-      next(err);
+    if (!id) {
+      return sendError(
+        res,
+        ERROR_CODES.VALIDATION_ERROR,
+        "Purchase Order ID is required"
+      );
     }
+
+    const updatedPO = await PPICService.markDispatched(id as string, userId);
+    return sendSuccess(res, updatedPO, "Purchase order marked as dispatched", 200);
+  } catch (err) {
+    next(err);
   }
+}
+
 
   /**
    * Bulk mark purchase orders as RFD
    * PATCH /api/ppic/pos/bulk/mark-rfd
    */
-  async bulkMarkRFD(req: Request, res: Response, next: NextFunction) {
-    try {
-      const { ids } = req.body as { ids?: string[] };
+  async bulkMarkRFD(req: AuthRequest, res: Response, next: NextFunction) {
+  try {
+    const { ids } = req.body as { ids?: string[] };
+    const userId = req.user?.id;
 
-      if (!ids || !Array.isArray(ids) || ids.length === 0) {
-        return sendError(res, ERROR_CODES.VALIDATION_ERROR, "Purchase Order IDs are required");
-      }
-
-      const result = await PPICService.bulkMarkRFD(ids);
-      return sendSuccess(res, result, "Purchase orders marked as RFD", 200);
-    } catch (err) {
-      next(err);
+    if (!ids || !Array.isArray(ids) || ids.length === 0) {
+      return sendError(
+        res,
+        ERROR_CODES.VALIDATION_ERROR,
+        "Purchase Order IDs are required"
+      );
     }
+
+    await PPICService.bulkMarkRFD(ids, userId);
+    return sendSuccess(res, null, "Purchase orders marked as RFD", 200);
+  } catch (err) {
+    next(err);
   }
+}
+
 
   /**
    * Bulk mark purchase orders as cancelled
    * PATCH /api/ppic/pos/bulk/mark-cancelled
    */
-  async bulkMarkCancelled(req: Request, res: Response, next: NextFunction) {
-    try {
-      const { ids } = req.body as { ids?: string[] };
+ async bulkMarkCancelled(req: AuthRequest, res: Response, next: NextFunction) {
+  try {
+    const { ids } = req.body as { ids?: string[] };
+    const userId = req.user?.id;
 
-      if (!ids || !Array.isArray(ids) || ids.length === 0) {
-        return sendError(res, ERROR_CODES.VALIDATION_ERROR, "Purchase Order IDs are required");
-      }
-
-      const result = await PPICService.bulkMarkCancelled(ids);
-      return sendSuccess(res, result, "Purchase orders marked as cancelled", 200);
-    } catch (err) {
-      next(err);
+    if (!ids || !Array.isArray(ids) || ids.length === 0) {
+      return sendError(
+        res,
+        ERROR_CODES.VALIDATION_ERROR,
+        "Purchase Order IDs are required"
+      );
     }
+
+    await PPICService.bulkMarkCancelled(ids, userId);
+    return sendSuccess(res, null, "Purchase orders marked as cancelled", 200);
+  } catch (err) {
+    next(err);
   }
+}
+
 
   /**
    * Bulk mark purchase orders as dispatched
    * PATCH /api/ppic/pos/bulk/mark-dispatched
    */
-  async bulkMarkDispatched(req: Request, res: Response, next: NextFunction) {
-    try {
-      const { ids } = req.body as { ids?: string[] };
+ async bulkMarkDispatched(req: AuthRequest, res: Response, next: NextFunction) {
+  try {
+    const { ids } = req.body as { ids?: string[] };
+    const userId = req.user?.id;
 
-      if (!ids || !Array.isArray(ids) || ids.length === 0) {
-        return sendError(res, ERROR_CODES.VALIDATION_ERROR, "Purchase Order IDs are required");
-      }
-
-      const result = await PPICService.bulkMarkDispatched(ids);
-      return sendSuccess(res, result, "Purchase orders marked as dispatched", 200);
-    } catch (err) {
-      next(err);
+    if (!ids || !Array.isArray(ids) || ids.length === 0) {
+      return sendError(
+        res,
+        ERROR_CODES.VALIDATION_ERROR,
+        "Purchase Order IDs are required"
+      );
     }
+
+    await PPICService.bulkMarkDispatched(ids, userId);
+    return sendSuccess(res, null, "Purchase orders marked as dispatched", 200);
+  } catch (err) {
+    next(err);
   }
+}
+
   
 
   /**

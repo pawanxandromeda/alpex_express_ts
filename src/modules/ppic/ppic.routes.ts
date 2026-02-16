@@ -10,7 +10,6 @@ import encryptResponse from "../../common/middleware/encryptResponse";
 
 const router = Router();
 
-
 router.use(protect);
 
 router.post("/import", upload.single("file"), ppicController.bulkImport);
@@ -24,13 +23,14 @@ router.patch("/pos/bulk/mark-rfd", ppicController.bulkMarkRFD);
 router.patch("/pos/bulk/mark-cancelled", ppicController.bulkMarkCancelled);
 router.patch("/pos/bulk/mark-dispatched", ppicController.bulkMarkDispatched);
 
+router.get("/export", ppicController.exportPOs);
+router.get("/pos/search", encryptResponse, ppicController.searchPOs);
+router.get("/pos", encryptResponse, ppicController.getAllPOs);
+
+router.get("/pos/:id", encryptResponse, ppicController.getPOById);
+
 router.patch("/pos/:id/mark-rfd", ppicController.markRFD);
 router.patch("/pos/:id/mark-cancelled", ppicController.markCancelled);
 router.patch("/pos/:id/mark-dispatched", ppicController.markDispatched);
-
-router.get("/export", ppicController.exportPOs);
-router.get("/pos", encryptResponse, ppicController.getAllPOs);
-router.get("/pos/search", encryptResponse, ppicController.searchPOs);
-router.get("/pos/:id", encryptResponse, ppicController.getPOById);
 
 export default router;

@@ -11,7 +11,7 @@ provider:
       allowedOrigins:
         - https://www.thealpex.com
         - https://thealpex.com
-        - http://localhost:3000
+        - http://localhost:8080
       allowedHeaders:
         - Content-Type
         - Authorization
@@ -33,6 +33,8 @@ provider:
     JWT_REFRESH_SECRET: ${env:JWT_REFRESH_SECRET}
     JWT_REFRESH_EXPIRES_IN: ${env:JWT_REFRESH_EXPIRES_IN}
     REDIS_URL: ${env:REDIS_URL}
+    CUSTOMER_REFERENCE_URL: ${env:CUSTOMER_REFERENCE_URL}
+    S3_BUCKET: ${env:S3_BUCKET}
     ENCRYPT_KEY: ${env:ENCRYPT_KEY}
 
 functions:

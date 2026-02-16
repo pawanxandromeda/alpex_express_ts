@@ -34,6 +34,22 @@ enum TodoStatus {
   Cancelled
 }
 
+enum LeadStatus {
+  New
+  Contacted
+  Interested
+  Qualified
+  Converted
+  Lost
+  OnHold
+}
+
+enum FollowUpStatus {
+  Pending
+  Completed
+  Rescheduled
+}
+
 enum EmployeeStatus {
   Pending
   Active
@@ -43,6 +59,73 @@ enum EmployeeStatus {
 enum CredentialApprovalStatus {
   Pending
   Approved
+}
+
+enum LeaveStatus {
+  Pending
+  Approved
+  Rejected
+  Cancelled
+}
+
+enum LeaveType {
+  Sick
+  Casual
+  Earned
+  Maternity
+  Paternity
+  Unpaid
+  Special
+  Bereavement
+  Marriage
+  Study
+}
+
+enum AttendanceStatus {
+  Present
+  Absent
+  Leave
+  HalfDay
+  WFH
+  Holidays
+  WeekOff
+}
+
+enum PayrollStatus {
+  Draft
+  Submitted
+  Approved
+  Processed
+  Paid
+  Rejected
+}
+
+enum PerformanceRating {
+  Outstanding
+  Exceeds
+  Meets
+  Developing
+  Unsatisfactory
+}
+
+enum GrievanceStatus {
+  Filed
+  UnderReview
+  InProgress
+  Resolved
+  Closed
+  Withdrawn
+}
+
+enum DocumentType {
+  Aadhar
+  PAN
+  DrivingLicense
+  Passport
+  EducationCertificate
+  ExperienceCertificate
+  MedicalReport
+  Other
 }
 
 model Employee {
@@ -56,8 +139,34 @@ model Employee {
   approvedForCredentials CredentialApprovalStatus @default(Pending)
 
   dateOfJoining          DateTime?
+  dateOfBirth            DateTime?
   ctc                    Float?
-    createdCustomers       Customer[]
+  baseSalary             Float?
+  fatherName             String?
+  motherName             String?
+  spouseName             String?
+  permanentAddress       String?
+  currentAddress         String?
+  bloodGroup             String?
+  emergencyContact       String?
+  emergencyContactPhone  String?
+  
+  // HR Extended Fields
+  designation            String?
+  reportingManagerId     String?
+  reportingManager       Employee?  @relation("ReportingManager", fields: [reportingManagerId], references: [id])
+  subordinates           Employee[] @relation("ReportingManager")
+  bankName               String?
+  bankAccountNumber      String?
+  bankIfscCode           String?
+  panNumber              String?
+  aadharNumber           String?
+  esi                    String?
+  pf                     String?
+  totalLeaveBalance      Int?       @default(0)
+  usedLeave              Int?       @default(0)
+  
+  createdCustomers       Customer[]
   createdByRole          String
   username               String?                  @unique
   password               String?
@@ -69,9 +178,30 @@ model Employee {
   createdTodos           Todo[]                   @relation("CreatedTodos")
   assignedTodos          Todo[]                   @relation("AssignedTodos")
   mentionedInTodos       TodoMention[]            @relation("MentionedEmployee")
+  assignedLeads          Lead[]                   @relation("AssignedLeads")
+  adminAssignedLeads     Lead[]                   @relation("AdminAssignedLeads")
+  leadFollowUps          LeadFollowUp[]           @relation("LeadFollowUps")
+  
+  // HR Relations
+  leaveRequests          LeaveRequest[]           @relation("EmployeeLeaveRequests")
+  approverLeaveRequests  LeaveRequest[]           @relation("ApproverLeaveRequests")
+  attendanceRecords      Attendance[]
+  payrollRecords         Payroll[]
+  documents              EmployeeDocument[]
+  performanceReviews     PerformanceReview[]      @relation("RevieweePerformance")
+  givenReviews           PerformanceReview[]      @relation("ReviewerPerformance")
+  employeeBenefits       EmployeeBenefit[]
+  grievances             Grievance[]              @relation("EmployeeGrievance")
+  grievanceAssignedTo    Grievance[]              @relation("AssignedToGrievance")
+  shifts                 EmployeeShift[]
+  trainingPrograms       EmployeeTraining[]
 
   createdAt              DateTime                 @default(now())
   updatedAt              DateTime                 @updatedAt
+  
+  @@index([department])
+  @@index([status])
+  @@index([reportingManagerId])
 }
 
 
@@ -98,13 +228,58 @@ model Customer {
   dlExpiry             DateTime? // Expiry date (DateTime)
   isBlacklisted        Boolean  @default(false)
   blacklistReason      String?
+  promotor             String?
   blacklistedAt        DateTime?
   purchaseOrders       PurchaseOrder[]
+  leads                Lead[]
+  annualTurnover       String?
   createdAt            DateTime @default(now())
   updatedAt            DateTime @updatedAt
 }
 
+model Lead {
+  id                   String      @id @default(uuid())
+  customerId           String
+  customer             Customer    @relation(fields: [customerId], references: [id], onDelete: Cascade)
+  assignedToEmployeeId String?
+  assignedToEmployee   Employee?   @relation("AssignedLeads", fields: [assignedToEmployeeId], references: [id])
+  assignedByEmployeeId String
+  assignedByEmployee   Employee    @relation("AdminAssignedLeads", fields: [assignedByEmployeeId], references: [id])
+  status               LeadStatus  @default(New)
+  followUps            LeadFollowUp[]
+  notes                String?
+  assignedAt           DateTime    @default(now())
+  lastContactedAt      DateTime?
+  createdAt            DateTime    @default(now())
+  updatedAt            DateTime    @updatedAt
 
+  assignmentHistory    LeadAssignmentHistory[]
+  @@unique([customerId, assignedToEmployeeId])
+}
+
+model LeadAssignmentHistory {
+  id                   String   @id @default(uuid())
+  leadId               String
+  lead                 Lead     @relation(fields: [leadId], references: [id], onDelete: Cascade)
+  assignedToEmployeeId String?
+  assignedByEmployeeId String
+  assignedAt           DateTime @default(now())
+  notes                String?
+}
+
+model LeadFollowUp {
+  id                   String     @id @default(uuid())
+  leadId               String
+  lead                 Lead       @relation(fields: [leadId], references: [id], onDelete: Cascade)
+  employeeId           String
+  employee             Employee   @relation("LeadFollowUps", fields: [employeeId], references: [id])
+  followUpType         String     // e.g., "Call", "Email", "Meeting", "Demo"
+  notes                String?
+  nextFollowUpDate     DateTime?
+  status               FollowUpStatus @default(Pending)
+  createdAt            DateTime   @default(now())
+  updatedAt            DateTime   @updatedAt
+}
 
 model Todo {
   id                String       @id @default(uuid())
@@ -232,8 +407,7 @@ model PurchaseOrder {
   cartonQuantityOrdered        String?
   dispatchStatus               String?         @default("Pending")
   timestamp                    Json?           // JSON field for RM / Production / Dispatch statuses + timestamps
-  isCancelled                 Boolean? @default(false)
-  isRFD                       Boolean? @default(false)
+ statusHistory   PurchaseOrderStatusHistory[]
   createdAt                    DateTime         @default(now())
   updatedAt                    DateTime         @updatedAt
 
@@ -243,6 +417,25 @@ model PurchaseOrder {
   @@index([overallStatus])
   @@index([createdAt])
 }
+
+model PurchaseOrderStatusHistory {
+  id              String   @id @default(uuid())
+
+  purchaseOrderId String
+  purchaseOrder   PurchaseOrder @relation(fields: [purchaseOrderId], references: [id], onDelete: Cascade)
+
+  status           String
+  remarks          String?
+  changedBy        String?
+  metadata         Json?
+
+  createdAt        DateTime @default(now())
+
+  @@index([purchaseOrderId])
+  @@index([status])
+}
+
+
 
 
 model Notification {
@@ -327,4 +520,261 @@ model VendorMaster{
     createdAt            DateTime @default(now())
     updatedAt            DateTime @updatedAt
 
+}
+
+// ============ HR MODULE MODELS ============
+
+model LeaveRequest {
+  id                   String       @id @default(uuid())
+  employeeId           String
+  employee             Employee     @relation("EmployeeLeaveRequests", fields: [employeeId], references: [id], onDelete: Cascade)
+  leaveType            LeaveType
+  startDate            DateTime
+  endDate              DateTime
+  numberOfDays         Int
+    requestedBy     String?
+  reason               String?
+  status               LeaveStatus  @default(Pending)
+  approverEmployeeId   String?
+  approverEmployee     Employee?    @relation("ApproverLeaveRequests", fields: [approverEmployeeId], references: [id], onDelete: SetNull)
+  approverComments     String?
+  approvedAt           DateTime?
+  rejectedAt           DateTime?
+  rejectionReason      String?
+  attachmentUrl        String?
+  createdAt            DateTime     @default(now())
+  updatedAt            DateTime     @updatedAt
+
+  @@index([employeeId])
+  @@index([status])
+  @@index([startDate])
+  @@index([leaveType])
+}
+
+model Attendance {
+  id                   String              @id @default(uuid())
+  employeeId           String
+  employee             Employee            @relation(fields: [employeeId], references: [id], onDelete: Cascade)
+  attendanceDate       DateTime
+  status               AttendanceStatus    @default(Absent)
+  checkInTime          DateTime?
+  checkOutTime         DateTime?
+  workingHours         Float?
+  location             String?
+  notes                String?
+  deviceId             String?
+  verifiedBy           String?
+  createdAt            DateTime            @default(now())
+  updatedAt            DateTime            @updatedAt
+
+  @@unique([employeeId, attendanceDate])
+  @@index([employeeId])
+  @@index([attendanceDate])
+  @@index([status])
+}
+
+model Payroll {
+  id                      String          @id @default(uuid())
+  employeeId              String
+  employee                Employee        @relation(fields: [employeeId], references: [id], onDelete: Cascade)
+  payrollMonth            DateTime
+  baseSalary              Float
+  housRentAllowance       Float           @default(0)
+  conveyanceAllowance     Float           @default(0)
+  medicalAllowance        Float           @default(0)
+  specialAllowance        Float           @default(0)
+  bonus                   Float           @default(0)
+  otherAdditions          Float           @default(0)
+  totalAdditions          Float
+  
+  incomeTax               Float           @default(0)
+  providentFund           Float           @default(0)
+  employeeStateInsurance  Float           @default(0)
+  otherDeductions         Float           @default(0)
+  totalDeductions         Float
+  
+  netSalary               Float
+  status                  PayrollStatus   @default(Draft)
+  approvedBy              String?
+  approvedAt              DateTime?
+  remarks                 String?
+  pdfUrl                  String?
+  createdAt               DateTime        @default(now())
+  updatedAt               DateTime        @updatedAt
+
+  @@index([employeeId])
+  @@index([payrollMonth])
+  @@index([status])
+}
+
+model EmployeeDocument {
+  id                  String          @id @default(uuid())
+  employeeId          String
+  employee            Employee        @relation(fields: [employeeId], references: [id], onDelete: Cascade)
+  documentType        DocumentType
+  documentName        String
+  documentNumber      String?
+  fileUrl             String
+  expiryDate          DateTime?
+  issueDate           DateTime?
+  issuingAuthority    String?
+  extractedData       Json?           // Stores PDF extracted data
+  verificationStatus  String          @default("Pending")
+  verifiedBy          String?
+  verifiedAt          DateTime?
+  remarks             String?
+  createdAt           DateTime        @default(now())
+  updatedAt           DateTime        @updatedAt
+
+  @@index([employeeId])
+  @@index([documentType])
+  @@index([verificationStatus])
+}
+
+model PerformanceReview {
+  id                    String               @id @default(uuid())
+  revieweeId            String
+  reviewee              Employee             @relation("RevieweePerformance", fields: [revieweeId], references: [id], onDelete: Cascade)
+  reviewerId            String
+  reviewer              Employee             @relation("ReviewerPerformance", fields: [reviewerId], references: [id], onDelete: SetNull)
+  reviewPeriodStart     DateTime
+  reviewPeriodEnd       DateTime
+  overallRating         PerformanceRating
+  
+  // Performance Criteria Ratings
+  technicalSkills       PerformanceRating?
+  communication         PerformanceRating?
+  teamwork              PerformanceRating?
+  leadership            PerformanceRating?
+  reliability           PerformanceRating?
+  innovation            PerformanceRating?
+  
+  achievements          String?
+  areasOfImprovement    String?
+  feedback              String?
+  goals                 String?
+  developmentPlan       String?
+  
+  acknowledgedAt        DateTime?
+  createdAt             DateTime             @default(now())
+  updatedAt             DateTime             @updatedAt
+
+  @@index([revieweeId])
+  @@index([reviewerId])
+  @@index([reviewPeriodStart])
+}
+
+model EmployeeBenefit {
+  id                    String          @id @default(uuid())
+  employeeId            String
+  employee              Employee        @relation(fields: [employeeId], references: [id], onDelete: Cascade)
+  benefitName           String
+  benefitDescription    String?
+  benefitType           String          // Health, Retirement, Insurance, etc.
+  enrollmentDate        DateTime
+  expiryDate            DateTime?
+  benefitAmount         Float?
+  provider              String?
+  policyNumber          String?
+  documentUrl           String?
+  status                String          @default("Active")
+  createdAt             DateTime        @default(now())
+  updatedAt             DateTime        @updatedAt
+
+  @@index([employeeId])
+  @@index([benefitType])
+}
+
+model Grievance {
+  id                      String          @id @default(uuid())
+  employeeId              String
+  employee                Employee        @relation("EmployeeGrievance", fields: [employeeId], references: [id], onDelete: Cascade)
+  grievanceType           String          // Harassment, Discrimination, Unfair Treatment, etc.
+  description             String
+  dateOfIncident          DateTime
+  submittedDate           DateTime        @default(now())
+  status                  GrievanceStatus @default(Filed)
+  assignedToId            String?
+  assignedTo              Employee?       @relation("AssignedToGrievance", fields: [assignedToId], references: [id], onDelete: SetNull)
+  
+  investigationNotes      String?
+  resolution              String?
+  resolutionDate          DateTime?
+  followUpRequired        Boolean         @default(false)
+  followUpDate            DateTime?
+  
+  attachments             Json?           // Array of attachment URLs
+  createdAt               DateTime        @default(now())
+  updatedAt               DateTime        @updatedAt
+
+  @@index([employeeId])
+  @@index([status])
+  @@index([grievanceType])
+}
+
+model EmployeeShift {
+  id                    String          @id @default(uuid())
+  employeeId            String
+  employee              Employee        @relation(fields: [employeeId], references: [id], onDelete: Cascade)
+  shiftType             ShiftType       @default(Day)
+  startTime             DateTime?
+  endTime               DateTime?
+  effectiveFrom         DateTime
+  effectiveUntil        DateTime?
+  breakDuration         Int?            // in minutes
+  rotationPattern       String?         // Weekly, Bi-weekly, Monthly
+  createdAt             DateTime        @default(now())
+  updatedAt             DateTime        @updatedAt
+
+  @@index([employeeId])
+  @@index([shiftType])
+}
+
+model EmployeeTraining {
+  id                    String          @id @default(uuid())
+  employeeId            String
+  employee              Employee        @relation(fields: [employeeId], references: [id], onDelete: Cascade)
+  trainingName          String
+  trainingProvider      String?
+  startDate             DateTime
+  endDate               DateTime?
+  duration              Int?            // in hours
+  skillsAcquired        String?
+  certificateUrl        String?
+  cost                  Float?
+  status                String          @default("Scheduled")
+  completionDate        DateTime?
+  assessmentScore       Float?
+  createdAt             DateTime        @default(now())
+  updatedAt             DateTime        @updatedAt
+
+  @@index([employeeId])
+  @@index([startDate])
+}
+
+model Designation {
+  id                    String          @id @default(uuid())
+  name                  String          @unique
+  description           String?
+  department            String
+  reportingTo           String?
+  baseSalaryRange       String?
+  skills                String[]        @default([])
+  status                String          @default("Active")
+  createdAt             DateTime        @default(now())
+  updatedAt             DateTime        @updatedAt
+
+  @@index([department])
+}
+
+model Department {
+  id                    String          @id @default(uuid())
+  name                  String          @unique
+  code                  String?         @unique
+  description           String?
+  headOfDepartment      String?
+  budget                Float?
+  status                String          @default("Active")
+  createdAt             DateTime        @default(now())
+  updatedAt             DateTime        @updatedAt
 }

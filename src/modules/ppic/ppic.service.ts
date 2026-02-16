@@ -511,6 +511,17 @@ static async getAllImportedPOs(
             contactPhone: true,
           },
         },
+        statusHistory: {
+          orderBy: { createdAt: 'asc' },
+          select: {
+            id: true,
+            status: true,
+            remarks: true,
+            changedBy: true,
+            metadata: true,
+            createdAt: true,
+          },
+        },
       },
     });
 
@@ -828,91 +839,155 @@ static async getAllImportedPOs(
     }
   }
 
+  private static async updatePOStatus(
+  poId: string,
+  status: string,
+  options?: {
+    remarks?: string;
+    changedBy?: string;
+    metadata?: any;
+  }
+) {
+  return prisma.$transaction(async (tx) => {
+    const po = await tx.purchaseOrder.update({
+      where: { id: poId },
+      data: { overallStatus: status },
+      include: { customer: true },
+    });
+
+    await tx.purchaseOrderStatusHistory.create({
+      data: {
+        purchaseOrderId: poId,
+        status,
+        remarks: options?.remarks,
+        changedBy: options?.changedBy,
+        metadata: options?.metadata,
+      },
+    });
+
+    return po;
+  });
+}
+
+
   /**
    * Mark purchase order as RFD (Request for Debit)
    */
-  static async markRFD(poId: string) {
-    try {
-      const updatedPO = await prisma.purchaseOrder.update({
-        where: { id: poId },
-        data: { isRFD: true },
-        include: { customer: true },
-      });
-      return updatedPO;
-    } catch (err) {
-      throw new AppError(`Failed to mark RFD: ${(err as Error).message}`);
-    }
+  static async markRFD(poId: string, userId?: string) {
+  try {
+    return await this.updatePOStatus(poId, "RFD", {
+      remarks: "Marked as Request For Debit",
+      changedBy: userId,
+    });
+  } catch (err) {
+    throw new AppError(`Failed to mark RFD: ${(err as Error).message}`);
   }
+}
+
 
   /**
    * Mark purchase order as cancelled
    */
-  static async markCancelled(poId: string) {
-    try {
-      const updatedPO = await prisma.purchaseOrder.update({
-        where: { id: poId },
-        data: { isCancelled: true },
-        include: { customer: true },
-      });
-      return updatedPO;
-    } catch (err) {
-      throw new AppError(`Failed to mark as cancelled: ${(err as Error).message}`);
-    }
+  static async markCancelled(poId: string, userId?: string) {
+  try {
+    return await this.updatePOStatus(poId, "CANCELLED", {
+      remarks: "Order cancelled",
+      changedBy: userId,
+    });
+  } catch (err) {
+    throw new AppError(`Failed to cancel order: ${(err as Error).message}`);
   }
+}
 
-  static async markDispatched(poId: string) {
-    try {
-      const updatedPO = await prisma.purchaseOrder.update({
-        where: { id: poId },
-        data: { dispatchStatus: "Dispatched" },
-        include: { customer: true },
-      });
-      return updatedPO;
-    } catch (err) {
-      throw new AppError(`Failed to mark as dispatched: ${(err as Error).message}`);
-    }
+
+ static async markDispatched(poId: string, userId?: string) {
+  try {
+    return await this.updatePOStatus(poId, "DISPATCHED", {
+      remarks: "Order dispatched",
+      changedBy: userId,
+    });
+  } catch (err) {
+    throw new AppError(`Failed to mark dispatched: ${(err as Error).message}`);
   }
+}
+
 
   /**
    * Bulk mark purchase orders as RFD
    */
-  static async bulkMarkRFD(poIds: string[]) {
-    try {
-      return await prisma.purchaseOrder.updateMany({
+ static async bulkMarkRFD(poIds: string[], userId?: string) {
+  try {
+    await prisma.$transaction(async (tx) => {
+      await tx.purchaseOrder.updateMany({
         where: { id: { in: poIds } },
-        data: { isRFD: true },
+        data: { overallStatus: "RFD" },
       });
-    } catch (err) {
-      throw new AppError(`Failed to bulk mark RFD: ${(err as Error).message}`);
-    }
+
+      await tx.purchaseOrderStatusHistory.createMany({
+        data: poIds.map((id) => ({
+          purchaseOrderId: id,
+          status: "RFD",
+          remarks: "Bulk RFD",
+          changedBy: userId,
+        })),
+      });
+    });
+  } catch (err) {
+    throw new AppError(`Failed bulk RFD: ${(err as Error).message}`);
   }
+}
+
 
   /**
    * Bulk mark purchase orders as cancelled
    */
-  static async bulkMarkCancelled(poIds: string[]) {
-    try {
-      return await prisma.purchaseOrder.updateMany({
+ static async bulkMarkCancelled(poIds: string[], userId?: string) {
+  try {
+    await prisma.$transaction(async (tx) => {
+      await tx.purchaseOrder.updateMany({
         where: { id: { in: poIds } },
-        data: { isCancelled: true },
+        data: { overallStatus: "CANCELLED" },
       });
-    } catch (err) {
-      throw new AppError(`Failed to bulk mark cancelled: ${(err as Error).message}`);
-    }
+
+      await tx.purchaseOrderStatusHistory.createMany({
+        data: poIds.map((id) => ({
+          purchaseOrderId: id,
+          status: "CANCELLED",
+          remarks: "Bulk cancelled",
+          changedBy: userId,
+        })),
+      });
+    });
+  } catch (err) {
+    throw new AppError(`Failed bulk cancel: ${(err as Error).message}`);
   }
+}
+
 
   /**
    * Bulk mark purchase orders as dispatched
    */
-  static async bulkMarkDispatched(poIds: string[]) {
-    try {
-      return await prisma.purchaseOrder.updateMany({
+ static async bulkMarkDispatched(poIds: string[], userId?: string) {
+  try {
+    await prisma.$transaction(async (tx) => {
+      await tx.purchaseOrder.updateMany({
         where: { id: { in: poIds } },
-        data: { dispatchStatus: "Dispatched" },
+        data: { overallStatus: "DISPATCHED" },
       });
-    } catch (err) {
-      throw new AppError(`Failed to bulk mark dispatched: ${(err as Error).message}`);
-    }
+
+      await tx.purchaseOrderStatusHistory.createMany({
+        data: poIds.map((id) => ({
+          purchaseOrderId: id,
+          status: "DISPATCHED",
+          remarks: "Bulk dispatched",
+          changedBy: userId,
+        })),
+      });
+    });
+  } catch (err) {
+    throw new AppError(`Failed bulk dispatch: ${(err as Error).message}`);
   }
+}
+
 }
 

@@ -1,3 +1,40 @@
+// Auto-mapping for customer import headers (like PPIC)
+const CUSTOMER_FIELD_ALIASES: Record<string, string[]> = {
+  customerName: ["customer name", "name", "party name", "company name", "customer"],
+  gstrNo: ["gst", "gst no", "gst number", "gstn", "gstin", "tax id"],
+  paymentTerms: ["payment terms", "terms", "pay terms"],
+  throughVia: ["through via", "via", "through", "agent", "broker"],
+  drugLicense: ["drug license", "dl no", "drug license number", "license no"],
+  dlExpiry: ["dl expiry", "license expiry", "dl expiry date", "expiry date"],
+  address: ["address", "addr", "location", "city", "place"],
+  contactName: ["contact name", "person name", "contact person"],
+  contactPhone: ["contact phone", "phone", "mobile", "contact no", "phone number", "mobile number"],
+  contactEmail: ["contact email", "email", "mail", "email address"],
+  remarks: ["remarks", "note", "notes", "comment"],
+  relationshipStatus: ["relationship status", "status", "relation"],
+  isBlacklisted: ["blacklisted", "is blacklisted", "blacklist"],
+  blacklistReason: ["blacklist reason", "reason", "blacklisted reason"],
+  creditLimit: ["credit limit", "limit", "credit"],
+  kycProfile: ["kyc", "kyc profile"],
+  gstCopy: ["gst copy", "gst document", "gst file"],
+};
+
+export function buildCustomerMapping(sheetHeaders: string[]): Record<string, string> {
+  const mapping: Record<string, string> = {};
+  for (const sheetHeader of sheetHeaders) {
+    const headerLower = sheetHeader.toLowerCase().trim();
+    for (const [field, aliases] of Object.entries(CUSTOMER_FIELD_ALIASES)) {
+      for (const alias of aliases) {
+        if (headerLower === alias.toLowerCase()) {
+          mapping[field] = sheetHeader;
+          break;
+        }
+      }
+      if (mapping[field]) break;
+    }
+  }
+  return mapping;
+}
 export const toSafeString = (value: any): string | null => {
   if (value === null || value === undefined) return null;
   if (typeof value === "string") return value.trim();

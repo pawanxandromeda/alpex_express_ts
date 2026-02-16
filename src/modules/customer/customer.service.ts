@@ -1,11 +1,12 @@
 import prisma from "../../config/postgres";
 import { AppError, ERROR_CODES } from "../../common/utils/errorMessages";
+import { BackendCustomer, CreateCustomerDto } from "./customer.types";
 
 export const createCustomer = async (
-  data: any,
+  data: CreateCustomerDto,
   employeeId: string,
   employeeName?: string
-) => {
+): Promise<BackendCustomer> => {
   const existing = await prisma.customer.findUnique({
     where: { gstrNo: data.gstrNo },
   });
@@ -39,21 +40,22 @@ export const createCustomer = async (
       creditApprovalStatus: "Pending",
       kycProfile: data.kycProfile || null,
       gstCopy: data.gstCopy || null,
+      annualTurnover: data.annualTurnover || null,
     },
-  });
+  }) as Promise<BackendCustomer>;
 };
 
-export const loginCustomer = async (gstrNo: string, customerID: string) => {
+export const loginCustomer = async (gstrNo: string, customerID: string): Promise<BackendCustomer> => {
   const customer = await prisma.customer.findFirst({
     where: { gstrNo},
   });
 
   if (!customer) throw new AppError(ERROR_CODES.CUSTOMER_NOT_FOUND);
 
-  return customer;
+  return customer as BackendCustomer;
 };
 
-export const getAllCustomers = async (employeeId: string) => {
+export const getAllCustomers = async (employeeId: string): Promise<BackendCustomer[]> => {
   return prisma.customer.findMany({
     where: {
       createdByEmployeeId: employeeId
@@ -63,6 +65,7 @@ export const getAllCustomers = async (employeeId: string) => {
       customerName: true,
       address: true,
       creditLimit: true,
+      annualTurnover: true,
       paymentTerms: true,
       throughVia: true,
       gstrNo: true,
@@ -75,7 +78,7 @@ export const getAllCustomers = async (employeeId: string) => {
       createdAt: true,
       updatedAt: true
     }
-  });
+  }) as Promise<BackendCustomer[]>;
 };
 
 
@@ -84,10 +87,45 @@ export const getCustomerGSTList = async () => {
   return prisma.customer.findMany({
     select: {
       gstrNo: true,
-      kycProfile: true,
       customerName: true,
     },
   });
+};
+
+export const getCustomerByGST = async (gstrNo: string) => {
+  const customer = await prisma.customer.findUnique({
+    where: { gstrNo },
+    select: {
+      id: true,
+      customerName: true,
+      address: true,
+      creditLimit: true,
+      paymentTerms: true,
+      throughVia: true,
+      gstrNo: true,
+      kycProfile: true,
+      contactName: true,
+      contactEmail: true,
+      contactPhone: true,
+      contacts: true,
+      isBlacklisted: true,
+      relationshipStatus: true,
+      gstCopy: true,
+      dlExpiry: true,
+      drugLicense: true,
+      createdAt: true,
+      updatedAt: true
+    }
+  });
+
+  if (customer) {
+    return {
+      ...customer,
+      success: true,
+    };
+  }
+
+  return null;
 };
 
 export const updateCustomer = async (id: string, data: any) => {
@@ -140,7 +178,7 @@ function safeDate(value: any): Date | null {
 }
 
 
-export const bulkCreateCustomers = async (customers: any[]) => {
+export const bulkCreateCustomers = async (customers: any[], employeeId: string) => {
   const transformedCustomers = customers.map(customer => {
     // Start with existing contacts if provided
     const contacts: any[] = Array.isArray(customer.contacts) ? [...customer.contacts] : [];
@@ -163,7 +201,7 @@ export const bulkCreateCustomers = async (customers: any[]) => {
       drugLicense: customer.drugLicense || null,
       dlExpiry: safeDate(customer.dlExpiry),
       address: customer.address || null,
-      contacts: JSON.stringify(contacts), // ✅ save as JSON string
+      contacts: contacts.length > 0 ? JSON.stringify(contacts) : null, // ✅ save as JSON string
       remarks: customer.remarks || null,
       relationshipStatus: customer.relationshipStatus || "Moderate",
       isBlacklisted: Boolean(customer.isBlacklisted),
@@ -172,6 +210,8 @@ export const bulkCreateCustomers = async (customers: any[]) => {
       kycProfile: customer.kycProfile || null,
       creditApprovalStatus: "Pending",
       gstCopy: customer.gstCopy || null,
+      annualTurnover: customer.annualTurnover || null,
+      createdByEmployeeId: employeeId, // ✅ Add employee ID for bulk import
     };
   });
 
