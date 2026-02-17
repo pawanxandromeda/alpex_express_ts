@@ -140,8 +140,8 @@ export const getAllPOs = async (req: AuthRequest, res: Response) => {
     // 🔐 Logged-in user (from auth middleware)
     const loggedInUser = req.user;
 
-    if (!loggedInUser?.username) {
-      throw new Error("Unauthorized: username missing");
+    if (!loggedInUser?.id) {
+      throw new Error("Unauthorized: user id missing");
     }
 
     const result = await service.getAllPurchaseOrders(
@@ -152,8 +152,8 @@ export const getAllPOs = async (req: AuthRequest, res: Response) => {
         fromDate: fromDate ? new Date(fromDate as string) : undefined,
         toDate: toDate ? new Date(toDate as string) : undefined,
 
-        // 🔐 enforce ownership (use username if available)
-        createdByUsername: loggedInUser.username || loggedInUser.name || loggedInUser.id,
+        // 🔐 Filter by assigned employee (logged-in user)
+        assignedToEmployeeId: loggedInUser.id,
       },
       Number(page),
       Number(limit),
@@ -504,5 +504,57 @@ export const rejectPoApi = async (req: AuthRequest, res: Response) => {
     });
   } catch (error) {
     return handleError(res, error);
+  }
+};
+
+export const bulkAssignPurchaseOrders = async (req: AuthRequest, res: Response) => {
+  try {
+    if (!req.user?.id) {
+      return res.status(401).json({ message: "Unauthorized" });
+    }
+
+    const { poIds, assignedToEmployeeId, reason, remarks } = req.body;
+
+    if (!poIds || !Array.isArray(poIds) || poIds.length === 0) {
+      return sendError(res, ERROR_CODES.VALIDATION_ERROR, "poIds must be a non-empty array");
+    }
+
+    if (!assignedToEmployeeId) {
+      return sendError(res, ERROR_CODES.MISSING_REQUIRED_FIELD, "assignedToEmployeeId is required");
+    }
+
+    const results = await service.bulkAssignPurchaseOrders(
+      poIds,
+      assignedToEmployeeId,
+      req.user.id,
+      reason,
+      remarks
+    );
+
+    return sendSuccess(
+      res,
+      results,
+      "Bulk assignment completed",
+      200
+    );
+  } catch (err: any) {
+    return handleError(res, err);
+  }
+};
+
+export const getPurchaseOrderAssignmentHistory = async (req: AuthRequest, res: Response) => {
+  try {
+    const { poId } = req.params as { poId: string };
+
+    const history = await service.getPurchaseOrderAssignmentHistory(poId);
+
+    return sendSuccess(
+      res,
+      history,
+      "Purchase Order assignment history retrieved successfully",
+      200
+    );
+  } catch (err: any) {
+    return handleError(res, err);
   }
 };

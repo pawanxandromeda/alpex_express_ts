@@ -166,7 +166,6 @@ model Employee {
   totalLeaveBalance      Int?       @default(0)
   usedLeave              Int?       @default(0)
   
-  createdCustomers       Customer[]
   createdByRole          String
   username               String?                  @unique
   password               String?
@@ -181,6 +180,15 @@ model Employee {
   assignedLeads          Lead[]                   @relation("AssignedLeads")
   adminAssignedLeads     Lead[]                   @relation("AdminAssignedLeads")
   leadFollowUps          LeadFollowUp[]           @relation("LeadFollowUps")
+  
+  // Customer Assignment Relations
+  createdCustomers       Customer[]               @relation("CustomerCreatedBy")
+  assignedCustomers      Customer[]               @relation("CustomerAssignedTo")
+  customerAssignmentsByMe CustomerAssignmentHistory[] @relation("CustomerAssignedBy")
+
+  // Purchase Order Assignment Relations
+  assignedPurchaseOrders PurchaseOrder[]          @relation("PurchaseOrderAssignedTo")
+  poAssignmentsByMe      PurchaseOrderAssignmentHistory[] @relation("PurchaseOrderAssignedBy")
   
   // HR Relations
   leaveRequests          LeaveRequest[]           @relation("EmployeeLeaveRequests")
@@ -214,8 +222,11 @@ model Customer {
   paymentTerms         String
   throughVia           String?
   gstrNo               String   @unique
-    createdByEmployeeId  String?
-  createdByEmployee    Employee? @relation(fields: [createdByEmployeeId], references: [id])
+  createdByEmployeeId  String?
+  createdByEmployee    Employee? @relation("CustomerCreatedBy", fields: [createdByEmployeeId], references: [id])
+  assignedToEmployeeId String?
+  assignedToEmployee   Employee? @relation("CustomerAssignedTo", fields: [assignedToEmployeeId], references: [id])
+  assignedAt           DateTime?
   kycProfile           String?
   contactName          String?
   contactPhone         String?
@@ -233,8 +244,26 @@ model Customer {
   purchaseOrders       PurchaseOrder[]
   leads                Lead[]
   annualTurnover       String?
+  assignmentHistory    CustomerAssignmentHistory[]
   createdAt            DateTime @default(now())
   updatedAt            DateTime @updatedAt
+}
+
+model CustomerAssignmentHistory {
+  id                   String   @id @default(uuid())
+  customerId           String
+  customer             Customer @relation(fields: [customerId], references: [id], onDelete: Cascade)
+  assignedToEmployeeId String?
+  assignedByEmployeeId String
+  assignedByEmployee   Employee @relation("CustomerAssignedBy", fields: [assignedByEmployeeId], references: [id])
+  previousEmployeeId   String?
+  reason               String?
+  remarks              String?
+  assignedAt           DateTime @default(now())
+
+  @@index([customerId])
+  @@index([assignedToEmployeeId])
+  @@index([assignedAt])
 }
 
 model Lead {
@@ -339,6 +368,9 @@ model PurchaseOrder {
   gstNo                       String?
   customerId                  String?
   customer                    Customer?        @relation(fields: [customerId], references: [id])
+  assignedToEmployeeId        String?
+  assignedToEmployee          Employee?        @relation("PurchaseOrderAssignedTo", fields: [assignedToEmployeeId], references: [id])
+  assignedAt                  DateTime?
   poNo                        String?          @default(uuid())
   poDate                      DateTime?
   dispatchDate                DateTime?
@@ -407,12 +439,14 @@ model PurchaseOrder {
   cartonQuantityOrdered        String?
   dispatchStatus               String?         @default("Pending")
   timestamp                    Json?           // JSON field for RM / Production / Dispatch statuses + timestamps
- statusHistory   PurchaseOrderStatusHistory[]
+  statusHistory                PurchaseOrderStatusHistory[]
+  assignmentHistory            PurchaseOrderAssignmentHistory[]
   createdAt                    DateTime         @default(now())
   updatedAt                    DateTime         @updatedAt
 
   @@index([gstNo])
   @@index([customerId])
+  @@index([assignedToEmployeeId])
   @@index([poDate])
   @@index([overallStatus])
   @@index([createdAt])
@@ -435,8 +469,22 @@ model PurchaseOrderStatusHistory {
   @@index([status])
 }
 
+model PurchaseOrderAssignmentHistory {
+  id                   String   @id @default(uuid())
+  purchaseOrderId      String
+  purchaseOrder        PurchaseOrder @relation(fields: [purchaseOrderId], references: [id], onDelete: Cascade)
+  assignedToEmployeeId String?
+  assignedByEmployeeId String
+  assignedByEmployee   Employee @relation("PurchaseOrderAssignedBy", fields: [assignedByEmployeeId], references: [id])
+  previousEmployeeId   String?
+  reason               String?
+  remarks              String?
+  assignedAt           DateTime @default(now())
 
-
+  @@index([purchaseOrderId])
+  @@index([assignedToEmployeeId])
+  @@index([assignedAt])
+}
 
 model Notification {
   id        String   @id @default(uuid())

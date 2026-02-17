@@ -19,6 +19,10 @@ router.get("/", encryptResponse, protect, controller.getCustomers);
 router.get("/gst-lookup", protect, controller.lookupCustomerByGST);
 router.get("/export", protect, controller.exportCustomers);
 
+// Assignment routes
+router.post("/assign/bulk", protect, controller.bulkAssignCustomers);
+router.get("/assignment-history/:customerId", protect, controller.getCustomerAssignmentHistory);
+
 // Bulk import with file upload and auth
 router.post(
   "/import",

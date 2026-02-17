@@ -23,6 +23,9 @@ export const ERROR_CODES = {
   CREDIT_LIMIT_EXCEEDED: "CREDIT_LIMIT_EXCEEDED",
   CREDIT_NOT_APPROVED: "CREDIT_NOT_APPROVED",
 
+  // Employee Errors
+  EMPLOYEE_NOT_FOUND: "EMPLOYEE_NOT_FOUND",
+
   // Purchase Order Errors
   PO_NOT_FOUND: "PO_NOT_FOUND",
   PO_ALREADY_EXISTS: "PO_ALREADY_EXISTS",
@@ -94,6 +97,12 @@ export const ERROR_MESSAGES: Record<string, { message: string; statusCode: numbe
   [ERROR_CODES.CREDIT_NOT_APPROVED]: {
     message: "Customer credit approval is pending MD approval.",
     statusCode: 400,
+  },
+
+  // Employee Errors
+  [ERROR_CODES.EMPLOYEE_NOT_FOUND]: {
+    message: "Employee not found. Please verify the employee ID.",
+    statusCode: 404,
   },
 
   // Purchase Order Errors

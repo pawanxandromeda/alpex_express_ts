@@ -22,6 +22,10 @@ router.get("/batch-numbers", encryptResponse, controller.getBatchNumbers);
 router.get("/slab/:gstNo", encryptResponse, controller.getSlabLimit);
 router.get("/gst/:gstNo", encryptResponse, controller.getPOByGST);
 
+// Assignment routes
+router.post("/assign/bulk", controller.bulkAssignPurchaseOrders);
+router.get("/assignment-history/:poId", controller.getPurchaseOrderAssignmentHistory);
+
 // Approvals routes
 router.get("/approvals/pending", encryptResponse, controller.getPendingApprovalsApi);
 router.post("/:id/approve", controller.approvePoApi);

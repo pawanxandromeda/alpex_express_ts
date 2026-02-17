@@ -547,3 +547,55 @@ export const lookupCustomerByGST = async (req: Request, res: Response) => {
     });
   }
 };
+
+export const bulkAssignCustomers = async (req: AuthRequest, res: Response) => {
+  try {
+    if (!req.user?.id) {
+      return res.status(401).json({ message: "Unauthorized" });
+    }
+
+    const { customerIds, assignedToEmployeeId, reason, remarks } = req.body;
+
+    if (!customerIds || !Array.isArray(customerIds) || customerIds.length === 0) {
+      return sendError(res, ERROR_CODES.VALIDATION_ERROR, "customerIds must be a non-empty array");
+    }
+
+    if (!assignedToEmployeeId) {
+      return sendError(res, ERROR_CODES.MISSING_REQUIRED_FIELD, "assignedToEmployeeId is required");
+    }
+
+    const results = await service.bulkAssignCustomers(
+      customerIds,
+      assignedToEmployeeId,
+      req.user.id,
+      reason,
+      remarks
+    );
+
+    return sendSuccess(
+      res,
+      results,
+      "Bulk assignment completed",
+      200
+    );
+  } catch (err: any) {
+    return handleError(res, err);
+  }
+};
+
+export const getCustomerAssignmentHistory = async (req: AuthRequest, res: Response) => {
+  try {
+    const { customerId } = req.params as { customerId: string };
+
+    const history = await service.getCustomerAssignmentHistory(customerId);
+
+    return sendSuccess(
+      res,
+      history,
+      "Customer assignment history retrieved successfully",
+      200
+    );
+  } catch (err: any) {
+    return handleError(res, err);
+  }
+};

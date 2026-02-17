@@ -265,4 +265,113 @@ export const blacklistCustomer = async (
   });
 };
 
+export const bulkAssignCustomers = async (
+  customerIds: string[],
+  assignedToEmployeeId: string,
+  assignedByEmployeeId: string,
+  reason?: string,
+  remarks?: string
+) => {
+  // Verify assigned employee exists
+  const assignedToEmployee = await prisma.employee.findUnique({
+    where: { id: assignedToEmployeeId },
+    select: { id: true, name: true, email: true, department: true }
+  });
 
+  if (!assignedToEmployee) {
+    throw new AppError(ERROR_CODES.EMPLOYEE_NOT_FOUND, "Assigned employee not found");
+  }
+
+  const assignedByEmployee = await prisma.employee.findUnique({
+    where: { id: assignedByEmployeeId },
+    select: { id: true, name: true, email: true, department: true }
+  });
+
+  if (!assignedByEmployee) {
+    throw new AppError(ERROR_CODES.EMPLOYEE_NOT_FOUND, "Assigning employee not found");
+  }
+
+  const results = {
+    successful: [] as any[],
+    failed: [] as any[]
+  };
+
+  for (const customerId of customerIds) {
+    try {
+      const customer = await prisma.customer.findUnique({
+        where: { id: customerId }
+      });
+
+      if (!customer) {
+        results.failed.push({
+          customerId,
+          error: "Customer not found"
+        });
+        continue;
+      }
+
+      // Store previous assignment for history
+      const previousEmployeeId = customer.assignedToEmployeeId;
+
+      // Update customer assignment
+      const updatedCustomer = await prisma.customer.update({
+        where: { id: customerId },
+        data: {
+          assignedToEmployeeId,
+          assignedAt: new Date()
+        },
+        include: {
+          assignedToEmployee: {
+            select: { id: true, name: true, email: true, department: true }
+          }
+        }
+      });
+
+      // Create assignment history record
+      await prisma.customerAssignmentHistory.create({
+        data: {
+          customerId,
+          assignedToEmployeeId,
+          assignedByEmployeeId,
+          previousEmployeeId,
+          reason,
+          remarks
+        }
+      });
+
+      results.successful.push({
+        customerId,
+        customerName: customer.customerName,
+        assignedTo: assignedToEmployee.name,
+        assignedAt: new Date()
+      });
+    } catch (error: any) {
+      results.failed.push({
+        customerId,
+        error: error.message || "Failed to assign customer"
+      });
+    }
+  }
+
+  return results;
+};
+
+export const getCustomerAssignmentHistory = async (customerId: string) => {
+  const customer = await prisma.customer.findUnique({
+    where: { id: customerId }
+  });
+
+  if (!customer) {
+    throw new AppError(ERROR_CODES.CUSTOMER_NOT_FOUND);
+  }
+
+  return prisma.customerAssignmentHistory.findMany({
+    where: { customerId },
+    include: {
+      assignedByEmployee: {
+        select: { id: true, name: true, email: true, department: true }
+      }
+    },
+    orderBy: { assignedAt: 'desc' }
+  });
+};

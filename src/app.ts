@@ -15,6 +15,7 @@ import masterRoutes from "./modules/master/master.routes";
 import ppicfilterRoutes from "./modules/ppic/ppic-advanced-filter.routes";
 import leadRoutes from "./modules/lead/lead.routes";
 import HrRoutes from "./modules/hr/hr.routes";
+import adminControlRoutes from "./modules/adminControl/adminControl.routes";
 
 const app: Application = express();
 
@@ -72,6 +73,7 @@ app.use("/api/master", masterRoutes);
 app.use("/api/ppicfilter", ppicfilterRoutes);
 app.use("/api/lead", leadRoutes);
 app.use("/api/hr", HrRoutes);
+app.use("/api/admin", adminControlRoutes);
 
 app.get("/health", (_req, res) => res.status(200).json({ status: "OK" }));
 

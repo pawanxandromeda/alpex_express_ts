@@ -494,7 +494,7 @@ export const getAllPurchaseOrders = async (
     dispatchStatus?: string;
     fromDate?: Date;
     toDate?: Date;
-    createdByUsername: string; // REQUIRED
+    assignedToEmployeeId: string; // REQUIRED - filter by assigned user
   },
   page = 1,
   limit = 50,
@@ -504,7 +504,7 @@ export const getAllPurchaseOrders = async (
   try {
     // 🔐 USER-AWARE CACHE KEY using cache manager
     const cacheKey = CACHE_KEYS.PO_LIST("all", {
-      username: filters.createdByUsername,
+      assignedToEmployeeId: filters.assignedToEmployeeId,
       gstNo: filters.gstNo,
       poNo: filters.poNo,
       overallStatus: filters.overallStatus,
@@ -519,8 +519,8 @@ export const getAllPurchaseOrders = async (
     return getOrSet(cacheKey, CACHE_TTL.SHORT, async () => {
       const where: any = {};
 
-      // 🔐 CRITICAL FILTER — USER CAN SEE ONLY THEIR POs
-      where.orderThrough = filters.createdByUsername;
+      // 🔐 CRITICAL FILTER — USER CAN SEE ONLY POs ASSIGNED TO THEM
+      where.assignedToEmployeeId = filters.assignedToEmployeeId;
 
       // 🔎 Optional filters
       if (filters.gstNo) where.gstNo = filters.gstNo;
@@ -1132,4 +1132,123 @@ const parseTimestampData = (timestamp: any): TimestampData => {
   }
   
   return { actions: [] };
+};
+
+export const bulkAssignPurchaseOrders = async (
+  poIds: string[],
+  assignedToEmployeeId: string,
+  assignedByEmployeeId: string,
+  reason?: string,
+  remarks?: string
+) => {
+  // Verify assigned employee exists
+  const assignedToEmployee = await prisma.employee.findUnique({
+    where: { id: assignedToEmployeeId },
+    select: { id: true, name: true, email: true, department: true }
+  });
+
+  if (!assignedToEmployee) {
+    throw new AppError(ERROR_CODES.EMPLOYEE_NOT_FOUND, "Assigned employee not found");
+  }
+
+  const assignedByEmployee = await prisma.employee.findUnique({
+    where: { id: assignedByEmployeeId },
+    select: { id: true, name: true, email: true, department: true }
+  });
+
+  if (!assignedByEmployee) {
+    throw new AppError(ERROR_CODES.EMPLOYEE_NOT_FOUND, "Assigning employee not found");
+  }
+
+  const results = {
+    successful: [] as any[],
+    failed: [] as any[]
+  };
+
+  for (const poId of poIds) {
+    try {
+      const po = await prisma.purchaseOrder.findUnique({
+        where: { id: poId }
+      });
+
+      if (!po) {
+        results.failed.push({
+          poId,
+          error: "Purchase Order not found"
+        });
+        continue;
+      }
+
+      // Store previous assignment for history
+      const previousEmployeeId = po.assignedToEmployeeId;
+
+      // Update PO assignment
+      const updatedPO = await prisma.purchaseOrder.update({
+        where: { id: poId },
+        data: {
+          assignedToEmployeeId,
+          assignedAt: new Date()
+        },
+        include: {
+          assignedToEmployee: {
+            select: { id: true, name: true, email: true, department: true }
+          }
+        }
+      });
+
+      // Create assignment history record
+      await prisma.purchaseOrderAssignmentHistory.create({
+        data: {
+          purchaseOrderId: poId,
+          assignedToEmployeeId,
+          assignedByEmployeeId,
+          previousEmployeeId,
+          reason,
+          remarks
+        }
+      });
+
+      results.successful.push({
+        poId,
+        poNo: po.poNo,
+        customerName: po.partyName || po.brandName,
+        assignedTo: assignedToEmployee.name,
+        assignedAt: new Date()
+      });
+    } catch (error: any) {
+      results.failed.push({
+        poId,
+        error: error.message || "Failed to assign purchase order"
+      });
+    }
+  }
+
+  // Invalidate cache for POs
+  await invalidateBatchKeys([
+    "po:list:*",
+    "po:single:*",
+    "po:by_gst:*"
+  ]);
+
+  return results;
+};
+
+export const getPurchaseOrderAssignmentHistory = async (poId: string) => {
+  const po = await prisma.purchaseOrder.findUnique({
+    where: { id: poId }
+  });
+
+  if (!po) {
+    throw new AppError(ERROR_CODES.PO_NOT_FOUND);
+  }
+
+  return prisma.purchaseOrderAssignmentHistory.findMany({
+    where: { purchaseOrderId: poId },
+    include: {
+      assignedByEmployee: {
+        select: { id: true, name: true, email: true, department: true }
+      }
+    },
+    orderBy: { assignedAt: 'desc' }
+  });
 };
