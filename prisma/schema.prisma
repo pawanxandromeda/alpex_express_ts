@@ -131,7 +131,7 @@ enum DocumentType {
 model Employee {
   id                     String                   @id @default(uuid())
   name                   String
-  email                  String                   @unique
+  email                  String?                   @unique
   phone                  String                   @unique
   role                   String
   department             String
@@ -203,6 +203,12 @@ model Employee {
   grievanceAssignedTo    Grievance[]              @relation("AssignedToGrievance")
   shifts                 EmployeeShift[]
   trainingPrograms       EmployeeTraining[]
+  
+  // Security Relations
+  loginAttempts          LoginAttempt[]           @relation("LoginAttempts")
+  accountLockouts        AccountLockout[]         @relation("AccountLockouts")
+  securityAuditLogs      SecurityAuditLog[]       @relation("SecurityAuditLogs")
+  navbarPermissions      NavbarPermission?        @relation("NavbarPermissions")
 
   createdAt              DateTime                 @default(now())
   updatedAt              DateTime                 @updatedAt
@@ -825,4 +831,132 @@ model Department {
   status                String          @default("Active")
   createdAt             DateTime        @default(now())
   updatedAt             DateTime        @updatedAt
+}
+
+// ============ SECURITY & LOGIN TRACKING ============
+
+enum LoginAttemptStatus {
+  Success
+  Failed
+  Blocked
+}
+
+model LoginAttempt {
+  id                String            @id @default(uuid())
+  username          String            // Username attempted to login
+  email             String?           // Employee email if found
+  employeeId        String?           // Employee ID if successful
+  employee          Employee?         @relation("LoginAttempts", fields: [employeeId], references: [id], onDelete: SetNull)
+  ipAddress         String            // IP address of the attempt
+  userAgent         String?           // Browser/device information
+  status            LoginAttemptStatus @default(Failed)
+  failureReason     String?           // Why login failed (wrong password, account locked, etc)
+  deviceInfo        Json?             // Stored device fingerprint/info
+  location          String?           // Geo-location if available
+  latitude          Float?
+  longitude         Float?
+  timestamp         DateTime          @default(now())
+  sessionId         String?           // Session ID if successful
+  
+  @@index([username])
+  @@index([employeeId])
+  @@index([ipAddress])
+  @@index([status])
+  @@index([timestamp])
+  @@index([email])
+}
+
+model BlockedIP {
+  id                String            @id @default(uuid())
+  ipAddress         String            @unique
+  reason            String?           // Why the IP was blocked
+  blockedBy         String            // Admin who blocked it
+  autoBlocked       Boolean           @default(false) // Whether it was auto-blocked by system
+  attemptCount      Int               @default(0) // Number of failed attempts before blocking
+  blockedAt         DateTime          @default(now())
+  unblockedAt       DateTime?
+  isActive          Boolean           @default(true)
+  notes             String?
+  
+  @@index([ipAddress])
+  @@index([isActive])
+  @@index([blockedAt])
+}
+
+model SecurityPolicy {
+  id                              String            @id @default(uuid())
+  name                            String            @unique
+  maxLoginAttemptsPerIp           Int               @default(5) // Max failed attempts per IP before blocking
+  maxLoginAttemptsPerUsername     Int               @default(10) // Max failed attempts per username before locking account
+  loginAttemptWindowMinutes       Int               @default(15) // Time window for counting attempts
+  accountLockoutDurationMinutes   Int               @default(30) // Duration account remains locked after max attempts
+  ipBlockDurationMinutes          Int               @default(60) // Duration IP remains blocked after max attempts
+  requireMfa                      Boolean           @default(false) // Multi-factor authentication
+  requireStrongPassword           Boolean           @default(true)
+  passwordMinLength               Int               @default(8)
+  passwordRequireNumbers          Boolean           @default(true)
+  passwordRequireSpecialChars     Boolean           @default(true)
+  passwordRequireUpperCase        Boolean           @default(true)
+  passwordExpiryDays              Int               @default(90)
+  sessionTimeoutMinutes           Int               @default(30)
+  enableIpWhitelisting            Boolean           @default(false)
+  enableGeoRestriction            Boolean           @default(false)
+  allowedCountries                String[]          @default([]) // ISO country codes
+  suspiciousActivityAlert         Boolean           @default(true)
+  logAllAttempts                  Boolean           @default(true)
+  enableAnomalyDetection          Boolean           @default(true)
+  createdAt                       DateTime          @default(now())
+  updatedAt                       DateTime          @updatedAt
+  
+  @@index([name])
+}
+
+model AccountLockout {
+  id                String            @id @default(uuid())
+  employeeId        String            @unique
+  employee          Employee?         @relation("AccountLockouts", fields: [employeeId], references: [id], onDelete: Cascade)
+  lockedAt          DateTime          @default(now())
+  lockedUntil       DateTime
+  reason            String            // Reason for lockout
+  failedAttempts    Int               // Number of failed attempts
+  unlockToken       String?           // Token to unlock account via email
+  unlockedAt        DateTime?
+  unlockedBy        String?           // Admin who unlocked or "auto" if self-unlocked
+  
+  @@index([employeeId])
+  @@index([lockedUntil])
+  @@index([unlockedAt])
+}
+
+model SecurityAuditLog {
+  id                String            @id @default(uuid())
+  employeeId        String?           // Employee involved (if applicable)
+  employee          Employee?         @relation("SecurityAuditLogs", fields: [employeeId], references: [id], onDelete: SetNull)
+  action            String            // LOGIN_ATTEMPT, IP_BLOCKED, ACCOUNT_LOCKED, MFA_ENABLED, etc
+  ipAddress         String?
+  userAgent         String?
+  severity          String            @default("Info") // Info, Warning, Critical
+  description       String
+  metadata          Json?             // Additional info about the event
+  timestamp         DateTime          @default(now())
+  
+  @@index([employeeId])
+  @@index([action])
+  @@index([severity])
+  @@index([timestamp])
+  @@index([ipAddress])
+}
+
+model NavbarPermission {
+  id                String            @id @default(uuid())
+  employeeId        String            @unique
+  employee          Employee          @relation("NavbarPermissions", fields: [employeeId], references: [id], onDelete: Cascade)
+  employeeName      String
+  email             String
+  allowedMenuItems  String[]          // Array of menu item IDs/names
+  createdAt         DateTime          @default(now())
+  updatedAt         DateTime          @updatedAt
+  
+  @@index([employeeId])
+  @@index([createdAt])
 }

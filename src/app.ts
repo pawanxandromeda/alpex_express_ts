@@ -5,6 +5,7 @@ import cors from "cors";
 /* ROUTES */
 import employeeRoutes from "./modules/employee/employee.routes";
 import authRoutes from "./modules/auth/auth.routes";
+import navbarPermissionsRoutes from "./modules/navbarPermissions/navbarPermissions.routes";
 import customerRoutes from "./modules/customer/customer.routes";
 import todosRoutes from "./modules/todo/todo.routes";
 import purchaseOrderRoutes from "./modules/purchaseOrder/purchaseOrder.routes";
@@ -16,6 +17,7 @@ import ppicfilterRoutes from "./modules/ppic/ppic-advanced-filter.routes";
 import leadRoutes from "./modules/lead/lead.routes";
 import HrRoutes from "./modules/hr/hr.routes";
 import adminControlRoutes from "./modules/adminControl/adminControl.routes";
+import securityRoutes from "./modules/adminControl/security.routes";
 
 const app: Application = express();
 
@@ -60,9 +62,12 @@ app.use(
     allowedHeaders: ["Content-Type", "Authorization"]
   })
 );
+app.set("trust proxy", true);
+
 /* ROUTES */
 app.use("/api/employees", employeeRoutes);
 app.use("/api/auth", authRoutes);
+app.use("/api/navbar-permissions", navbarPermissionsRoutes);
 app.use("/api/customers", customerRoutes);
 app.use("/api/todos", todosRoutes);
 app.use("/api/po", purchaseOrderRoutes);
@@ -74,6 +79,7 @@ app.use("/api/ppicfilter", ppicfilterRoutes);
 app.use("/api/lead", leadRoutes);
 app.use("/api/hr", HrRoutes);
 app.use("/api/admin", adminControlRoutes);
+app.use("/api/admin/security", securityRoutes);
 
 app.get("/health", (_req, res) => res.status(200).json({ status: "OK" }));
 
