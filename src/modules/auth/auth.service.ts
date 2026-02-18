@@ -70,6 +70,14 @@ export const login = async (
       );
     }
 
+    // Check if login is allowed
+    if (!employee.canLogin) {
+      failureReason = "LOGIN_DISABLED";
+      throw new Error(
+        "Your login access has been disabled by the administrator. Please contact your administrator."
+      );
+    }
+
     // Login successful - track it
     await securityService.recordLoginAttempt(
       username,

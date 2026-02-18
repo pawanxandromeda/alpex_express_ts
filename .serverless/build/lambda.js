@@ -5,6 +5,9 @@ var __getOwnPropDesc = Object.getOwnPropertyDescriptor;
 var __getOwnPropNames = Object.getOwnPropertyNames;
 var __getProtoOf = Object.getPrototypeOf;
 var __hasOwnProp = Object.prototype.hasOwnProperty;
+var __esm = (fn, res) => function __init() {
+  return fn && (res = (0, fn[__getOwnPropNames(fn)[0]])(fn = 0)), res;
+};
 var __commonJS = (cb, mod) => function __require() {
   return mod || (0, cb[__getOwnPropNames(cb)[0]])((mod = { exports: {} }).exports, mod), mod.exports;
 };
@@ -21258,27 +21261,27 @@ var require_router = __commonJS({
     var slice = Array.prototype.slice;
     var flatten = Array.prototype.flat;
     var methods = METHODS.map((method) => method.toLowerCase());
-    module2.exports = Router11;
+    module2.exports = Router14;
     module2.exports.Route = Route;
-    function Router11(options) {
-      if (!(this instanceof Router11)) {
-        return new Router11(options);
+    function Router14(options) {
+      if (!(this instanceof Router14)) {
+        return new Router14(options);
       }
       const opts = options || {};
-      function router13(req, res, next) {
-        router13.handle(req, res, next);
+      function router16(req, res, next) {
+        router16.handle(req, res, next);
       }
-      Object.setPrototypeOf(router13, this);
-      router13.caseSensitive = opts.caseSensitive;
-      router13.mergeParams = opts.mergeParams;
-      router13.params = {};
-      router13.strict = opts.strict;
-      router13.stack = [];
-      return router13;
+      Object.setPrototypeOf(router16, this);
+      router16.caseSensitive = opts.caseSensitive;
+      router16.mergeParams = opts.mergeParams;
+      router16.params = {};
+      router16.strict = opts.strict;
+      router16.stack = [];
+      return router16;
     }
-    Router11.prototype = function() {
+    Router14.prototype = function() {
     };
-    Router11.prototype.param = function param(name2, fn) {
+    Router14.prototype.param = function param(name2, fn) {
       if (!name2) {
         throw new TypeError("argument name is required");
       }
@@ -21298,7 +21301,7 @@ var require_router = __commonJS({
       params.push(fn);
       return this;
     };
-    Router11.prototype.handle = function handle(req, res, callback) {
+    Router14.prototype.handle = function handle(req, res, callback) {
       if (!callback) {
         throw new TypeError("argument callback is required");
       }
@@ -21425,7 +21428,7 @@ var require_router = __commonJS({
         }
       }
     };
-    Router11.prototype.use = function use(handler2) {
+    Router14.prototype.use = function use(handler2) {
       let offset = 0;
       let path2 = "/";
       if (typeof handler2 !== "function") {
@@ -21458,7 +21461,7 @@ var require_router = __commonJS({
       }
       return this;
     };
-    Router11.prototype.route = function route(path2) {
+    Router14.prototype.route = function route(path2) {
       const route2 = new Route(path2);
       const layer = new Layer(path2, {
         sensitive: this.caseSensitive,
@@ -21473,7 +21476,7 @@ var require_router = __commonJS({
       return route2;
     };
     methods.concat("all").forEach(function(method) {
-      Router11.prototype[method] = function(path2) {
+      Router14.prototype[method] = function(path2) {
         const route = this.route(path2);
         route[method].apply(route, slice.call(arguments, 1));
         return this;
@@ -21656,13 +21659,13 @@ var require_application = __commonJS({
     var compileTrust = require_utils3().compileTrust;
     var resolve = require("node:path").resolve;
     var once = require_once();
-    var Router11 = require_router();
+    var Router14 = require_router();
     var slice = Array.prototype.slice;
     var flatten = Array.prototype.flat;
     var app2 = exports2 = module2.exports = {};
     var trustProxyDefaultSymbol = "@@symbol:trust_proxy_default";
     app2.init = function init2() {
-      var router13 = null;
+      var router16 = null;
       this.cache = /* @__PURE__ */ Object.create(null);
       this.engines = /* @__PURE__ */ Object.create(null);
       this.settings = /* @__PURE__ */ Object.create(null);
@@ -21671,13 +21674,13 @@ var require_application = __commonJS({
         configurable: true,
         enumerable: true,
         get: function getrouter() {
-          if (router13 === null) {
-            router13 = new Router11({
+          if (router16 === null) {
+            router16 = new Router14({
               caseSensitive: this.enabled("case sensitive routing"),
               strict: this.enabled("strict routing")
             });
           }
-          return router13;
+          return router16;
         }
       });
     };
@@ -21748,15 +21751,15 @@ var require_application = __commonJS({
       if (fns.length === 0) {
         throw new TypeError("app.use() requires a middleware function");
       }
-      var router13 = this.router;
+      var router16 = this.router;
       fns.forEach(function(fn2) {
         if (!fn2 || !fn2.handle || !fn2.set) {
-          return router13.use(path2, fn2);
+          return router16.use(path2, fn2);
         }
         debug3(".use app under %s", path2);
         fn2.mountpath = path2;
         fn2.parent = this;
-        router13.use(path2, function mounted_app(req, res, next) {
+        router16.use(path2, function mounted_app(req, res, next) {
           var orig = req.app;
           fn2.handle(req, res, function(err) {
             Object.setPrototypeOf(req, orig.request);
@@ -24283,7 +24286,7 @@ var require_express = __commonJS({
     var EventEmitter2 = require("node:events").EventEmitter;
     var mixin = require_merge_descriptors();
     var proto = require_application();
-    var Router11 = require_router();
+    var Router14 = require_router();
     var req = require_request2();
     var res = require_response2();
     exports2 = module2.exports = createApplication;
@@ -24305,8 +24308,8 @@ var require_express = __commonJS({
     exports2.application = proto;
     exports2.request = req;
     exports2.response = res;
-    exports2.Route = Router11.Route;
-    exports2.Router = Router11;
+    exports2.Route = Router14.Route;
+    exports2.Router = Router14;
     exports2.json = bodyParser.json;
     exports2.raw = bodyParser.raw;
     exports2.static = require_serve_static();
@@ -24763,6 +24766,21 @@ var require_cli_options = __commonJS({
       }
       return options;
     };
+  }
+});
+
+// node_modules/dotenv/config.js
+var init_config = __esm({
+  "node_modules/dotenv/config.js"() {
+    (function() {
+      require_main().config(
+        Object.assign(
+          {},
+          require_env_options(),
+          require_cli_options()(process.argv)
+        )
+      );
+    })();
   }
 });
 
@@ -33360,6 +33378,90 @@ var require_client2 = __commonJS({
       createdAt: "createdAt",
       updatedAt: "updatedAt"
     };
+    exports2.Prisma.LoginAttemptScalarFieldEnum = {
+      id: "id",
+      username: "username",
+      email: "email",
+      employeeId: "employeeId",
+      ipAddress: "ipAddress",
+      userAgent: "userAgent",
+      status: "status",
+      failureReason: "failureReason",
+      deviceInfo: "deviceInfo",
+      location: "location",
+      latitude: "latitude",
+      longitude: "longitude",
+      timestamp: "timestamp",
+      sessionId: "sessionId"
+    };
+    exports2.Prisma.BlockedIPScalarFieldEnum = {
+      id: "id",
+      ipAddress: "ipAddress",
+      reason: "reason",
+      blockedBy: "blockedBy",
+      autoBlocked: "autoBlocked",
+      attemptCount: "attemptCount",
+      blockedAt: "blockedAt",
+      unblockedAt: "unblockedAt",
+      isActive: "isActive",
+      notes: "notes"
+    };
+    exports2.Prisma.SecurityPolicyScalarFieldEnum = {
+      id: "id",
+      name: "name",
+      maxLoginAttemptsPerIp: "maxLoginAttemptsPerIp",
+      maxLoginAttemptsPerUsername: "maxLoginAttemptsPerUsername",
+      loginAttemptWindowMinutes: "loginAttemptWindowMinutes",
+      accountLockoutDurationMinutes: "accountLockoutDurationMinutes",
+      ipBlockDurationMinutes: "ipBlockDurationMinutes",
+      requireMfa: "requireMfa",
+      requireStrongPassword: "requireStrongPassword",
+      passwordMinLength: "passwordMinLength",
+      passwordRequireNumbers: "passwordRequireNumbers",
+      passwordRequireSpecialChars: "passwordRequireSpecialChars",
+      passwordRequireUpperCase: "passwordRequireUpperCase",
+      passwordExpiryDays: "passwordExpiryDays",
+      sessionTimeoutMinutes: "sessionTimeoutMinutes",
+      enableIpWhitelisting: "enableIpWhitelisting",
+      enableGeoRestriction: "enableGeoRestriction",
+      allowedCountries: "allowedCountries",
+      suspiciousActivityAlert: "suspiciousActivityAlert",
+      logAllAttempts: "logAllAttempts",
+      enableAnomalyDetection: "enableAnomalyDetection",
+      createdAt: "createdAt",
+      updatedAt: "updatedAt"
+    };
+    exports2.Prisma.AccountLockoutScalarFieldEnum = {
+      id: "id",
+      employeeId: "employeeId",
+      lockedAt: "lockedAt",
+      lockedUntil: "lockedUntil",
+      reason: "reason",
+      failedAttempts: "failedAttempts",
+      unlockToken: "unlockToken",
+      unlockedAt: "unlockedAt",
+      unlockedBy: "unlockedBy"
+    };
+    exports2.Prisma.SecurityAuditLogScalarFieldEnum = {
+      id: "id",
+      employeeId: "employeeId",
+      action: "action",
+      ipAddress: "ipAddress",
+      userAgent: "userAgent",
+      severity: "severity",
+      description: "description",
+      metadata: "metadata",
+      timestamp: "timestamp"
+    };
+    exports2.Prisma.NavbarPermissionScalarFieldEnum = {
+      id: "id",
+      employeeId: "employeeId",
+      employeeName: "employeeName",
+      email: "email",
+      allowedMenuItems: "allowedMenuItems",
+      createdAt: "createdAt",
+      updatedAt: "updatedAt"
+    };
     exports2.Prisma.SortOrder = {
       asc: "asc",
       desc: "desc"
@@ -33486,6 +33588,11 @@ var require_client2 = __commonJS({
       MedicalReport: "MedicalReport",
       Other: "Other"
     };
+    exports2.LoginAttemptStatus = exports2.$Enums.LoginAttemptStatus = {
+      Success: "Success",
+      Failed: "Failed",
+      Blocked: "Blocked"
+    };
     exports2.Prisma.ModelName = {
       Employee: "Employee",
       Customer: "Customer",
@@ -33515,16 +33622,22 @@ var require_client2 = __commonJS({
       EmployeeShift: "EmployeeShift",
       EmployeeTraining: "EmployeeTraining",
       Designation: "Designation",
-      Department: "Department"
+      Department: "Department",
+      LoginAttempt: "LoginAttempt",
+      BlockedIP: "BlockedIP",
+      SecurityPolicy: "SecurityPolicy",
+      AccountLockout: "AccountLockout",
+      SecurityAuditLog: "SecurityAuditLog",
+      NavbarPermission: "NavbarPermission"
     };
     var config2 = {
       "previewFeatures": [],
       "clientVersion": "7.2.0",
       "engineVersion": "0c8ef2ce45c83248ab3df073180d5eda9e8be7a3",
       "activeProvider": "postgresql",
-      "inlineSchema": '// prisma/schema.prisma\ndatasource db {\n  provider = "postgresql"\n}\n\ngenerator client {\n  provider = "prisma-client-js"\n}\n\nenum Status {\n  Active\n  Inactive\n}\n\nenum ShiftType {\n  Day\n  Night\n  Rotational\n}\n\nenum TodoPriority {\n  Low\n  Medium\n  High\n  Urgent\n}\n\nenum TodoStatus {\n  Open\n  InProgress\n  OnHold\n  Completed\n  Cancelled\n}\n\nenum LeadStatus {\n  New\n  Contacted\n  Interested\n  Qualified\n  Converted\n  Lost\n  OnHold\n}\n\nenum FollowUpStatus {\n  Pending\n  Completed\n  Rescheduled\n}\n\nenum EmployeeStatus {\n  Pending\n  Active\n  Inactive\n}\n\nenum CredentialApprovalStatus {\n  Pending\n  Approved\n}\n\nenum LeaveStatus {\n  Pending\n  Approved\n  Rejected\n  Cancelled\n}\n\nenum LeaveType {\n  Sick\n  Casual\n  Earned\n  Maternity\n  Paternity\n  Unpaid\n  Special\n  Bereavement\n  Marriage\n  Study\n}\n\nenum AttendanceStatus {\n  Present\n  Absent\n  Leave\n  HalfDay\n  WFH\n  Holidays\n  WeekOff\n}\n\nenum PayrollStatus {\n  Draft\n  Submitted\n  Approved\n  Processed\n  Paid\n  Rejected\n}\n\nenum PerformanceRating {\n  Outstanding\n  Exceeds\n  Meets\n  Developing\n  Unsatisfactory\n}\n\nenum GrievanceStatus {\n  Filed\n  UnderReview\n  InProgress\n  Resolved\n  Closed\n  Withdrawn\n}\n\nenum DocumentType {\n  Aadhar\n  PAN\n  DrivingLicense\n  Passport\n  EducationCertificate\n  ExperienceCertificate\n  MedicalReport\n  Other\n}\n\nmodel Employee {\n  id                     String                   @id @default(uuid())\n  name                   String\n  email                  String                   @unique\n  phone                  String                   @unique\n  role                   String\n  department             String\n  status                 EmployeeStatus           @default(Pending)\n  approvedForCredentials CredentialApprovalStatus @default(Pending)\n\n  dateOfJoining         DateTime?\n  dateOfBirth           DateTime?\n  ctc                   Float?\n  baseSalary            Float?\n  fatherName            String?\n  motherName            String?\n  spouseName            String?\n  permanentAddress      String?\n  currentAddress        String?\n  bloodGroup            String?\n  emergencyContact      String?\n  emergencyContactPhone String?\n\n  // HR Extended Fields\n  designation        String?\n  reportingManagerId String?\n  reportingManager   Employee?  @relation("ReportingManager", fields: [reportingManagerId], references: [id])\n  subordinates       Employee[] @relation("ReportingManager")\n  bankName           String?\n  bankAccountNumber  String?\n  bankIfscCode       String?\n  panNumber          String?\n  aadharNumber       String?\n  esi                String?\n  pf                 String?\n  totalLeaveBalance  Int?       @default(0)\n  usedLeave          Int?       @default(0)\n\n  createdByRole   String\n  username        String?   @unique\n  password        String?\n  approvedBy      String?\n  approvedAt      DateTime?\n  rejectionReason String?\n  refreshToken    String?\n\n  createdTodos       Todo[]         @relation("CreatedTodos")\n  assignedTodos      Todo[]         @relation("AssignedTodos")\n  mentionedInTodos   TodoMention[]  @relation("MentionedEmployee")\n  assignedLeads      Lead[]         @relation("AssignedLeads")\n  adminAssignedLeads Lead[]         @relation("AdminAssignedLeads")\n  leadFollowUps      LeadFollowUp[] @relation("LeadFollowUps")\n\n  // Customer Assignment Relations\n  createdCustomers        Customer[]                  @relation("CustomerCreatedBy")\n  assignedCustomers       Customer[]                  @relation("CustomerAssignedTo")\n  customerAssignmentsByMe CustomerAssignmentHistory[] @relation("CustomerAssignedBy")\n\n  // Purchase Order Assignment Relations\n  assignedPurchaseOrders PurchaseOrder[]                  @relation("PurchaseOrderAssignedTo")\n  poAssignmentsByMe      PurchaseOrderAssignmentHistory[] @relation("PurchaseOrderAssignedBy")\n\n  // HR Relations\n  leaveRequests         LeaveRequest[]      @relation("EmployeeLeaveRequests")\n  approverLeaveRequests LeaveRequest[]      @relation("ApproverLeaveRequests")\n  attendanceRecords     Attendance[]\n  payrollRecords        Payroll[]\n  documents             EmployeeDocument[]\n  performanceReviews    PerformanceReview[] @relation("RevieweePerformance")\n  givenReviews          PerformanceReview[] @relation("ReviewerPerformance")\n  employeeBenefits      EmployeeBenefit[]\n  grievances            Grievance[]         @relation("EmployeeGrievance")\n  grievanceAssignedTo   Grievance[]         @relation("AssignedToGrievance")\n  shifts                EmployeeShift[]\n  trainingPrograms      EmployeeTraining[]\n\n  createdAt DateTime @default(now())\n  updatedAt DateTime @updatedAt\n\n  @@index([department])\n  @@index([status])\n  @@index([reportingManagerId])\n}\n\nmodel Customer {\n  id                   String                      @id @default(uuid())\n  customerName         String\n  address              String?\n  creditLimit          Float                       @default(0)\n  creditApprovalStatus String                      @default("Pending")\n  paymentTerms         String\n  throughVia           String?\n  gstrNo               String                      @unique\n  createdByEmployeeId  String?\n  createdByEmployee    Employee?                   @relation("CustomerCreatedBy", fields: [createdByEmployeeId], references: [id])\n  assignedToEmployeeId String?\n  assignedToEmployee   Employee?                   @relation("CustomerAssignedTo", fields: [assignedToEmployeeId], references: [id])\n  assignedAt           DateTime?\n  kycProfile           String?\n  contactName          String?\n  contactPhone         String?\n  contactEmail         String?\n  contacts             Json?\n  remarks              String?\n  relationshipStatus   String?\n  gstCopy              String?\n  drugLicense          String? // License number (string)\n  dlExpiry             DateTime? // Expiry date (DateTime)\n  isBlacklisted        Boolean                     @default(false)\n  blacklistReason      String?\n  promotor             String?\n  blacklistedAt        DateTime?\n  purchaseOrders       PurchaseOrder[]\n  leads                Lead[]\n  annualTurnover       String?\n  assignmentHistory    CustomerAssignmentHistory[]\n  createdAt            DateTime                    @default(now())\n  updatedAt            DateTime                    @updatedAt\n}\n\nmodel CustomerAssignmentHistory {\n  id                   String   @id @default(uuid())\n  customerId           String\n  customer             Customer @relation(fields: [customerId], references: [id], onDelete: Cascade)\n  assignedToEmployeeId String?\n  assignedByEmployeeId String\n  assignedByEmployee   Employee @relation("CustomerAssignedBy", fields: [assignedByEmployeeId], references: [id])\n  previousEmployeeId   String?\n  reason               String?\n  remarks              String?\n  assignedAt           DateTime @default(now())\n\n  @@index([customerId])\n  @@index([assignedToEmployeeId])\n  @@index([assignedAt])\n}\n\nmodel Lead {\n  id                   String         @id @default(uuid())\n  customerId           String\n  customer             Customer       @relation(fields: [customerId], references: [id], onDelete: Cascade)\n  assignedToEmployeeId String?\n  assignedToEmployee   Employee?      @relation("AssignedLeads", fields: [assignedToEmployeeId], references: [id])\n  assignedByEmployeeId String\n  assignedByEmployee   Employee       @relation("AdminAssignedLeads", fields: [assignedByEmployeeId], references: [id])\n  status               LeadStatus     @default(New)\n  followUps            LeadFollowUp[]\n  notes                String?\n  assignedAt           DateTime       @default(now())\n  lastContactedAt      DateTime?\n  createdAt            DateTime       @default(now())\n  updatedAt            DateTime       @updatedAt\n\n  assignmentHistory LeadAssignmentHistory[]\n\n  @@unique([customerId, assignedToEmployeeId])\n}\n\nmodel LeadAssignmentHistory {\n  id                   String   @id @default(uuid())\n  leadId               String\n  lead                 Lead     @relation(fields: [leadId], references: [id], onDelete: Cascade)\n  assignedToEmployeeId String?\n  assignedByEmployeeId String\n  assignedAt           DateTime @default(now())\n  notes                String?\n}\n\nmodel LeadFollowUp {\n  id               String         @id @default(uuid())\n  leadId           String\n  lead             Lead           @relation(fields: [leadId], references: [id], onDelete: Cascade)\n  employeeId       String\n  employee         Employee       @relation("LeadFollowUps", fields: [employeeId], references: [id])\n  followUpType     String // e.g., "Call", "Email", "Meeting", "Demo"\n  notes            String?\n  nextFollowUpDate DateTime?\n  status           FollowUpStatus @default(Pending)\n  createdAt        DateTime       @default(now())\n  updatedAt        DateTime       @updatedAt\n}\n\nmodel Todo {\n  id                 String        @id @default(uuid())\n  title              String\n  description        String?\n  priority           TodoPriority  @default(Medium)\n  status             TodoStatus    @default(Open)\n  createdById        String\n  createdBy          Employee      @relation("CreatedTodos", fields: [createdById], references: [id], onDelete: Cascade)\n  assignedToId       String?\n  assignedTo         Employee?     @relation("AssignedTodos", fields: [assignedToId], references: [id], onDelete: SetNull)\n  mentionedEmployees TodoMention[] @relation("TodoMentions")\n  updates            TodoUpdate[]  @relation("TodoUpdates")\n  completed          Boolean       @default(false)\n  completedAt        DateTime?\n  dueDate            DateTime?\n  createdAt          DateTime      @default(now())\n  updatedAt          DateTime      @updatedAt\n\n  @@index([createdById])\n  @@index([assignedToId])\n  @@index([priority])\n  @@index([dueDate])\n  @@index([completed])\n  @@index([status])\n}\n\nmodel TodoMention {\n  id          String   @id @default(uuid())\n  todoId      String\n  todo        Todo     @relation("TodoMentions", fields: [todoId], references: [id], onDelete: Cascade)\n  employeeId  String\n  employee    Employee @relation("MentionedEmployee", fields: [employeeId], references: [id], onDelete: Cascade)\n  mentionedAt DateTime @default(now())\n\n  @@unique([todoId, employeeId])\n  @@index([employeeId])\n  @@index([todoId])\n}\n\nmodel TodoUpdate {\n  id          String   @id @default(uuid())\n  todoId      String\n  todo        Todo     @relation("TodoUpdates", fields: [todoId], references: [id], onDelete: Cascade)\n  description String\n  updateType  String // "comment", "status_change", "assignment", "mention_added", "mention_removed"\n  oldValue    String?\n  newValue    String?\n  createdAt   DateTime @default(now())\n\n  @@index([todoId])\n  @@index([createdAt])\n}\n\nmodel PurchaseOrder {\n  id                          String    @id @default(uuid())\n  gstNo                       String?\n  customerId                  String?\n  customer                    Customer? @relation(fields: [customerId], references: [id])\n  assignedToEmployeeId        String?\n  assignedToEmployee          Employee? @relation("PurchaseOrderAssignedTo", fields: [assignedToEmployeeId], references: [id])\n  assignedAt                  DateTime?\n  poNo                        String?   @default(uuid())\n  poDate                      DateTime?\n  dispatchDate                DateTime?\n  brandName                   String?\n  partyName                   String?\n  batchNo                     String?\n  paymentTerms                String?\n  invCha                      String?\n  cylChar                     String?\n  orderThrough                String?\n  address                     String?\n  composition                 String?\n  notes                       String?\n  rmStatus                    String?\n  poQty                       String?\n  poRate                      String?\n  amount                      String?\n  mrp                         String?\n  section                     String?\n  specialRequirements         String?\n  tabletCapsuleDrySyrupBottle String?\n  roundOvalTablet             String?\n  tabletColour                String?\n  aluAluBlisterStripBottle    String?\n  packStyle                   String?\n  productNewOld               String?\n  qaObservations              String?\n  batchQty                    String?\n  expiry                      DateTime?\n  pvcColourBase               String?\n  foil                        String?\n  lotNo                       String?\n  foilPoDate                  DateTime?\n  foilSize                    String?\n  foilPoVendor                String?\n  foilBillDate                DateTime?\n  foilQuantity                String?\n  cartonPoDate                DateTime?\n  cartonPoVendor              String?\n  cartonBillDate              DateTime?\n  cartonQuantity              String?\n  packingDate                 DateTime?\n  qtyPacked                   String?\n  noOfShippers                String?\n  design                      String?\n  productionStatus            String? // Status during production/manufacturing\n  overallStatus               String    @default("Pending")\n  invoiceNo                   String?\n  invoiceDate                 DateTime?\n  changePart                  String?\n  cyc                         String?\n  advance                     String?\n  showStatus                  String    @default("Order Pending")\n  mdApproval                  String    @default("Pending")\n  accountsApproval            String    @default("Pending")\n  designerApproval            String    @default("Pending")\n  ppicApproval                String    @default("Pending")\n  designerActions             Json?\n  accountBills                Json?\n  salesComments               String?\n  poDisputes                  Json?\n  rawImportedData             Json? // JSON field for unmapped sheet columns\n\n  // NEW FIELDS\n  foilQuantityOrdered   String?\n  cartonQuantityOrdered String?\n  dispatchStatus        String?                          @default("Pending")\n  timestamp             Json? // JSON field for RM / Production / Dispatch statuses + timestamps\n  statusHistory         PurchaseOrderStatusHistory[]\n  assignmentHistory     PurchaseOrderAssignmentHistory[]\n  createdAt             DateTime                         @default(now())\n  updatedAt             DateTime                         @updatedAt\n\n  @@index([gstNo])\n  @@index([customerId])\n  @@index([assignedToEmployeeId])\n  @@index([poDate])\n  @@index([overallStatus])\n  @@index([createdAt])\n}\n\nmodel PurchaseOrderStatusHistory {\n  id String @id @default(uuid())\n\n  purchaseOrderId String\n  purchaseOrder   PurchaseOrder @relation(fields: [purchaseOrderId], references: [id], onDelete: Cascade)\n\n  status    String\n  remarks   String?\n  changedBy String?\n  metadata  Json?\n\n  createdAt DateTime @default(now())\n\n  @@index([purchaseOrderId])\n  @@index([status])\n}\n\nmodel PurchaseOrderAssignmentHistory {\n  id                   String        @id @default(uuid())\n  purchaseOrderId      String\n  purchaseOrder        PurchaseOrder @relation(fields: [purchaseOrderId], references: [id], onDelete: Cascade)\n  assignedToEmployeeId String?\n  assignedByEmployeeId String\n  assignedByEmployee   Employee      @relation("PurchaseOrderAssignedBy", fields: [assignedByEmployeeId], references: [id])\n  previousEmployeeId   String?\n  reason               String?\n  remarks              String?\n  assignedAt           DateTime      @default(now())\n\n  @@index([purchaseOrderId])\n  @@index([assignedToEmployeeId])\n  @@index([assignedAt])\n}\n\nmodel Notification {\n  id        String   @id @default(uuid())\n  userId    String\n  type      String\n  message   String\n  isRead    Boolean  @default(false)\n  createdAt DateTime @default(now())\n  updatedAt DateTime @updatedAt\n}\n\nmodel AuditLog {\n  id          String   @id @default(uuid())\n  action      String\n  performedBy String\n  targetId    String\n  details     Json?\n  timestamp   DateTime @default(now())\n\n  @@map("audit_logs")\n}\n\nmodel ChangePartMaster {\n  id                     String   @id @default(uuid())\n  partPictureUrl         String?\n  code                   String?\n  boxSizeAutoCalculated  String?\n  cartonRates            Decimal?\n  baseFoilConsumption    Decimal?\n  printedFoilConsumption Decimal?\n  tabSize                String?\n  range                  String?\n  foilSize               String?\n  createdAt              DateTime @default(now())\n  updatedAt              DateTime @updatedAt\n}\n\nmodel CompositionMaster {\n  id                String   @id @default(uuid())\n  composition       String?\n  formType          String?\n  packingType       String?\n  layerType         String?\n  color             String?\n  flavor            String?\n  coating           String?\n  changePartOptions String[] @default([]) // fixed\n  shelfLifeMonths   Int?\n  review            String?\n  createdAt         DateTime @default(now())\n  updatedAt         DateTime @updatedAt\n}\n\nmodel ApiMaster {\n  id           String   @id @default(uuid())\n  drugName     String\n  drugQuantity String?\n  createdAt    DateTime @default(now())\n  updatedAt    DateTime @updatedAt\n}\n\nmodel VendorMaster {\n  id                  String   @id @default(uuid())\n  vendorName          String\n  vendorCode          String?\n  contactPerson       String?\n  vendorEmail         String?\n  vendorPhone         String?\n  vendorAdress        String?\n  vendorState         String?\n  vendorGSTNo         String?\n  paymentTerms        String?\n  vendorBankName      String?\n  vendorAccountNumber String?\n  vendorIFSC          String?\n  createdAt           DateTime @default(now())\n  updatedAt           DateTime @updatedAt\n}\n\n// ============ HR MODULE MODELS ============\n\nmodel LeaveRequest {\n  id                 String      @id @default(uuid())\n  employeeId         String\n  employee           Employee    @relation("EmployeeLeaveRequests", fields: [employeeId], references: [id], onDelete: Cascade)\n  leaveType          LeaveType\n  startDate          DateTime\n  endDate            DateTime\n  numberOfDays       Int\n  requestedBy        String?\n  reason             String?\n  status             LeaveStatus @default(Pending)\n  approverEmployeeId String?\n  approverEmployee   Employee?   @relation("ApproverLeaveRequests", fields: [approverEmployeeId], references: [id], onDelete: SetNull)\n  approverComments   String?\n  approvedAt         DateTime?\n  rejectedAt         DateTime?\n  rejectionReason    String?\n  attachmentUrl      String?\n  createdAt          DateTime    @default(now())\n  updatedAt          DateTime    @updatedAt\n\n  @@index([employeeId])\n  @@index([status])\n  @@index([startDate])\n  @@index([leaveType])\n}\n\nmodel Attendance {\n  id             String           @id @default(uuid())\n  employeeId     String\n  employee       Employee         @relation(fields: [employeeId], references: [id], onDelete: Cascade)\n  attendanceDate DateTime\n  status         AttendanceStatus @default(Absent)\n  checkInTime    DateTime?\n  checkOutTime   DateTime?\n  workingHours   Float?\n  location       String?\n  notes          String?\n  deviceId       String?\n  verifiedBy     String?\n  createdAt      DateTime         @default(now())\n  updatedAt      DateTime         @updatedAt\n\n  @@unique([employeeId, attendanceDate])\n  @@index([employeeId])\n  @@index([attendanceDate])\n  @@index([status])\n}\n\nmodel Payroll {\n  id                  String   @id @default(uuid())\n  employeeId          String\n  employee            Employee @relation(fields: [employeeId], references: [id], onDelete: Cascade)\n  payrollMonth        DateTime\n  baseSalary          Float\n  housRentAllowance   Float    @default(0)\n  conveyanceAllowance Float    @default(0)\n  medicalAllowance    Float    @default(0)\n  specialAllowance    Float    @default(0)\n  bonus               Float    @default(0)\n  otherAdditions      Float    @default(0)\n  totalAdditions      Float\n\n  incomeTax              Float @default(0)\n  providentFund          Float @default(0)\n  employeeStateInsurance Float @default(0)\n  otherDeductions        Float @default(0)\n  totalDeductions        Float\n\n  netSalary  Float\n  status     PayrollStatus @default(Draft)\n  approvedBy String?\n  approvedAt DateTime?\n  remarks    String?\n  pdfUrl     String?\n  createdAt  DateTime      @default(now())\n  updatedAt  DateTime      @updatedAt\n\n  @@index([employeeId])\n  @@index([payrollMonth])\n  @@index([status])\n}\n\nmodel EmployeeDocument {\n  id                 String       @id @default(uuid())\n  employeeId         String\n  employee           Employee     @relation(fields: [employeeId], references: [id], onDelete: Cascade)\n  documentType       DocumentType\n  documentName       String\n  documentNumber     String?\n  fileUrl            String\n  expiryDate         DateTime?\n  issueDate          DateTime?\n  issuingAuthority   String?\n  extractedData      Json? // Stores PDF extracted data\n  verificationStatus String       @default("Pending")\n  verifiedBy         String?\n  verifiedAt         DateTime?\n  remarks            String?\n  createdAt          DateTime     @default(now())\n  updatedAt          DateTime     @updatedAt\n\n  @@index([employeeId])\n  @@index([documentType])\n  @@index([verificationStatus])\n}\n\nmodel PerformanceReview {\n  id                String            @id @default(uuid())\n  revieweeId        String\n  reviewee          Employee          @relation("RevieweePerformance", fields: [revieweeId], references: [id], onDelete: Cascade)\n  reviewerId        String\n  reviewer          Employee          @relation("ReviewerPerformance", fields: [reviewerId], references: [id], onDelete: SetNull)\n  reviewPeriodStart DateTime\n  reviewPeriodEnd   DateTime\n  overallRating     PerformanceRating\n\n  // Performance Criteria Ratings\n  technicalSkills PerformanceRating?\n  communication   PerformanceRating?\n  teamwork        PerformanceRating?\n  leadership      PerformanceRating?\n  reliability     PerformanceRating?\n  innovation      PerformanceRating?\n\n  achievements       String?\n  areasOfImprovement String?\n  feedback           String?\n  goals              String?\n  developmentPlan    String?\n\n  acknowledgedAt DateTime?\n  createdAt      DateTime  @default(now())\n  updatedAt      DateTime  @updatedAt\n\n  @@index([revieweeId])\n  @@index([reviewerId])\n  @@index([reviewPeriodStart])\n}\n\nmodel EmployeeBenefit {\n  id                 String    @id @default(uuid())\n  employeeId         String\n  employee           Employee  @relation(fields: [employeeId], references: [id], onDelete: Cascade)\n  benefitName        String\n  benefitDescription String?\n  benefitType        String // Health, Retirement, Insurance, etc.\n  enrollmentDate     DateTime\n  expiryDate         DateTime?\n  benefitAmount      Float?\n  provider           String?\n  policyNumber       String?\n  documentUrl        String?\n  status             String    @default("Active")\n  createdAt          DateTime  @default(now())\n  updatedAt          DateTime  @updatedAt\n\n  @@index([employeeId])\n  @@index([benefitType])\n}\n\nmodel Grievance {\n  id             String          @id @default(uuid())\n  employeeId     String\n  employee       Employee        @relation("EmployeeGrievance", fields: [employeeId], references: [id], onDelete: Cascade)\n  grievanceType  String // Harassment, Discrimination, Unfair Treatment, etc.\n  description    String\n  dateOfIncident DateTime\n  submittedDate  DateTime        @default(now())\n  status         GrievanceStatus @default(Filed)\n  assignedToId   String?\n  assignedTo     Employee?       @relation("AssignedToGrievance", fields: [assignedToId], references: [id], onDelete: SetNull)\n\n  investigationNotes String?\n  resolution         String?\n  resolutionDate     DateTime?\n  followUpRequired   Boolean   @default(false)\n  followUpDate       DateTime?\n\n  attachments Json? // Array of attachment URLs\n  createdAt   DateTime @default(now())\n  updatedAt   DateTime @updatedAt\n\n  @@index([employeeId])\n  @@index([status])\n  @@index([grievanceType])\n}\n\nmodel EmployeeShift {\n  id              String    @id @default(uuid())\n  employeeId      String\n  employee        Employee  @relation(fields: [employeeId], references: [id], onDelete: Cascade)\n  shiftType       ShiftType @default(Day)\n  startTime       DateTime?\n  endTime         DateTime?\n  effectiveFrom   DateTime\n  effectiveUntil  DateTime?\n  breakDuration   Int? // in minutes\n  rotationPattern String? // Weekly, Bi-weekly, Monthly\n  createdAt       DateTime  @default(now())\n  updatedAt       DateTime  @updatedAt\n\n  @@index([employeeId])\n  @@index([shiftType])\n}\n\nmodel EmployeeTraining {\n  id               String    @id @default(uuid())\n  employeeId       String\n  employee         Employee  @relation(fields: [employeeId], references: [id], onDelete: Cascade)\n  trainingName     String\n  trainingProvider String?\n  startDate        DateTime\n  endDate          DateTime?\n  duration         Int? // in hours\n  skillsAcquired   String?\n  certificateUrl   String?\n  cost             Float?\n  status           String    @default("Scheduled")\n  completionDate   DateTime?\n  assessmentScore  Float?\n  createdAt        DateTime  @default(now())\n  updatedAt        DateTime  @updatedAt\n\n  @@index([employeeId])\n  @@index([startDate])\n}\n\nmodel Designation {\n  id              String   @id @default(uuid())\n  name            String   @unique\n  description     String?\n  department      String\n  reportingTo     String?\n  baseSalaryRange String?\n  skills          String[] @default([])\n  status          String   @default("Active")\n  createdAt       DateTime @default(now())\n  updatedAt       DateTime @updatedAt\n\n  @@index([department])\n}\n\nmodel Department {\n  id               String   @id @default(uuid())\n  name             String   @unique\n  code             String?  @unique\n  description      String?\n  headOfDepartment String?\n  budget           Float?\n  status           String   @default("Active")\n  createdAt        DateTime @default(now())\n  updatedAt        DateTime @updatedAt\n}\n'
+      "inlineSchema": '// prisma/schema.prisma\ndatasource db {\n  provider = "postgresql"\n}\n\ngenerator client {\n  provider = "prisma-client-js"\n}\n\nenum Status {\n  Active\n  Inactive\n}\n\nenum ShiftType {\n  Day\n  Night\n  Rotational\n}\n\nenum TodoPriority {\n  Low\n  Medium\n  High\n  Urgent\n}\n\nenum TodoStatus {\n  Open\n  InProgress\n  OnHold\n  Completed\n  Cancelled\n}\n\nenum LeadStatus {\n  New\n  Contacted\n  Interested\n  Qualified\n  Converted\n  Lost\n  OnHold\n}\n\nenum FollowUpStatus {\n  Pending\n  Completed\n  Rescheduled\n}\n\nenum EmployeeStatus {\n  Pending\n  Active\n  Inactive\n}\n\nenum CredentialApprovalStatus {\n  Pending\n  Approved\n}\n\nenum LeaveStatus {\n  Pending\n  Approved\n  Rejected\n  Cancelled\n}\n\nenum LeaveType {\n  Sick\n  Casual\n  Earned\n  Maternity\n  Paternity\n  Unpaid\n  Special\n  Bereavement\n  Marriage\n  Study\n}\n\nenum AttendanceStatus {\n  Present\n  Absent\n  Leave\n  HalfDay\n  WFH\n  Holidays\n  WeekOff\n}\n\nenum PayrollStatus {\n  Draft\n  Submitted\n  Approved\n  Processed\n  Paid\n  Rejected\n}\n\nenum PerformanceRating {\n  Outstanding\n  Exceeds\n  Meets\n  Developing\n  Unsatisfactory\n}\n\nenum GrievanceStatus {\n  Filed\n  UnderReview\n  InProgress\n  Resolved\n  Closed\n  Withdrawn\n}\n\nenum DocumentType {\n  Aadhar\n  PAN\n  DrivingLicense\n  Passport\n  EducationCertificate\n  ExperienceCertificate\n  MedicalReport\n  Other\n}\n\nmodel Employee {\n  id                     String                   @id @default(uuid())\n  name                   String\n  email                  String?                  @unique\n  phone                  String                   @unique\n  role                   String\n  department             String\n  status                 EmployeeStatus           @default(Pending)\n  approvedForCredentials CredentialApprovalStatus @default(Pending)\n\n  dateOfJoining         DateTime?\n  dateOfBirth           DateTime?\n  ctc                   Float?\n  baseSalary            Float?\n  fatherName            String?\n  motherName            String?\n  spouseName            String?\n  permanentAddress      String?\n  currentAddress        String?\n  bloodGroup            String?\n  emergencyContact      String?\n  emergencyContactPhone String?\n\n  // HR Extended Fields\n  designation        String?\n  reportingManagerId String?\n  reportingManager   Employee?  @relation("ReportingManager", fields: [reportingManagerId], references: [id])\n  subordinates       Employee[] @relation("ReportingManager")\n  bankName           String?\n  bankAccountNumber  String?\n  bankIfscCode       String?\n  panNumber          String?\n  aadharNumber       String?\n  esi                String?\n  pf                 String?\n  totalLeaveBalance  Int?       @default(0)\n  usedLeave          Int?       @default(0)\n\n  createdByRole   String\n  username        String?   @unique\n  password        String?\n  approvedBy      String?\n  approvedAt      DateTime?\n  rejectionReason String?\n  refreshToken    String?\n\n  createdTodos       Todo[]         @relation("CreatedTodos")\n  assignedTodos      Todo[]         @relation("AssignedTodos")\n  mentionedInTodos   TodoMention[]  @relation("MentionedEmployee")\n  assignedLeads      Lead[]         @relation("AssignedLeads")\n  adminAssignedLeads Lead[]         @relation("AdminAssignedLeads")\n  leadFollowUps      LeadFollowUp[] @relation("LeadFollowUps")\n\n  // Customer Assignment Relations\n  createdCustomers        Customer[]                  @relation("CustomerCreatedBy")\n  assignedCustomers       Customer[]                  @relation("CustomerAssignedTo")\n  customerAssignmentsByMe CustomerAssignmentHistory[] @relation("CustomerAssignedBy")\n\n  // Purchase Order Assignment Relations\n  assignedPurchaseOrders PurchaseOrder[]                  @relation("PurchaseOrderAssignedTo")\n  poAssignmentsByMe      PurchaseOrderAssignmentHistory[] @relation("PurchaseOrderAssignedBy")\n\n  // HR Relations\n  leaveRequests         LeaveRequest[]      @relation("EmployeeLeaveRequests")\n  approverLeaveRequests LeaveRequest[]      @relation("ApproverLeaveRequests")\n  attendanceRecords     Attendance[]\n  payrollRecords        Payroll[]\n  documents             EmployeeDocument[]\n  performanceReviews    PerformanceReview[] @relation("RevieweePerformance")\n  givenReviews          PerformanceReview[] @relation("ReviewerPerformance")\n  employeeBenefits      EmployeeBenefit[]\n  grievances            Grievance[]         @relation("EmployeeGrievance")\n  grievanceAssignedTo   Grievance[]         @relation("AssignedToGrievance")\n  shifts                EmployeeShift[]\n  trainingPrograms      EmployeeTraining[]\n\n  // Security Relations\n  loginAttempts     LoginAttempt[]     @relation("LoginAttempts")\n  accountLockouts   AccountLockout[]   @relation("AccountLockouts")\n  securityAuditLogs SecurityAuditLog[] @relation("SecurityAuditLogs")\n  navbarPermissions NavbarPermission?  @relation("NavbarPermissions")\n\n  createdAt DateTime @default(now())\n  updatedAt DateTime @updatedAt\n\n  @@index([department])\n  @@index([status])\n  @@index([reportingManagerId])\n}\n\nmodel Customer {\n  id                   String                      @id @default(uuid())\n  customerName         String\n  address              String?\n  creditLimit          Float                       @default(0)\n  creditApprovalStatus String                      @default("Pending")\n  paymentTerms         String\n  throughVia           String?\n  gstrNo               String                      @unique\n  createdByEmployeeId  String?\n  createdByEmployee    Employee?                   @relation("CustomerCreatedBy", fields: [createdByEmployeeId], references: [id])\n  assignedToEmployeeId String?\n  assignedToEmployee   Employee?                   @relation("CustomerAssignedTo", fields: [assignedToEmployeeId], references: [id])\n  assignedAt           DateTime?\n  kycProfile           String?\n  contactName          String?\n  contactPhone         String?\n  contactEmail         String?\n  contacts             Json?\n  remarks              String?\n  relationshipStatus   String?\n  gstCopy              String?\n  drugLicense          String? // License number (string)\n  dlExpiry             DateTime? // Expiry date (DateTime)\n  isBlacklisted        Boolean                     @default(false)\n  blacklistReason      String?\n  promotor             String?\n  blacklistedAt        DateTime?\n  purchaseOrders       PurchaseOrder[]\n  leads                Lead[]\n  annualTurnover       String?\n  assignmentHistory    CustomerAssignmentHistory[]\n  createdAt            DateTime                    @default(now())\n  updatedAt            DateTime                    @updatedAt\n}\n\nmodel CustomerAssignmentHistory {\n  id                   String   @id @default(uuid())\n  customerId           String\n  customer             Customer @relation(fields: [customerId], references: [id], onDelete: Cascade)\n  assignedToEmployeeId String?\n  assignedByEmployeeId String\n  assignedByEmployee   Employee @relation("CustomerAssignedBy", fields: [assignedByEmployeeId], references: [id])\n  previousEmployeeId   String?\n  reason               String?\n  remarks              String?\n  assignedAt           DateTime @default(now())\n\n  @@index([customerId])\n  @@index([assignedToEmployeeId])\n  @@index([assignedAt])\n}\n\nmodel Lead {\n  id                   String         @id @default(uuid())\n  customerId           String\n  customer             Customer       @relation(fields: [customerId], references: [id], onDelete: Cascade)\n  assignedToEmployeeId String?\n  assignedToEmployee   Employee?      @relation("AssignedLeads", fields: [assignedToEmployeeId], references: [id])\n  assignedByEmployeeId String\n  assignedByEmployee   Employee       @relation("AdminAssignedLeads", fields: [assignedByEmployeeId], references: [id])\n  status               LeadStatus     @default(New)\n  followUps            LeadFollowUp[]\n  notes                String?\n  assignedAt           DateTime       @default(now())\n  lastContactedAt      DateTime?\n  createdAt            DateTime       @default(now())\n  updatedAt            DateTime       @updatedAt\n\n  assignmentHistory LeadAssignmentHistory[]\n\n  @@unique([customerId, assignedToEmployeeId])\n}\n\nmodel LeadAssignmentHistory {\n  id                   String   @id @default(uuid())\n  leadId               String\n  lead                 Lead     @relation(fields: [leadId], references: [id], onDelete: Cascade)\n  assignedToEmployeeId String?\n  assignedByEmployeeId String\n  assignedAt           DateTime @default(now())\n  notes                String?\n}\n\nmodel LeadFollowUp {\n  id               String         @id @default(uuid())\n  leadId           String\n  lead             Lead           @relation(fields: [leadId], references: [id], onDelete: Cascade)\n  employeeId       String\n  employee         Employee       @relation("LeadFollowUps", fields: [employeeId], references: [id])\n  followUpType     String // e.g., "Call", "Email", "Meeting", "Demo"\n  notes            String?\n  nextFollowUpDate DateTime?\n  status           FollowUpStatus @default(Pending)\n  createdAt        DateTime       @default(now())\n  updatedAt        DateTime       @updatedAt\n}\n\nmodel Todo {\n  id                 String        @id @default(uuid())\n  title              String\n  description        String?\n  priority           TodoPriority  @default(Medium)\n  status             TodoStatus    @default(Open)\n  createdById        String\n  createdBy          Employee      @relation("CreatedTodos", fields: [createdById], references: [id], onDelete: Cascade)\n  assignedToId       String?\n  assignedTo         Employee?     @relation("AssignedTodos", fields: [assignedToId], references: [id], onDelete: SetNull)\n  mentionedEmployees TodoMention[] @relation("TodoMentions")\n  updates            TodoUpdate[]  @relation("TodoUpdates")\n  completed          Boolean       @default(false)\n  completedAt        DateTime?\n  dueDate            DateTime?\n  createdAt          DateTime      @default(now())\n  updatedAt          DateTime      @updatedAt\n\n  @@index([createdById])\n  @@index([assignedToId])\n  @@index([priority])\n  @@index([dueDate])\n  @@index([completed])\n  @@index([status])\n}\n\nmodel TodoMention {\n  id          String   @id @default(uuid())\n  todoId      String\n  todo        Todo     @relation("TodoMentions", fields: [todoId], references: [id], onDelete: Cascade)\n  employeeId  String\n  employee    Employee @relation("MentionedEmployee", fields: [employeeId], references: [id], onDelete: Cascade)\n  mentionedAt DateTime @default(now())\n\n  @@unique([todoId, employeeId])\n  @@index([employeeId])\n  @@index([todoId])\n}\n\nmodel TodoUpdate {\n  id          String   @id @default(uuid())\n  todoId      String\n  todo        Todo     @relation("TodoUpdates", fields: [todoId], references: [id], onDelete: Cascade)\n  description String\n  updateType  String // "comment", "status_change", "assignment", "mention_added", "mention_removed"\n  oldValue    String?\n  newValue    String?\n  createdAt   DateTime @default(now())\n\n  @@index([todoId])\n  @@index([createdAt])\n}\n\nmodel PurchaseOrder {\n  id                          String    @id @default(uuid())\n  gstNo                       String?\n  customerId                  String?\n  customer                    Customer? @relation(fields: [customerId], references: [id])\n  assignedToEmployeeId        String?\n  assignedToEmployee          Employee? @relation("PurchaseOrderAssignedTo", fields: [assignedToEmployeeId], references: [id])\n  assignedAt                  DateTime?\n  poNo                        String?   @default(uuid())\n  poDate                      DateTime?\n  dispatchDate                DateTime?\n  brandName                   String?\n  partyName                   String?\n  batchNo                     String?\n  paymentTerms                String?\n  invCha                      String?\n  cylChar                     String?\n  orderThrough                String?\n  address                     String?\n  composition                 String?\n  notes                       String?\n  rmStatus                    String?\n  poQty                       String?\n  poRate                      String?\n  amount                      String?\n  mrp                         String?\n  section                     String?\n  specialRequirements         String?\n  tabletCapsuleDrySyrupBottle String?\n  roundOvalTablet             String?\n  tabletColour                String?\n  aluAluBlisterStripBottle    String?\n  packStyle                   String?\n  productNewOld               String?\n  qaObservations              String?\n  batchQty                    String?\n  expiry                      DateTime?\n  pvcColourBase               String?\n  foil                        String?\n  lotNo                       String?\n  foilPoDate                  DateTime?\n  foilSize                    String?\n  foilPoVendor                String?\n  foilBillDate                DateTime?\n  foilQuantity                String?\n  cartonPoDate                DateTime?\n  cartonPoVendor              String?\n  cartonBillDate              DateTime?\n  cartonQuantity              String?\n  packingDate                 DateTime?\n  qtyPacked                   String?\n  noOfShippers                String?\n  design                      String?\n  productionStatus            String? // Status during production/manufacturing\n  overallStatus               String    @default("Pending")\n  invoiceNo                   String?\n  invoiceDate                 DateTime?\n  changePart                  String?\n  cyc                         String?\n  advance                     String?\n  showStatus                  String    @default("Order Pending")\n  mdApproval                  String    @default("Pending")\n  accountsApproval            String    @default("Pending")\n  designerApproval            String    @default("Pending")\n  ppicApproval                String    @default("Pending")\n  designerActions             Json?\n  accountBills                Json?\n  salesComments               String?\n  poDisputes                  Json?\n  rawImportedData             Json? // JSON field for unmapped sheet columns\n\n  // NEW FIELDS\n  foilQuantityOrdered   String?\n  cartonQuantityOrdered String?\n  dispatchStatus        String?                          @default("Pending")\n  timestamp             Json? // JSON field for RM / Production / Dispatch statuses + timestamps\n  statusHistory         PurchaseOrderStatusHistory[]\n  assignmentHistory     PurchaseOrderAssignmentHistory[]\n  createdAt             DateTime                         @default(now())\n  updatedAt             DateTime                         @updatedAt\n\n  @@index([gstNo])\n  @@index([customerId])\n  @@index([assignedToEmployeeId])\n  @@index([poDate])\n  @@index([overallStatus])\n  @@index([createdAt])\n}\n\nmodel PurchaseOrderStatusHistory {\n  id String @id @default(uuid())\n\n  purchaseOrderId String\n  purchaseOrder   PurchaseOrder @relation(fields: [purchaseOrderId], references: [id], onDelete: Cascade)\n\n  status    String\n  remarks   String?\n  changedBy String?\n  metadata  Json?\n\n  createdAt DateTime @default(now())\n\n  @@index([purchaseOrderId])\n  @@index([status])\n}\n\nmodel PurchaseOrderAssignmentHistory {\n  id                   String        @id @default(uuid())\n  purchaseOrderId      String\n  purchaseOrder        PurchaseOrder @relation(fields: [purchaseOrderId], references: [id], onDelete: Cascade)\n  assignedToEmployeeId String?\n  assignedByEmployeeId String\n  assignedByEmployee   Employee      @relation("PurchaseOrderAssignedBy", fields: [assignedByEmployeeId], references: [id])\n  previousEmployeeId   String?\n  reason               String?\n  remarks              String?\n  assignedAt           DateTime      @default(now())\n\n  @@index([purchaseOrderId])\n  @@index([assignedToEmployeeId])\n  @@index([assignedAt])\n}\n\nmodel Notification {\n  id        String   @id @default(uuid())\n  userId    String\n  type      String\n  message   String\n  isRead    Boolean  @default(false)\n  createdAt DateTime @default(now())\n  updatedAt DateTime @updatedAt\n}\n\nmodel AuditLog {\n  id          String   @id @default(uuid())\n  action      String\n  performedBy String\n  targetId    String\n  details     Json?\n  timestamp   DateTime @default(now())\n\n  @@map("audit_logs")\n}\n\nmodel ChangePartMaster {\n  id                     String   @id @default(uuid())\n  partPictureUrl         String?\n  code                   String?\n  boxSizeAutoCalculated  String?\n  cartonRates            Decimal?\n  baseFoilConsumption    Decimal?\n  printedFoilConsumption Decimal?\n  tabSize                String?\n  range                  String?\n  foilSize               String?\n  createdAt              DateTime @default(now())\n  updatedAt              DateTime @updatedAt\n}\n\nmodel CompositionMaster {\n  id                String   @id @default(uuid())\n  composition       String?\n  formType          String?\n  packingType       String?\n  layerType         String?\n  color             String?\n  flavor            String?\n  coating           String?\n  changePartOptions String[] @default([]) // fixed\n  shelfLifeMonths   Int?\n  review            String?\n  createdAt         DateTime @default(now())\n  updatedAt         DateTime @updatedAt\n}\n\nmodel ApiMaster {\n  id           String   @id @default(uuid())\n  drugName     String\n  drugQuantity String?\n  createdAt    DateTime @default(now())\n  updatedAt    DateTime @updatedAt\n}\n\nmodel VendorMaster {\n  id                  String   @id @default(uuid())\n  vendorName          String\n  vendorCode          String?\n  contactPerson       String?\n  vendorEmail         String?\n  vendorPhone         String?\n  vendorAdress        String?\n  vendorState         String?\n  vendorGSTNo         String?\n  paymentTerms        String?\n  vendorBankName      String?\n  vendorAccountNumber String?\n  vendorIFSC          String?\n  createdAt           DateTime @default(now())\n  updatedAt           DateTime @updatedAt\n}\n\n// ============ HR MODULE MODELS ============\n\nmodel LeaveRequest {\n  id                 String      @id @default(uuid())\n  employeeId         String\n  employee           Employee    @relation("EmployeeLeaveRequests", fields: [employeeId], references: [id], onDelete: Cascade)\n  leaveType          LeaveType\n  startDate          DateTime\n  endDate            DateTime\n  numberOfDays       Int\n  requestedBy        String?\n  reason             String?\n  status             LeaveStatus @default(Pending)\n  approverEmployeeId String?\n  approverEmployee   Employee?   @relation("ApproverLeaveRequests", fields: [approverEmployeeId], references: [id], onDelete: SetNull)\n  approverComments   String?\n  approvedAt         DateTime?\n  rejectedAt         DateTime?\n  rejectionReason    String?\n  attachmentUrl      String?\n  createdAt          DateTime    @default(now())\n  updatedAt          DateTime    @updatedAt\n\n  @@index([employeeId])\n  @@index([status])\n  @@index([startDate])\n  @@index([leaveType])\n}\n\nmodel Attendance {\n  id             String           @id @default(uuid())\n  employeeId     String\n  employee       Employee         @relation(fields: [employeeId], references: [id], onDelete: Cascade)\n  attendanceDate DateTime\n  status         AttendanceStatus @default(Absent)\n  checkInTime    DateTime?\n  checkOutTime   DateTime?\n  workingHours   Float?\n  location       String?\n  notes          String?\n  deviceId       String?\n  verifiedBy     String?\n  createdAt      DateTime         @default(now())\n  updatedAt      DateTime         @updatedAt\n\n  @@unique([employeeId, attendanceDate])\n  @@index([employeeId])\n  @@index([attendanceDate])\n  @@index([status])\n}\n\nmodel Payroll {\n  id                  String   @id @default(uuid())\n  employeeId          String\n  employee            Employee @relation(fields: [employeeId], references: [id], onDelete: Cascade)\n  payrollMonth        DateTime\n  baseSalary          Float\n  housRentAllowance   Float    @default(0)\n  conveyanceAllowance Float    @default(0)\n  medicalAllowance    Float    @default(0)\n  specialAllowance    Float    @default(0)\n  bonus               Float    @default(0)\n  otherAdditions      Float    @default(0)\n  totalAdditions      Float\n\n  incomeTax              Float @default(0)\n  providentFund          Float @default(0)\n  employeeStateInsurance Float @default(0)\n  otherDeductions        Float @default(0)\n  totalDeductions        Float\n\n  netSalary  Float\n  status     PayrollStatus @default(Draft)\n  approvedBy String?\n  approvedAt DateTime?\n  remarks    String?\n  pdfUrl     String?\n  createdAt  DateTime      @default(now())\n  updatedAt  DateTime      @updatedAt\n\n  @@index([employeeId])\n  @@index([payrollMonth])\n  @@index([status])\n}\n\nmodel EmployeeDocument {\n  id                 String       @id @default(uuid())\n  employeeId         String\n  employee           Employee     @relation(fields: [employeeId], references: [id], onDelete: Cascade)\n  documentType       DocumentType\n  documentName       String\n  documentNumber     String?\n  fileUrl            String\n  expiryDate         DateTime?\n  issueDate          DateTime?\n  issuingAuthority   String?\n  extractedData      Json? // Stores PDF extracted data\n  verificationStatus String       @default("Pending")\n  verifiedBy         String?\n  verifiedAt         DateTime?\n  remarks            String?\n  createdAt          DateTime     @default(now())\n  updatedAt          DateTime     @updatedAt\n\n  @@index([employeeId])\n  @@index([documentType])\n  @@index([verificationStatus])\n}\n\nmodel PerformanceReview {\n  id                String            @id @default(uuid())\n  revieweeId        String\n  reviewee          Employee          @relation("RevieweePerformance", fields: [revieweeId], references: [id], onDelete: Cascade)\n  reviewerId        String\n  reviewer          Employee          @relation("ReviewerPerformance", fields: [reviewerId], references: [id], onDelete: SetNull)\n  reviewPeriodStart DateTime\n  reviewPeriodEnd   DateTime\n  overallRating     PerformanceRating\n\n  // Performance Criteria Ratings\n  technicalSkills PerformanceRating?\n  communication   PerformanceRating?\n  teamwork        PerformanceRating?\n  leadership      PerformanceRating?\n  reliability     PerformanceRating?\n  innovation      PerformanceRating?\n\n  achievements       String?\n  areasOfImprovement String?\n  feedback           String?\n  goals              String?\n  developmentPlan    String?\n\n  acknowledgedAt DateTime?\n  createdAt      DateTime  @default(now())\n  updatedAt      DateTime  @updatedAt\n\n  @@index([revieweeId])\n  @@index([reviewerId])\n  @@index([reviewPeriodStart])\n}\n\nmodel EmployeeBenefit {\n  id                 String    @id @default(uuid())\n  employeeId         String\n  employee           Employee  @relation(fields: [employeeId], references: [id], onDelete: Cascade)\n  benefitName        String\n  benefitDescription String?\n  benefitType        String // Health, Retirement, Insurance, etc.\n  enrollmentDate     DateTime\n  expiryDate         DateTime?\n  benefitAmount      Float?\n  provider           String?\n  policyNumber       String?\n  documentUrl        String?\n  status             String    @default("Active")\n  createdAt          DateTime  @default(now())\n  updatedAt          DateTime  @updatedAt\n\n  @@index([employeeId])\n  @@index([benefitType])\n}\n\nmodel Grievance {\n  id             String          @id @default(uuid())\n  employeeId     String\n  employee       Employee        @relation("EmployeeGrievance", fields: [employeeId], references: [id], onDelete: Cascade)\n  grievanceType  String // Harassment, Discrimination, Unfair Treatment, etc.\n  description    String\n  dateOfIncident DateTime\n  submittedDate  DateTime        @default(now())\n  status         GrievanceStatus @default(Filed)\n  assignedToId   String?\n  assignedTo     Employee?       @relation("AssignedToGrievance", fields: [assignedToId], references: [id], onDelete: SetNull)\n\n  investigationNotes String?\n  resolution         String?\n  resolutionDate     DateTime?\n  followUpRequired   Boolean   @default(false)\n  followUpDate       DateTime?\n\n  attachments Json? // Array of attachment URLs\n  createdAt   DateTime @default(now())\n  updatedAt   DateTime @updatedAt\n\n  @@index([employeeId])\n  @@index([status])\n  @@index([grievanceType])\n}\n\nmodel EmployeeShift {\n  id              String    @id @default(uuid())\n  employeeId      String\n  employee        Employee  @relation(fields: [employeeId], references: [id], onDelete: Cascade)\n  shiftType       ShiftType @default(Day)\n  startTime       DateTime?\n  endTime         DateTime?\n  effectiveFrom   DateTime\n  effectiveUntil  DateTime?\n  breakDuration   Int? // in minutes\n  rotationPattern String? // Weekly, Bi-weekly, Monthly\n  createdAt       DateTime  @default(now())\n  updatedAt       DateTime  @updatedAt\n\n  @@index([employeeId])\n  @@index([shiftType])\n}\n\nmodel EmployeeTraining {\n  id               String    @id @default(uuid())\n  employeeId       String\n  employee         Employee  @relation(fields: [employeeId], references: [id], onDelete: Cascade)\n  trainingName     String\n  trainingProvider String?\n  startDate        DateTime\n  endDate          DateTime?\n  duration         Int? // in hours\n  skillsAcquired   String?\n  certificateUrl   String?\n  cost             Float?\n  status           String    @default("Scheduled")\n  completionDate   DateTime?\n  assessmentScore  Float?\n  createdAt        DateTime  @default(now())\n  updatedAt        DateTime  @updatedAt\n\n  @@index([employeeId])\n  @@index([startDate])\n}\n\nmodel Designation {\n  id              String   @id @default(uuid())\n  name            String   @unique\n  description     String?\n  department      String\n  reportingTo     String?\n  baseSalaryRange String?\n  skills          String[] @default([])\n  status          String   @default("Active")\n  createdAt       DateTime @default(now())\n  updatedAt       DateTime @updatedAt\n\n  @@index([department])\n}\n\nmodel Department {\n  id               String   @id @default(uuid())\n  name             String   @unique\n  code             String?  @unique\n  description      String?\n  headOfDepartment String?\n  budget           Float?\n  status           String   @default("Active")\n  createdAt        DateTime @default(now())\n  updatedAt        DateTime @updatedAt\n}\n\n// ============ SECURITY & LOGIN TRACKING ============\n\nenum LoginAttemptStatus {\n  Success\n  Failed\n  Blocked\n}\n\nmodel LoginAttempt {\n  id            String             @id @default(uuid())\n  username      String // Username attempted to login\n  email         String? // Employee email if found\n  employeeId    String? // Employee ID if successful\n  employee      Employee?          @relation("LoginAttempts", fields: [employeeId], references: [id], onDelete: SetNull)\n  ipAddress     String // IP address of the attempt\n  userAgent     String? // Browser/device information\n  status        LoginAttemptStatus @default(Failed)\n  failureReason String? // Why login failed (wrong password, account locked, etc)\n  deviceInfo    Json? // Stored device fingerprint/info\n  location      String? // Geo-location if available\n  latitude      Float?\n  longitude     Float?\n  timestamp     DateTime           @default(now())\n  sessionId     String? // Session ID if successful\n\n  @@index([username])\n  @@index([employeeId])\n  @@index([ipAddress])\n  @@index([status])\n  @@index([timestamp])\n  @@index([email])\n}\n\nmodel BlockedIP {\n  id           String    @id @default(uuid())\n  ipAddress    String    @unique\n  reason       String? // Why the IP was blocked\n  blockedBy    String // Admin who blocked it\n  autoBlocked  Boolean   @default(false) // Whether it was auto-blocked by system\n  attemptCount Int       @default(0) // Number of failed attempts before blocking\n  blockedAt    DateTime  @default(now())\n  unblockedAt  DateTime?\n  isActive     Boolean   @default(true)\n  notes        String?\n\n  @@index([ipAddress])\n  @@index([isActive])\n  @@index([blockedAt])\n}\n\nmodel SecurityPolicy {\n  id                            String   @id @default(uuid())\n  name                          String   @unique\n  maxLoginAttemptsPerIp         Int      @default(5) // Max failed attempts per IP before blocking\n  maxLoginAttemptsPerUsername   Int      @default(10) // Max failed attempts per username before locking account\n  loginAttemptWindowMinutes     Int      @default(15) // Time window for counting attempts\n  accountLockoutDurationMinutes Int      @default(30) // Duration account remains locked after max attempts\n  ipBlockDurationMinutes        Int      @default(60) // Duration IP remains blocked after max attempts\n  requireMfa                    Boolean  @default(false) // Multi-factor authentication\n  requireStrongPassword         Boolean  @default(true)\n  passwordMinLength             Int      @default(8)\n  passwordRequireNumbers        Boolean  @default(true)\n  passwordRequireSpecialChars   Boolean  @default(true)\n  passwordRequireUpperCase      Boolean  @default(true)\n  passwordExpiryDays            Int      @default(90)\n  sessionTimeoutMinutes         Int      @default(30)\n  enableIpWhitelisting          Boolean  @default(false)\n  enableGeoRestriction          Boolean  @default(false)\n  allowedCountries              String[] @default([]) // ISO country codes\n  suspiciousActivityAlert       Boolean  @default(true)\n  logAllAttempts                Boolean  @default(true)\n  enableAnomalyDetection        Boolean  @default(true)\n  createdAt                     DateTime @default(now())\n  updatedAt                     DateTime @updatedAt\n\n  @@index([name])\n}\n\nmodel AccountLockout {\n  id             String    @id @default(uuid())\n  employeeId     String    @unique\n  employee       Employee? @relation("AccountLockouts", fields: [employeeId], references: [id], onDelete: Cascade)\n  lockedAt       DateTime  @default(now())\n  lockedUntil    DateTime\n  reason         String // Reason for lockout\n  failedAttempts Int // Number of failed attempts\n  unlockToken    String? // Token to unlock account via email\n  unlockedAt     DateTime?\n  unlockedBy     String? // Admin who unlocked or "auto" if self-unlocked\n\n  @@index([employeeId])\n  @@index([lockedUntil])\n  @@index([unlockedAt])\n}\n\nmodel SecurityAuditLog {\n  id          String    @id @default(uuid())\n  employeeId  String? // Employee involved (if applicable)\n  employee    Employee? @relation("SecurityAuditLogs", fields: [employeeId], references: [id], onDelete: SetNull)\n  action      String // LOGIN_ATTEMPT, IP_BLOCKED, ACCOUNT_LOCKED, MFA_ENABLED, etc\n  ipAddress   String?\n  userAgent   String?\n  severity    String    @default("Info") // Info, Warning, Critical\n  description String\n  metadata    Json? // Additional info about the event\n  timestamp   DateTime  @default(now())\n\n  @@index([employeeId])\n  @@index([action])\n  @@index([severity])\n  @@index([timestamp])\n  @@index([ipAddress])\n}\n\nmodel NavbarPermission {\n  id               String   @id @default(uuid())\n  employeeId       String   @unique\n  employee         Employee @relation("NavbarPermissions", fields: [employeeId], references: [id], onDelete: Cascade)\n  employeeName     String\n  email            String\n  allowedMenuItems String[] // Array of menu item IDs/names\n  createdAt        DateTime @default(now())\n  updatedAt        DateTime @updatedAt\n\n  @@index([employeeId])\n  @@index([createdAt])\n}\n'
     };
-    config2.runtimeDataModel = JSON.parse('{"models":{"Employee":{"fields":[{"name":"id","kind":"scalar","type":"String"},{"name":"name","kind":"scalar","type":"String"},{"name":"email","kind":"scalar","type":"String"},{"name":"phone","kind":"scalar","type":"String"},{"name":"role","kind":"scalar","type":"String"},{"name":"department","kind":"scalar","type":"String"},{"name":"status","kind":"enum","type":"EmployeeStatus"},{"name":"approvedForCredentials","kind":"enum","type":"CredentialApprovalStatus"},{"name":"dateOfJoining","kind":"scalar","type":"DateTime"},{"name":"dateOfBirth","kind":"scalar","type":"DateTime"},{"name":"ctc","kind":"scalar","type":"Float"},{"name":"baseSalary","kind":"scalar","type":"Float"},{"name":"fatherName","kind":"scalar","type":"String"},{"name":"motherName","kind":"scalar","type":"String"},{"name":"spouseName","kind":"scalar","type":"String"},{"name":"permanentAddress","kind":"scalar","type":"String"},{"name":"currentAddress","kind":"scalar","type":"String"},{"name":"bloodGroup","kind":"scalar","type":"String"},{"name":"emergencyContact","kind":"scalar","type":"String"},{"name":"emergencyContactPhone","kind":"scalar","type":"String"},{"name":"designation","kind":"scalar","type":"String"},{"name":"reportingManagerId","kind":"scalar","type":"String"},{"name":"reportingManager","kind":"object","type":"Employee","relationName":"ReportingManager"},{"name":"subordinates","kind":"object","type":"Employee","relationName":"ReportingManager"},{"name":"bankName","kind":"scalar","type":"String"},{"name":"bankAccountNumber","kind":"scalar","type":"String"},{"name":"bankIfscCode","kind":"scalar","type":"String"},{"name":"panNumber","kind":"scalar","type":"String"},{"name":"aadharNumber","kind":"scalar","type":"String"},{"name":"esi","kind":"scalar","type":"String"},{"name":"pf","kind":"scalar","type":"String"},{"name":"totalLeaveBalance","kind":"scalar","type":"Int"},{"name":"usedLeave","kind":"scalar","type":"Int"},{"name":"createdByRole","kind":"scalar","type":"String"},{"name":"username","kind":"scalar","type":"String"},{"name":"password","kind":"scalar","type":"String"},{"name":"approvedBy","kind":"scalar","type":"String"},{"name":"approvedAt","kind":"scalar","type":"DateTime"},{"name":"rejectionReason","kind":"scalar","type":"String"},{"name":"refreshToken","kind":"scalar","type":"String"},{"name":"createdTodos","kind":"object","type":"Todo","relationName":"CreatedTodos"},{"name":"assignedTodos","kind":"object","type":"Todo","relationName":"AssignedTodos"},{"name":"mentionedInTodos","kind":"object","type":"TodoMention","relationName":"MentionedEmployee"},{"name":"assignedLeads","kind":"object","type":"Lead","relationName":"AssignedLeads"},{"name":"adminAssignedLeads","kind":"object","type":"Lead","relationName":"AdminAssignedLeads"},{"name":"leadFollowUps","kind":"object","type":"LeadFollowUp","relationName":"LeadFollowUps"},{"name":"createdCustomers","kind":"object","type":"Customer","relationName":"CustomerCreatedBy"},{"name":"assignedCustomers","kind":"object","type":"Customer","relationName":"CustomerAssignedTo"},{"name":"customerAssignmentsByMe","kind":"object","type":"CustomerAssignmentHistory","relationName":"CustomerAssignedBy"},{"name":"assignedPurchaseOrders","kind":"object","type":"PurchaseOrder","relationName":"PurchaseOrderAssignedTo"},{"name":"poAssignmentsByMe","kind":"object","type":"PurchaseOrderAssignmentHistory","relationName":"PurchaseOrderAssignedBy"},{"name":"leaveRequests","kind":"object","type":"LeaveRequest","relationName":"EmployeeLeaveRequests"},{"name":"approverLeaveRequests","kind":"object","type":"LeaveRequest","relationName":"ApproverLeaveRequests"},{"name":"attendanceRecords","kind":"object","type":"Attendance","relationName":"AttendanceToEmployee"},{"name":"payrollRecords","kind":"object","type":"Payroll","relationName":"EmployeeToPayroll"},{"name":"documents","kind":"object","type":"EmployeeDocument","relationName":"EmployeeToEmployeeDocument"},{"name":"performanceReviews","kind":"object","type":"PerformanceReview","relationName":"RevieweePerformance"},{"name":"givenReviews","kind":"object","type":"PerformanceReview","relationName":"ReviewerPerformance"},{"name":"employeeBenefits","kind":"object","type":"EmployeeBenefit","relationName":"EmployeeToEmployeeBenefit"},{"name":"grievances","kind":"object","type":"Grievance","relationName":"EmployeeGrievance"},{"name":"grievanceAssignedTo","kind":"object","type":"Grievance","relationName":"AssignedToGrievance"},{"name":"shifts","kind":"object","type":"EmployeeShift","relationName":"EmployeeToEmployeeShift"},{"name":"trainingPrograms","kind":"object","type":"EmployeeTraining","relationName":"EmployeeToEmployeeTraining"},{"name":"createdAt","kind":"scalar","type":"DateTime"},{"name":"updatedAt","kind":"scalar","type":"DateTime"}],"dbName":null},"Customer":{"fields":[{"name":"id","kind":"scalar","type":"String"},{"name":"customerName","kind":"scalar","type":"String"},{"name":"address","kind":"scalar","type":"String"},{"name":"creditLimit","kind":"scalar","type":"Float"},{"name":"creditApprovalStatus","kind":"scalar","type":"String"},{"name":"paymentTerms","kind":"scalar","type":"String"},{"name":"throughVia","kind":"scalar","type":"String"},{"name":"gstrNo","kind":"scalar","type":"String"},{"name":"createdByEmployeeId","kind":"scalar","type":"String"},{"name":"createdByEmployee","kind":"object","type":"Employee","relationName":"CustomerCreatedBy"},{"name":"assignedToEmployeeId","kind":"scalar","type":"String"},{"name":"assignedToEmployee","kind":"object","type":"Employee","relationName":"CustomerAssignedTo"},{"name":"assignedAt","kind":"scalar","type":"DateTime"},{"name":"kycProfile","kind":"scalar","type":"String"},{"name":"contactName","kind":"scalar","type":"String"},{"name":"contactPhone","kind":"scalar","type":"String"},{"name":"contactEmail","kind":"scalar","type":"String"},{"name":"contacts","kind":"scalar","type":"Json"},{"name":"remarks","kind":"scalar","type":"String"},{"name":"relationshipStatus","kind":"scalar","type":"String"},{"name":"gstCopy","kind":"scalar","type":"String"},{"name":"drugLicense","kind":"scalar","type":"String"},{"name":"dlExpiry","kind":"scalar","type":"DateTime"},{"name":"isBlacklisted","kind":"scalar","type":"Boolean"},{"name":"blacklistReason","kind":"scalar","type":"String"},{"name":"promotor","kind":"scalar","type":"String"},{"name":"blacklistedAt","kind":"scalar","type":"DateTime"},{"name":"purchaseOrders","kind":"object","type":"PurchaseOrder","relationName":"CustomerToPurchaseOrder"},{"name":"leads","kind":"object","type":"Lead","relationName":"CustomerToLead"},{"name":"annualTurnover","kind":"scalar","type":"String"},{"name":"assignmentHistory","kind":"object","type":"CustomerAssignmentHistory","relationName":"CustomerToCustomerAssignmentHistory"},{"name":"createdAt","kind":"scalar","type":"DateTime"},{"name":"updatedAt","kind":"scalar","type":"DateTime"}],"dbName":null},"CustomerAssignmentHistory":{"fields":[{"name":"id","kind":"scalar","type":"String"},{"name":"customerId","kind":"scalar","type":"String"},{"name":"customer","kind":"object","type":"Customer","relationName":"CustomerToCustomerAssignmentHistory"},{"name":"assignedToEmployeeId","kind":"scalar","type":"String"},{"name":"assignedByEmployeeId","kind":"scalar","type":"String"},{"name":"assignedByEmployee","kind":"object","type":"Employee","relationName":"CustomerAssignedBy"},{"name":"previousEmployeeId","kind":"scalar","type":"String"},{"name":"reason","kind":"scalar","type":"String"},{"name":"remarks","kind":"scalar","type":"String"},{"name":"assignedAt","kind":"scalar","type":"DateTime"}],"dbName":null},"Lead":{"fields":[{"name":"id","kind":"scalar","type":"String"},{"name":"customerId","kind":"scalar","type":"String"},{"name":"customer","kind":"object","type":"Customer","relationName":"CustomerToLead"},{"name":"assignedToEmployeeId","kind":"scalar","type":"String"},{"name":"assignedToEmployee","kind":"object","type":"Employee","relationName":"AssignedLeads"},{"name":"assignedByEmployeeId","kind":"scalar","type":"String"},{"name":"assignedByEmployee","kind":"object","type":"Employee","relationName":"AdminAssignedLeads"},{"name":"status","kind":"enum","type":"LeadStatus"},{"name":"followUps","kind":"object","type":"LeadFollowUp","relationName":"LeadToLeadFollowUp"},{"name":"notes","kind":"scalar","type":"String"},{"name":"assignedAt","kind":"scalar","type":"DateTime"},{"name":"lastContactedAt","kind":"scalar","type":"DateTime"},{"name":"createdAt","kind":"scalar","type":"DateTime"},{"name":"updatedAt","kind":"scalar","type":"DateTime"},{"name":"assignmentHistory","kind":"object","type":"LeadAssignmentHistory","relationName":"LeadToLeadAssignmentHistory"}],"dbName":null},"LeadAssignmentHistory":{"fields":[{"name":"id","kind":"scalar","type":"String"},{"name":"leadId","kind":"scalar","type":"String"},{"name":"lead","kind":"object","type":"Lead","relationName":"LeadToLeadAssignmentHistory"},{"name":"assignedToEmployeeId","kind":"scalar","type":"String"},{"name":"assignedByEmployeeId","kind":"scalar","type":"String"},{"name":"assignedAt","kind":"scalar","type":"DateTime"},{"name":"notes","kind":"scalar","type":"String"}],"dbName":null},"LeadFollowUp":{"fields":[{"name":"id","kind":"scalar","type":"String"},{"name":"leadId","kind":"scalar","type":"String"},{"name":"lead","kind":"object","type":"Lead","relationName":"LeadToLeadFollowUp"},{"name":"employeeId","kind":"scalar","type":"String"},{"name":"employee","kind":"object","type":"Employee","relationName":"LeadFollowUps"},{"name":"followUpType","kind":"scalar","type":"String"},{"name":"notes","kind":"scalar","type":"String"},{"name":"nextFollowUpDate","kind":"scalar","type":"DateTime"},{"name":"status","kind":"enum","type":"FollowUpStatus"},{"name":"createdAt","kind":"scalar","type":"DateTime"},{"name":"updatedAt","kind":"scalar","type":"DateTime"}],"dbName":null},"Todo":{"fields":[{"name":"id","kind":"scalar","type":"String"},{"name":"title","kind":"scalar","type":"String"},{"name":"description","kind":"scalar","type":"String"},{"name":"priority","kind":"enum","type":"TodoPriority"},{"name":"status","kind":"enum","type":"TodoStatus"},{"name":"createdById","kind":"scalar","type":"String"},{"name":"createdBy","kind":"object","type":"Employee","relationName":"CreatedTodos"},{"name":"assignedToId","kind":"scalar","type":"String"},{"name":"assignedTo","kind":"object","type":"Employee","relationName":"AssignedTodos"},{"name":"mentionedEmployees","kind":"object","type":"TodoMention","relationName":"TodoMentions"},{"name":"updates","kind":"object","type":"TodoUpdate","relationName":"TodoUpdates"},{"name":"completed","kind":"scalar","type":"Boolean"},{"name":"completedAt","kind":"scalar","type":"DateTime"},{"name":"dueDate","kind":"scalar","type":"DateTime"},{"name":"createdAt","kind":"scalar","type":"DateTime"},{"name":"updatedAt","kind":"scalar","type":"DateTime"}],"dbName":null},"TodoMention":{"fields":[{"name":"id","kind":"scalar","type":"String"},{"name":"todoId","kind":"scalar","type":"String"},{"name":"todo","kind":"object","type":"Todo","relationName":"TodoMentions"},{"name":"employeeId","kind":"scalar","type":"String"},{"name":"employee","kind":"object","type":"Employee","relationName":"MentionedEmployee"},{"name":"mentionedAt","kind":"scalar","type":"DateTime"}],"dbName":null},"TodoUpdate":{"fields":[{"name":"id","kind":"scalar","type":"String"},{"name":"todoId","kind":"scalar","type":"String"},{"name":"todo","kind":"object","type":"Todo","relationName":"TodoUpdates"},{"name":"description","kind":"scalar","type":"String"},{"name":"updateType","kind":"scalar","type":"String"},{"name":"oldValue","kind":"scalar","type":"String"},{"name":"newValue","kind":"scalar","type":"String"},{"name":"createdAt","kind":"scalar","type":"DateTime"}],"dbName":null},"PurchaseOrder":{"fields":[{"name":"id","kind":"scalar","type":"String"},{"name":"gstNo","kind":"scalar","type":"String"},{"name":"customerId","kind":"scalar","type":"String"},{"name":"customer","kind":"object","type":"Customer","relationName":"CustomerToPurchaseOrder"},{"name":"assignedToEmployeeId","kind":"scalar","type":"String"},{"name":"assignedToEmployee","kind":"object","type":"Employee","relationName":"PurchaseOrderAssignedTo"},{"name":"assignedAt","kind":"scalar","type":"DateTime"},{"name":"poNo","kind":"scalar","type":"String"},{"name":"poDate","kind":"scalar","type":"DateTime"},{"name":"dispatchDate","kind":"scalar","type":"DateTime"},{"name":"brandName","kind":"scalar","type":"String"},{"name":"partyName","kind":"scalar","type":"String"},{"name":"batchNo","kind":"scalar","type":"String"},{"name":"paymentTerms","kind":"scalar","type":"String"},{"name":"invCha","kind":"scalar","type":"String"},{"name":"cylChar","kind":"scalar","type":"String"},{"name":"orderThrough","kind":"scalar","type":"String"},{"name":"address","kind":"scalar","type":"String"},{"name":"composition","kind":"scalar","type":"String"},{"name":"notes","kind":"scalar","type":"String"},{"name":"rmStatus","kind":"scalar","type":"String"},{"name":"poQty","kind":"scalar","type":"String"},{"name":"poRate","kind":"scalar","type":"String"},{"name":"amount","kind":"scalar","type":"String"},{"name":"mrp","kind":"scalar","type":"String"},{"name":"section","kind":"scalar","type":"String"},{"name":"specialRequirements","kind":"scalar","type":"String"},{"name":"tabletCapsuleDrySyrupBottle","kind":"scalar","type":"String"},{"name":"roundOvalTablet","kind":"scalar","type":"String"},{"name":"tabletColour","kind":"scalar","type":"String"},{"name":"aluAluBlisterStripBottle","kind":"scalar","type":"String"},{"name":"packStyle","kind":"scalar","type":"String"},{"name":"productNewOld","kind":"scalar","type":"String"},{"name":"qaObservations","kind":"scalar","type":"String"},{"name":"batchQty","kind":"scalar","type":"String"},{"name":"expiry","kind":"scalar","type":"DateTime"},{"name":"pvcColourBase","kind":"scalar","type":"String"},{"name":"foil","kind":"scalar","type":"String"},{"name":"lotNo","kind":"scalar","type":"String"},{"name":"foilPoDate","kind":"scalar","type":"DateTime"},{"name":"foilSize","kind":"scalar","type":"String"},{"name":"foilPoVendor","kind":"scalar","type":"String"},{"name":"foilBillDate","kind":"scalar","type":"DateTime"},{"name":"foilQuantity","kind":"scalar","type":"String"},{"name":"cartonPoDate","kind":"scalar","type":"DateTime"},{"name":"cartonPoVendor","kind":"scalar","type":"String"},{"name":"cartonBillDate","kind":"scalar","type":"DateTime"},{"name":"cartonQuantity","kind":"scalar","type":"String"},{"name":"packingDate","kind":"scalar","type":"DateTime"},{"name":"qtyPacked","kind":"scalar","type":"String"},{"name":"noOfShippers","kind":"scalar","type":"String"},{"name":"design","kind":"scalar","type":"String"},{"name":"productionStatus","kind":"scalar","type":"String"},{"name":"overallStatus","kind":"scalar","type":"String"},{"name":"invoiceNo","kind":"scalar","type":"String"},{"name":"invoiceDate","kind":"scalar","type":"DateTime"},{"name":"changePart","kind":"scalar","type":"String"},{"name":"cyc","kind":"scalar","type":"String"},{"name":"advance","kind":"scalar","type":"String"},{"name":"showStatus","kind":"scalar","type":"String"},{"name":"mdApproval","kind":"scalar","type":"String"},{"name":"accountsApproval","kind":"scalar","type":"String"},{"name":"designerApproval","kind":"scalar","type":"String"},{"name":"ppicApproval","kind":"scalar","type":"String"},{"name":"designerActions","kind":"scalar","type":"Json"},{"name":"accountBills","kind":"scalar","type":"Json"},{"name":"salesComments","kind":"scalar","type":"String"},{"name":"poDisputes","kind":"scalar","type":"Json"},{"name":"rawImportedData","kind":"scalar","type":"Json"},{"name":"foilQuantityOrdered","kind":"scalar","type":"String"},{"name":"cartonQuantityOrdered","kind":"scalar","type":"String"},{"name":"dispatchStatus","kind":"scalar","type":"String"},{"name":"timestamp","kind":"scalar","type":"Json"},{"name":"statusHistory","kind":"object","type":"PurchaseOrderStatusHistory","relationName":"PurchaseOrderToPurchaseOrderStatusHistory"},{"name":"assignmentHistory","kind":"object","type":"PurchaseOrderAssignmentHistory","relationName":"PurchaseOrderToPurchaseOrderAssignmentHistory"},{"name":"createdAt","kind":"scalar","type":"DateTime"},{"name":"updatedAt","kind":"scalar","type":"DateTime"}],"dbName":null},"PurchaseOrderStatusHistory":{"fields":[{"name":"id","kind":"scalar","type":"String"},{"name":"purchaseOrderId","kind":"scalar","type":"String"},{"name":"purchaseOrder","kind":"object","type":"PurchaseOrder","relationName":"PurchaseOrderToPurchaseOrderStatusHistory"},{"name":"status","kind":"scalar","type":"String"},{"name":"remarks","kind":"scalar","type":"String"},{"name":"changedBy","kind":"scalar","type":"String"},{"name":"metadata","kind":"scalar","type":"Json"},{"name":"createdAt","kind":"scalar","type":"DateTime"}],"dbName":null},"PurchaseOrderAssignmentHistory":{"fields":[{"name":"id","kind":"scalar","type":"String"},{"name":"purchaseOrderId","kind":"scalar","type":"String"},{"name":"purchaseOrder","kind":"object","type":"PurchaseOrder","relationName":"PurchaseOrderToPurchaseOrderAssignmentHistory"},{"name":"assignedToEmployeeId","kind":"scalar","type":"String"},{"name":"assignedByEmployeeId","kind":"scalar","type":"String"},{"name":"assignedByEmployee","kind":"object","type":"Employee","relationName":"PurchaseOrderAssignedBy"},{"name":"previousEmployeeId","kind":"scalar","type":"String"},{"name":"reason","kind":"scalar","type":"String"},{"name":"remarks","kind":"scalar","type":"String"},{"name":"assignedAt","kind":"scalar","type":"DateTime"}],"dbName":null},"Notification":{"fields":[{"name":"id","kind":"scalar","type":"String"},{"name":"userId","kind":"scalar","type":"String"},{"name":"type","kind":"scalar","type":"String"},{"name":"message","kind":"scalar","type":"String"},{"name":"isRead","kind":"scalar","type":"Boolean"},{"name":"createdAt","kind":"scalar","type":"DateTime"},{"name":"updatedAt","kind":"scalar","type":"DateTime"}],"dbName":null},"AuditLog":{"fields":[{"name":"id","kind":"scalar","type":"String"},{"name":"action","kind":"scalar","type":"String"},{"name":"performedBy","kind":"scalar","type":"String"},{"name":"targetId","kind":"scalar","type":"String"},{"name":"details","kind":"scalar","type":"Json"},{"name":"timestamp","kind":"scalar","type":"DateTime"}],"dbName":"audit_logs"},"ChangePartMaster":{"fields":[{"name":"id","kind":"scalar","type":"String"},{"name":"partPictureUrl","kind":"scalar","type":"String"},{"name":"code","kind":"scalar","type":"String"},{"name":"boxSizeAutoCalculated","kind":"scalar","type":"String"},{"name":"cartonRates","kind":"scalar","type":"Decimal"},{"name":"baseFoilConsumption","kind":"scalar","type":"Decimal"},{"name":"printedFoilConsumption","kind":"scalar","type":"Decimal"},{"name":"tabSize","kind":"scalar","type":"String"},{"name":"range","kind":"scalar","type":"String"},{"name":"foilSize","kind":"scalar","type":"String"},{"name":"createdAt","kind":"scalar","type":"DateTime"},{"name":"updatedAt","kind":"scalar","type":"DateTime"}],"dbName":null},"CompositionMaster":{"fields":[{"name":"id","kind":"scalar","type":"String"},{"name":"composition","kind":"scalar","type":"String"},{"name":"formType","kind":"scalar","type":"String"},{"name":"packingType","kind":"scalar","type":"String"},{"name":"layerType","kind":"scalar","type":"String"},{"name":"color","kind":"scalar","type":"String"},{"name":"flavor","kind":"scalar","type":"String"},{"name":"coating","kind":"scalar","type":"String"},{"name":"changePartOptions","kind":"scalar","type":"String"},{"name":"shelfLifeMonths","kind":"scalar","type":"Int"},{"name":"review","kind":"scalar","type":"String"},{"name":"createdAt","kind":"scalar","type":"DateTime"},{"name":"updatedAt","kind":"scalar","type":"DateTime"}],"dbName":null},"ApiMaster":{"fields":[{"name":"id","kind":"scalar","type":"String"},{"name":"drugName","kind":"scalar","type":"String"},{"name":"drugQuantity","kind":"scalar","type":"String"},{"name":"createdAt","kind":"scalar","type":"DateTime"},{"name":"updatedAt","kind":"scalar","type":"DateTime"}],"dbName":null},"VendorMaster":{"fields":[{"name":"id","kind":"scalar","type":"String"},{"name":"vendorName","kind":"scalar","type":"String"},{"name":"vendorCode","kind":"scalar","type":"String"},{"name":"contactPerson","kind":"scalar","type":"String"},{"name":"vendorEmail","kind":"scalar","type":"String"},{"name":"vendorPhone","kind":"scalar","type":"String"},{"name":"vendorAdress","kind":"scalar","type":"String"},{"name":"vendorState","kind":"scalar","type":"String"},{"name":"vendorGSTNo","kind":"scalar","type":"String"},{"name":"paymentTerms","kind":"scalar","type":"String"},{"name":"vendorBankName","kind":"scalar","type":"String"},{"name":"vendorAccountNumber","kind":"scalar","type":"String"},{"name":"vendorIFSC","kind":"scalar","type":"String"},{"name":"createdAt","kind":"scalar","type":"DateTime"},{"name":"updatedAt","kind":"scalar","type":"DateTime"}],"dbName":null},"LeaveRequest":{"fields":[{"name":"id","kind":"scalar","type":"String"},{"name":"employeeId","kind":"scalar","type":"String"},{"name":"employee","kind":"object","type":"Employee","relationName":"EmployeeLeaveRequests"},{"name":"leaveType","kind":"enum","type":"LeaveType"},{"name":"startDate","kind":"scalar","type":"DateTime"},{"name":"endDate","kind":"scalar","type":"DateTime"},{"name":"numberOfDays","kind":"scalar","type":"Int"},{"name":"requestedBy","kind":"scalar","type":"String"},{"name":"reason","kind":"scalar","type":"String"},{"name":"status","kind":"enum","type":"LeaveStatus"},{"name":"approverEmployeeId","kind":"scalar","type":"String"},{"name":"approverEmployee","kind":"object","type":"Employee","relationName":"ApproverLeaveRequests"},{"name":"approverComments","kind":"scalar","type":"String"},{"name":"approvedAt","kind":"scalar","type":"DateTime"},{"name":"rejectedAt","kind":"scalar","type":"DateTime"},{"name":"rejectionReason","kind":"scalar","type":"String"},{"name":"attachmentUrl","kind":"scalar","type":"String"},{"name":"createdAt","kind":"scalar","type":"DateTime"},{"name":"updatedAt","kind":"scalar","type":"DateTime"}],"dbName":null},"Attendance":{"fields":[{"name":"id","kind":"scalar","type":"String"},{"name":"employeeId","kind":"scalar","type":"String"},{"name":"employee","kind":"object","type":"Employee","relationName":"AttendanceToEmployee"},{"name":"attendanceDate","kind":"scalar","type":"DateTime"},{"name":"status","kind":"enum","type":"AttendanceStatus"},{"name":"checkInTime","kind":"scalar","type":"DateTime"},{"name":"checkOutTime","kind":"scalar","type":"DateTime"},{"name":"workingHours","kind":"scalar","type":"Float"},{"name":"location","kind":"scalar","type":"String"},{"name":"notes","kind":"scalar","type":"String"},{"name":"deviceId","kind":"scalar","type":"String"},{"name":"verifiedBy","kind":"scalar","type":"String"},{"name":"createdAt","kind":"scalar","type":"DateTime"},{"name":"updatedAt","kind":"scalar","type":"DateTime"}],"dbName":null},"Payroll":{"fields":[{"name":"id","kind":"scalar","type":"String"},{"name":"employeeId","kind":"scalar","type":"String"},{"name":"employee","kind":"object","type":"Employee","relationName":"EmployeeToPayroll"},{"name":"payrollMonth","kind":"scalar","type":"DateTime"},{"name":"baseSalary","kind":"scalar","type":"Float"},{"name":"housRentAllowance","kind":"scalar","type":"Float"},{"name":"conveyanceAllowance","kind":"scalar","type":"Float"},{"name":"medicalAllowance","kind":"scalar","type":"Float"},{"name":"specialAllowance","kind":"scalar","type":"Float"},{"name":"bonus","kind":"scalar","type":"Float"},{"name":"otherAdditions","kind":"scalar","type":"Float"},{"name":"totalAdditions","kind":"scalar","type":"Float"},{"name":"incomeTax","kind":"scalar","type":"Float"},{"name":"providentFund","kind":"scalar","type":"Float"},{"name":"employeeStateInsurance","kind":"scalar","type":"Float"},{"name":"otherDeductions","kind":"scalar","type":"Float"},{"name":"totalDeductions","kind":"scalar","type":"Float"},{"name":"netSalary","kind":"scalar","type":"Float"},{"name":"status","kind":"enum","type":"PayrollStatus"},{"name":"approvedBy","kind":"scalar","type":"String"},{"name":"approvedAt","kind":"scalar","type":"DateTime"},{"name":"remarks","kind":"scalar","type":"String"},{"name":"pdfUrl","kind":"scalar","type":"String"},{"name":"createdAt","kind":"scalar","type":"DateTime"},{"name":"updatedAt","kind":"scalar","type":"DateTime"}],"dbName":null},"EmployeeDocument":{"fields":[{"name":"id","kind":"scalar","type":"String"},{"name":"employeeId","kind":"scalar","type":"String"},{"name":"employee","kind":"object","type":"Employee","relationName":"EmployeeToEmployeeDocument"},{"name":"documentType","kind":"enum","type":"DocumentType"},{"name":"documentName","kind":"scalar","type":"String"},{"name":"documentNumber","kind":"scalar","type":"String"},{"name":"fileUrl","kind":"scalar","type":"String"},{"name":"expiryDate","kind":"scalar","type":"DateTime"},{"name":"issueDate","kind":"scalar","type":"DateTime"},{"name":"issuingAuthority","kind":"scalar","type":"String"},{"name":"extractedData","kind":"scalar","type":"Json"},{"name":"verificationStatus","kind":"scalar","type":"String"},{"name":"verifiedBy","kind":"scalar","type":"String"},{"name":"verifiedAt","kind":"scalar","type":"DateTime"},{"name":"remarks","kind":"scalar","type":"String"},{"name":"createdAt","kind":"scalar","type":"DateTime"},{"name":"updatedAt","kind":"scalar","type":"DateTime"}],"dbName":null},"PerformanceReview":{"fields":[{"name":"id","kind":"scalar","type":"String"},{"name":"revieweeId","kind":"scalar","type":"String"},{"name":"reviewee","kind":"object","type":"Employee","relationName":"RevieweePerformance"},{"name":"reviewerId","kind":"scalar","type":"String"},{"name":"reviewer","kind":"object","type":"Employee","relationName":"ReviewerPerformance"},{"name":"reviewPeriodStart","kind":"scalar","type":"DateTime"},{"name":"reviewPeriodEnd","kind":"scalar","type":"DateTime"},{"name":"overallRating","kind":"enum","type":"PerformanceRating"},{"name":"technicalSkills","kind":"enum","type":"PerformanceRating"},{"name":"communication","kind":"enum","type":"PerformanceRating"},{"name":"teamwork","kind":"enum","type":"PerformanceRating"},{"name":"leadership","kind":"enum","type":"PerformanceRating"},{"name":"reliability","kind":"enum","type":"PerformanceRating"},{"name":"innovation","kind":"enum","type":"PerformanceRating"},{"name":"achievements","kind":"scalar","type":"String"},{"name":"areasOfImprovement","kind":"scalar","type":"String"},{"name":"feedback","kind":"scalar","type":"String"},{"name":"goals","kind":"scalar","type":"String"},{"name":"developmentPlan","kind":"scalar","type":"String"},{"name":"acknowledgedAt","kind":"scalar","type":"DateTime"},{"name":"createdAt","kind":"scalar","type":"DateTime"},{"name":"updatedAt","kind":"scalar","type":"DateTime"}],"dbName":null},"EmployeeBenefit":{"fields":[{"name":"id","kind":"scalar","type":"String"},{"name":"employeeId","kind":"scalar","type":"String"},{"name":"employee","kind":"object","type":"Employee","relationName":"EmployeeToEmployeeBenefit"},{"name":"benefitName","kind":"scalar","type":"String"},{"name":"benefitDescription","kind":"scalar","type":"String"},{"name":"benefitType","kind":"scalar","type":"String"},{"name":"enrollmentDate","kind":"scalar","type":"DateTime"},{"name":"expiryDate","kind":"scalar","type":"DateTime"},{"name":"benefitAmount","kind":"scalar","type":"Float"},{"name":"provider","kind":"scalar","type":"String"},{"name":"policyNumber","kind":"scalar","type":"String"},{"name":"documentUrl","kind":"scalar","type":"String"},{"name":"status","kind":"scalar","type":"String"},{"name":"createdAt","kind":"scalar","type":"DateTime"},{"name":"updatedAt","kind":"scalar","type":"DateTime"}],"dbName":null},"Grievance":{"fields":[{"name":"id","kind":"scalar","type":"String"},{"name":"employeeId","kind":"scalar","type":"String"},{"name":"employee","kind":"object","type":"Employee","relationName":"EmployeeGrievance"},{"name":"grievanceType","kind":"scalar","type":"String"},{"name":"description","kind":"scalar","type":"String"},{"name":"dateOfIncident","kind":"scalar","type":"DateTime"},{"name":"submittedDate","kind":"scalar","type":"DateTime"},{"name":"status","kind":"enum","type":"GrievanceStatus"},{"name":"assignedToId","kind":"scalar","type":"String"},{"name":"assignedTo","kind":"object","type":"Employee","relationName":"AssignedToGrievance"},{"name":"investigationNotes","kind":"scalar","type":"String"},{"name":"resolution","kind":"scalar","type":"String"},{"name":"resolutionDate","kind":"scalar","type":"DateTime"},{"name":"followUpRequired","kind":"scalar","type":"Boolean"},{"name":"followUpDate","kind":"scalar","type":"DateTime"},{"name":"attachments","kind":"scalar","type":"Json"},{"name":"createdAt","kind":"scalar","type":"DateTime"},{"name":"updatedAt","kind":"scalar","type":"DateTime"}],"dbName":null},"EmployeeShift":{"fields":[{"name":"id","kind":"scalar","type":"String"},{"name":"employeeId","kind":"scalar","type":"String"},{"name":"employee","kind":"object","type":"Employee","relationName":"EmployeeToEmployeeShift"},{"name":"shiftType","kind":"enum","type":"ShiftType"},{"name":"startTime","kind":"scalar","type":"DateTime"},{"name":"endTime","kind":"scalar","type":"DateTime"},{"name":"effectiveFrom","kind":"scalar","type":"DateTime"},{"name":"effectiveUntil","kind":"scalar","type":"DateTime"},{"name":"breakDuration","kind":"scalar","type":"Int"},{"name":"rotationPattern","kind":"scalar","type":"String"},{"name":"createdAt","kind":"scalar","type":"DateTime"},{"name":"updatedAt","kind":"scalar","type":"DateTime"}],"dbName":null},"EmployeeTraining":{"fields":[{"name":"id","kind":"scalar","type":"String"},{"name":"employeeId","kind":"scalar","type":"String"},{"name":"employee","kind":"object","type":"Employee","relationName":"EmployeeToEmployeeTraining"},{"name":"trainingName","kind":"scalar","type":"String"},{"name":"trainingProvider","kind":"scalar","type":"String"},{"name":"startDate","kind":"scalar","type":"DateTime"},{"name":"endDate","kind":"scalar","type":"DateTime"},{"name":"duration","kind":"scalar","type":"Int"},{"name":"skillsAcquired","kind":"scalar","type":"String"},{"name":"certificateUrl","kind":"scalar","type":"String"},{"name":"cost","kind":"scalar","type":"Float"},{"name":"status","kind":"scalar","type":"String"},{"name":"completionDate","kind":"scalar","type":"DateTime"},{"name":"assessmentScore","kind":"scalar","type":"Float"},{"name":"createdAt","kind":"scalar","type":"DateTime"},{"name":"updatedAt","kind":"scalar","type":"DateTime"}],"dbName":null},"Designation":{"fields":[{"name":"id","kind":"scalar","type":"String"},{"name":"name","kind":"scalar","type":"String"},{"name":"description","kind":"scalar","type":"String"},{"name":"department","kind":"scalar","type":"String"},{"name":"reportingTo","kind":"scalar","type":"String"},{"name":"baseSalaryRange","kind":"scalar","type":"String"},{"name":"skills","kind":"scalar","type":"String"},{"name":"status","kind":"scalar","type":"String"},{"name":"createdAt","kind":"scalar","type":"DateTime"},{"name":"updatedAt","kind":"scalar","type":"DateTime"}],"dbName":null},"Department":{"fields":[{"name":"id","kind":"scalar","type":"String"},{"name":"name","kind":"scalar","type":"String"},{"name":"code","kind":"scalar","type":"String"},{"name":"description","kind":"scalar","type":"String"},{"name":"headOfDepartment","kind":"scalar","type":"String"},{"name":"budget","kind":"scalar","type":"Float"},{"name":"status","kind":"scalar","type":"String"},{"name":"createdAt","kind":"scalar","type":"DateTime"},{"name":"updatedAt","kind":"scalar","type":"DateTime"}],"dbName":null}},"enums":{},"types":{}}');
+    config2.runtimeDataModel = JSON.parse('{"models":{"Employee":{"fields":[{"name":"id","kind":"scalar","type":"String"},{"name":"name","kind":"scalar","type":"String"},{"name":"email","kind":"scalar","type":"String"},{"name":"phone","kind":"scalar","type":"String"},{"name":"role","kind":"scalar","type":"String"},{"name":"department","kind":"scalar","type":"String"},{"name":"status","kind":"enum","type":"EmployeeStatus"},{"name":"approvedForCredentials","kind":"enum","type":"CredentialApprovalStatus"},{"name":"dateOfJoining","kind":"scalar","type":"DateTime"},{"name":"dateOfBirth","kind":"scalar","type":"DateTime"},{"name":"ctc","kind":"scalar","type":"Float"},{"name":"baseSalary","kind":"scalar","type":"Float"},{"name":"fatherName","kind":"scalar","type":"String"},{"name":"motherName","kind":"scalar","type":"String"},{"name":"spouseName","kind":"scalar","type":"String"},{"name":"permanentAddress","kind":"scalar","type":"String"},{"name":"currentAddress","kind":"scalar","type":"String"},{"name":"bloodGroup","kind":"scalar","type":"String"},{"name":"emergencyContact","kind":"scalar","type":"String"},{"name":"emergencyContactPhone","kind":"scalar","type":"String"},{"name":"designation","kind":"scalar","type":"String"},{"name":"reportingManagerId","kind":"scalar","type":"String"},{"name":"reportingManager","kind":"object","type":"Employee","relationName":"ReportingManager"},{"name":"subordinates","kind":"object","type":"Employee","relationName":"ReportingManager"},{"name":"bankName","kind":"scalar","type":"String"},{"name":"bankAccountNumber","kind":"scalar","type":"String"},{"name":"bankIfscCode","kind":"scalar","type":"String"},{"name":"panNumber","kind":"scalar","type":"String"},{"name":"aadharNumber","kind":"scalar","type":"String"},{"name":"esi","kind":"scalar","type":"String"},{"name":"pf","kind":"scalar","type":"String"},{"name":"totalLeaveBalance","kind":"scalar","type":"Int"},{"name":"usedLeave","kind":"scalar","type":"Int"},{"name":"createdByRole","kind":"scalar","type":"String"},{"name":"username","kind":"scalar","type":"String"},{"name":"password","kind":"scalar","type":"String"},{"name":"approvedBy","kind":"scalar","type":"String"},{"name":"approvedAt","kind":"scalar","type":"DateTime"},{"name":"rejectionReason","kind":"scalar","type":"String"},{"name":"refreshToken","kind":"scalar","type":"String"},{"name":"createdTodos","kind":"object","type":"Todo","relationName":"CreatedTodos"},{"name":"assignedTodos","kind":"object","type":"Todo","relationName":"AssignedTodos"},{"name":"mentionedInTodos","kind":"object","type":"TodoMention","relationName":"MentionedEmployee"},{"name":"assignedLeads","kind":"object","type":"Lead","relationName":"AssignedLeads"},{"name":"adminAssignedLeads","kind":"object","type":"Lead","relationName":"AdminAssignedLeads"},{"name":"leadFollowUps","kind":"object","type":"LeadFollowUp","relationName":"LeadFollowUps"},{"name":"createdCustomers","kind":"object","type":"Customer","relationName":"CustomerCreatedBy"},{"name":"assignedCustomers","kind":"object","type":"Customer","relationName":"CustomerAssignedTo"},{"name":"customerAssignmentsByMe","kind":"object","type":"CustomerAssignmentHistory","relationName":"CustomerAssignedBy"},{"name":"assignedPurchaseOrders","kind":"object","type":"PurchaseOrder","relationName":"PurchaseOrderAssignedTo"},{"name":"poAssignmentsByMe","kind":"object","type":"PurchaseOrderAssignmentHistory","relationName":"PurchaseOrderAssignedBy"},{"name":"leaveRequests","kind":"object","type":"LeaveRequest","relationName":"EmployeeLeaveRequests"},{"name":"approverLeaveRequests","kind":"object","type":"LeaveRequest","relationName":"ApproverLeaveRequests"},{"name":"attendanceRecords","kind":"object","type":"Attendance","relationName":"AttendanceToEmployee"},{"name":"payrollRecords","kind":"object","type":"Payroll","relationName":"EmployeeToPayroll"},{"name":"documents","kind":"object","type":"EmployeeDocument","relationName":"EmployeeToEmployeeDocument"},{"name":"performanceReviews","kind":"object","type":"PerformanceReview","relationName":"RevieweePerformance"},{"name":"givenReviews","kind":"object","type":"PerformanceReview","relationName":"ReviewerPerformance"},{"name":"employeeBenefits","kind":"object","type":"EmployeeBenefit","relationName":"EmployeeToEmployeeBenefit"},{"name":"grievances","kind":"object","type":"Grievance","relationName":"EmployeeGrievance"},{"name":"grievanceAssignedTo","kind":"object","type":"Grievance","relationName":"AssignedToGrievance"},{"name":"shifts","kind":"object","type":"EmployeeShift","relationName":"EmployeeToEmployeeShift"},{"name":"trainingPrograms","kind":"object","type":"EmployeeTraining","relationName":"EmployeeToEmployeeTraining"},{"name":"loginAttempts","kind":"object","type":"LoginAttempt","relationName":"LoginAttempts"},{"name":"accountLockouts","kind":"object","type":"AccountLockout","relationName":"AccountLockouts"},{"name":"securityAuditLogs","kind":"object","type":"SecurityAuditLog","relationName":"SecurityAuditLogs"},{"name":"navbarPermissions","kind":"object","type":"NavbarPermission","relationName":"NavbarPermissions"},{"name":"createdAt","kind":"scalar","type":"DateTime"},{"name":"updatedAt","kind":"scalar","type":"DateTime"}],"dbName":null},"Customer":{"fields":[{"name":"id","kind":"scalar","type":"String"},{"name":"customerName","kind":"scalar","type":"String"},{"name":"address","kind":"scalar","type":"String"},{"name":"creditLimit","kind":"scalar","type":"Float"},{"name":"creditApprovalStatus","kind":"scalar","type":"String"},{"name":"paymentTerms","kind":"scalar","type":"String"},{"name":"throughVia","kind":"scalar","type":"String"},{"name":"gstrNo","kind":"scalar","type":"String"},{"name":"createdByEmployeeId","kind":"scalar","type":"String"},{"name":"createdByEmployee","kind":"object","type":"Employee","relationName":"CustomerCreatedBy"},{"name":"assignedToEmployeeId","kind":"scalar","type":"String"},{"name":"assignedToEmployee","kind":"object","type":"Employee","relationName":"CustomerAssignedTo"},{"name":"assignedAt","kind":"scalar","type":"DateTime"},{"name":"kycProfile","kind":"scalar","type":"String"},{"name":"contactName","kind":"scalar","type":"String"},{"name":"contactPhone","kind":"scalar","type":"String"},{"name":"contactEmail","kind":"scalar","type":"String"},{"name":"contacts","kind":"scalar","type":"Json"},{"name":"remarks","kind":"scalar","type":"String"},{"name":"relationshipStatus","kind":"scalar","type":"String"},{"name":"gstCopy","kind":"scalar","type":"String"},{"name":"drugLicense","kind":"scalar","type":"String"},{"name":"dlExpiry","kind":"scalar","type":"DateTime"},{"name":"isBlacklisted","kind":"scalar","type":"Boolean"},{"name":"blacklistReason","kind":"scalar","type":"String"},{"name":"promotor","kind":"scalar","type":"String"},{"name":"blacklistedAt","kind":"scalar","type":"DateTime"},{"name":"purchaseOrders","kind":"object","type":"PurchaseOrder","relationName":"CustomerToPurchaseOrder"},{"name":"leads","kind":"object","type":"Lead","relationName":"CustomerToLead"},{"name":"annualTurnover","kind":"scalar","type":"String"},{"name":"assignmentHistory","kind":"object","type":"CustomerAssignmentHistory","relationName":"CustomerToCustomerAssignmentHistory"},{"name":"createdAt","kind":"scalar","type":"DateTime"},{"name":"updatedAt","kind":"scalar","type":"DateTime"}],"dbName":null},"CustomerAssignmentHistory":{"fields":[{"name":"id","kind":"scalar","type":"String"},{"name":"customerId","kind":"scalar","type":"String"},{"name":"customer","kind":"object","type":"Customer","relationName":"CustomerToCustomerAssignmentHistory"},{"name":"assignedToEmployeeId","kind":"scalar","type":"String"},{"name":"assignedByEmployeeId","kind":"scalar","type":"String"},{"name":"assignedByEmployee","kind":"object","type":"Employee","relationName":"CustomerAssignedBy"},{"name":"previousEmployeeId","kind":"scalar","type":"String"},{"name":"reason","kind":"scalar","type":"String"},{"name":"remarks","kind":"scalar","type":"String"},{"name":"assignedAt","kind":"scalar","type":"DateTime"}],"dbName":null},"Lead":{"fields":[{"name":"id","kind":"scalar","type":"String"},{"name":"customerId","kind":"scalar","type":"String"},{"name":"customer","kind":"object","type":"Customer","relationName":"CustomerToLead"},{"name":"assignedToEmployeeId","kind":"scalar","type":"String"},{"name":"assignedToEmployee","kind":"object","type":"Employee","relationName":"AssignedLeads"},{"name":"assignedByEmployeeId","kind":"scalar","type":"String"},{"name":"assignedByEmployee","kind":"object","type":"Employee","relationName":"AdminAssignedLeads"},{"name":"status","kind":"enum","type":"LeadStatus"},{"name":"followUps","kind":"object","type":"LeadFollowUp","relationName":"LeadToLeadFollowUp"},{"name":"notes","kind":"scalar","type":"String"},{"name":"assignedAt","kind":"scalar","type":"DateTime"},{"name":"lastContactedAt","kind":"scalar","type":"DateTime"},{"name":"createdAt","kind":"scalar","type":"DateTime"},{"name":"updatedAt","kind":"scalar","type":"DateTime"},{"name":"assignmentHistory","kind":"object","type":"LeadAssignmentHistory","relationName":"LeadToLeadAssignmentHistory"}],"dbName":null},"LeadAssignmentHistory":{"fields":[{"name":"id","kind":"scalar","type":"String"},{"name":"leadId","kind":"scalar","type":"String"},{"name":"lead","kind":"object","type":"Lead","relationName":"LeadToLeadAssignmentHistory"},{"name":"assignedToEmployeeId","kind":"scalar","type":"String"},{"name":"assignedByEmployeeId","kind":"scalar","type":"String"},{"name":"assignedAt","kind":"scalar","type":"DateTime"},{"name":"notes","kind":"scalar","type":"String"}],"dbName":null},"LeadFollowUp":{"fields":[{"name":"id","kind":"scalar","type":"String"},{"name":"leadId","kind":"scalar","type":"String"},{"name":"lead","kind":"object","type":"Lead","relationName":"LeadToLeadFollowUp"},{"name":"employeeId","kind":"scalar","type":"String"},{"name":"employee","kind":"object","type":"Employee","relationName":"LeadFollowUps"},{"name":"followUpType","kind":"scalar","type":"String"},{"name":"notes","kind":"scalar","type":"String"},{"name":"nextFollowUpDate","kind":"scalar","type":"DateTime"},{"name":"status","kind":"enum","type":"FollowUpStatus"},{"name":"createdAt","kind":"scalar","type":"DateTime"},{"name":"updatedAt","kind":"scalar","type":"DateTime"}],"dbName":null},"Todo":{"fields":[{"name":"id","kind":"scalar","type":"String"},{"name":"title","kind":"scalar","type":"String"},{"name":"description","kind":"scalar","type":"String"},{"name":"priority","kind":"enum","type":"TodoPriority"},{"name":"status","kind":"enum","type":"TodoStatus"},{"name":"createdById","kind":"scalar","type":"String"},{"name":"createdBy","kind":"object","type":"Employee","relationName":"CreatedTodos"},{"name":"assignedToId","kind":"scalar","type":"String"},{"name":"assignedTo","kind":"object","type":"Employee","relationName":"AssignedTodos"},{"name":"mentionedEmployees","kind":"object","type":"TodoMention","relationName":"TodoMentions"},{"name":"updates","kind":"object","type":"TodoUpdate","relationName":"TodoUpdates"},{"name":"completed","kind":"scalar","type":"Boolean"},{"name":"completedAt","kind":"scalar","type":"DateTime"},{"name":"dueDate","kind":"scalar","type":"DateTime"},{"name":"createdAt","kind":"scalar","type":"DateTime"},{"name":"updatedAt","kind":"scalar","type":"DateTime"}],"dbName":null},"TodoMention":{"fields":[{"name":"id","kind":"scalar","type":"String"},{"name":"todoId","kind":"scalar","type":"String"},{"name":"todo","kind":"object","type":"Todo","relationName":"TodoMentions"},{"name":"employeeId","kind":"scalar","type":"String"},{"name":"employee","kind":"object","type":"Employee","relationName":"MentionedEmployee"},{"name":"mentionedAt","kind":"scalar","type":"DateTime"}],"dbName":null},"TodoUpdate":{"fields":[{"name":"id","kind":"scalar","type":"String"},{"name":"todoId","kind":"scalar","type":"String"},{"name":"todo","kind":"object","type":"Todo","relationName":"TodoUpdates"},{"name":"description","kind":"scalar","type":"String"},{"name":"updateType","kind":"scalar","type":"String"},{"name":"oldValue","kind":"scalar","type":"String"},{"name":"newValue","kind":"scalar","type":"String"},{"name":"createdAt","kind":"scalar","type":"DateTime"}],"dbName":null},"PurchaseOrder":{"fields":[{"name":"id","kind":"scalar","type":"String"},{"name":"gstNo","kind":"scalar","type":"String"},{"name":"customerId","kind":"scalar","type":"String"},{"name":"customer","kind":"object","type":"Customer","relationName":"CustomerToPurchaseOrder"},{"name":"assignedToEmployeeId","kind":"scalar","type":"String"},{"name":"assignedToEmployee","kind":"object","type":"Employee","relationName":"PurchaseOrderAssignedTo"},{"name":"assignedAt","kind":"scalar","type":"DateTime"},{"name":"poNo","kind":"scalar","type":"String"},{"name":"poDate","kind":"scalar","type":"DateTime"},{"name":"dispatchDate","kind":"scalar","type":"DateTime"},{"name":"brandName","kind":"scalar","type":"String"},{"name":"partyName","kind":"scalar","type":"String"},{"name":"batchNo","kind":"scalar","type":"String"},{"name":"paymentTerms","kind":"scalar","type":"String"},{"name":"invCha","kind":"scalar","type":"String"},{"name":"cylChar","kind":"scalar","type":"String"},{"name":"orderThrough","kind":"scalar","type":"String"},{"name":"address","kind":"scalar","type":"String"},{"name":"composition","kind":"scalar","type":"String"},{"name":"notes","kind":"scalar","type":"String"},{"name":"rmStatus","kind":"scalar","type":"String"},{"name":"poQty","kind":"scalar","type":"String"},{"name":"poRate","kind":"scalar","type":"String"},{"name":"amount","kind":"scalar","type":"String"},{"name":"mrp","kind":"scalar","type":"String"},{"name":"section","kind":"scalar","type":"String"},{"name":"specialRequirements","kind":"scalar","type":"String"},{"name":"tabletCapsuleDrySyrupBottle","kind":"scalar","type":"String"},{"name":"roundOvalTablet","kind":"scalar","type":"String"},{"name":"tabletColour","kind":"scalar","type":"String"},{"name":"aluAluBlisterStripBottle","kind":"scalar","type":"String"},{"name":"packStyle","kind":"scalar","type":"String"},{"name":"productNewOld","kind":"scalar","type":"String"},{"name":"qaObservations","kind":"scalar","type":"String"},{"name":"batchQty","kind":"scalar","type":"String"},{"name":"expiry","kind":"scalar","type":"DateTime"},{"name":"pvcColourBase","kind":"scalar","type":"String"},{"name":"foil","kind":"scalar","type":"String"},{"name":"lotNo","kind":"scalar","type":"String"},{"name":"foilPoDate","kind":"scalar","type":"DateTime"},{"name":"foilSize","kind":"scalar","type":"String"},{"name":"foilPoVendor","kind":"scalar","type":"String"},{"name":"foilBillDate","kind":"scalar","type":"DateTime"},{"name":"foilQuantity","kind":"scalar","type":"String"},{"name":"cartonPoDate","kind":"scalar","type":"DateTime"},{"name":"cartonPoVendor","kind":"scalar","type":"String"},{"name":"cartonBillDate","kind":"scalar","type":"DateTime"},{"name":"cartonQuantity","kind":"scalar","type":"String"},{"name":"packingDate","kind":"scalar","type":"DateTime"},{"name":"qtyPacked","kind":"scalar","type":"String"},{"name":"noOfShippers","kind":"scalar","type":"String"},{"name":"design","kind":"scalar","type":"String"},{"name":"productionStatus","kind":"scalar","type":"String"},{"name":"overallStatus","kind":"scalar","type":"String"},{"name":"invoiceNo","kind":"scalar","type":"String"},{"name":"invoiceDate","kind":"scalar","type":"DateTime"},{"name":"changePart","kind":"scalar","type":"String"},{"name":"cyc","kind":"scalar","type":"String"},{"name":"advance","kind":"scalar","type":"String"},{"name":"showStatus","kind":"scalar","type":"String"},{"name":"mdApproval","kind":"scalar","type":"String"},{"name":"accountsApproval","kind":"scalar","type":"String"},{"name":"designerApproval","kind":"scalar","type":"String"},{"name":"ppicApproval","kind":"scalar","type":"String"},{"name":"designerActions","kind":"scalar","type":"Json"},{"name":"accountBills","kind":"scalar","type":"Json"},{"name":"salesComments","kind":"scalar","type":"String"},{"name":"poDisputes","kind":"scalar","type":"Json"},{"name":"rawImportedData","kind":"scalar","type":"Json"},{"name":"foilQuantityOrdered","kind":"scalar","type":"String"},{"name":"cartonQuantityOrdered","kind":"scalar","type":"String"},{"name":"dispatchStatus","kind":"scalar","type":"String"},{"name":"timestamp","kind":"scalar","type":"Json"},{"name":"statusHistory","kind":"object","type":"PurchaseOrderStatusHistory","relationName":"PurchaseOrderToPurchaseOrderStatusHistory"},{"name":"assignmentHistory","kind":"object","type":"PurchaseOrderAssignmentHistory","relationName":"PurchaseOrderToPurchaseOrderAssignmentHistory"},{"name":"createdAt","kind":"scalar","type":"DateTime"},{"name":"updatedAt","kind":"scalar","type":"DateTime"}],"dbName":null},"PurchaseOrderStatusHistory":{"fields":[{"name":"id","kind":"scalar","type":"String"},{"name":"purchaseOrderId","kind":"scalar","type":"String"},{"name":"purchaseOrder","kind":"object","type":"PurchaseOrder","relationName":"PurchaseOrderToPurchaseOrderStatusHistory"},{"name":"status","kind":"scalar","type":"String"},{"name":"remarks","kind":"scalar","type":"String"},{"name":"changedBy","kind":"scalar","type":"String"},{"name":"metadata","kind":"scalar","type":"Json"},{"name":"createdAt","kind":"scalar","type":"DateTime"}],"dbName":null},"PurchaseOrderAssignmentHistory":{"fields":[{"name":"id","kind":"scalar","type":"String"},{"name":"purchaseOrderId","kind":"scalar","type":"String"},{"name":"purchaseOrder","kind":"object","type":"PurchaseOrder","relationName":"PurchaseOrderToPurchaseOrderAssignmentHistory"},{"name":"assignedToEmployeeId","kind":"scalar","type":"String"},{"name":"assignedByEmployeeId","kind":"scalar","type":"String"},{"name":"assignedByEmployee","kind":"object","type":"Employee","relationName":"PurchaseOrderAssignedBy"},{"name":"previousEmployeeId","kind":"scalar","type":"String"},{"name":"reason","kind":"scalar","type":"String"},{"name":"remarks","kind":"scalar","type":"String"},{"name":"assignedAt","kind":"scalar","type":"DateTime"}],"dbName":null},"Notification":{"fields":[{"name":"id","kind":"scalar","type":"String"},{"name":"userId","kind":"scalar","type":"String"},{"name":"type","kind":"scalar","type":"String"},{"name":"message","kind":"scalar","type":"String"},{"name":"isRead","kind":"scalar","type":"Boolean"},{"name":"createdAt","kind":"scalar","type":"DateTime"},{"name":"updatedAt","kind":"scalar","type":"DateTime"}],"dbName":null},"AuditLog":{"fields":[{"name":"id","kind":"scalar","type":"String"},{"name":"action","kind":"scalar","type":"String"},{"name":"performedBy","kind":"scalar","type":"String"},{"name":"targetId","kind":"scalar","type":"String"},{"name":"details","kind":"scalar","type":"Json"},{"name":"timestamp","kind":"scalar","type":"DateTime"}],"dbName":"audit_logs"},"ChangePartMaster":{"fields":[{"name":"id","kind":"scalar","type":"String"},{"name":"partPictureUrl","kind":"scalar","type":"String"},{"name":"code","kind":"scalar","type":"String"},{"name":"boxSizeAutoCalculated","kind":"scalar","type":"String"},{"name":"cartonRates","kind":"scalar","type":"Decimal"},{"name":"baseFoilConsumption","kind":"scalar","type":"Decimal"},{"name":"printedFoilConsumption","kind":"scalar","type":"Decimal"},{"name":"tabSize","kind":"scalar","type":"String"},{"name":"range","kind":"scalar","type":"String"},{"name":"foilSize","kind":"scalar","type":"String"},{"name":"createdAt","kind":"scalar","type":"DateTime"},{"name":"updatedAt","kind":"scalar","type":"DateTime"}],"dbName":null},"CompositionMaster":{"fields":[{"name":"id","kind":"scalar","type":"String"},{"name":"composition","kind":"scalar","type":"String"},{"name":"formType","kind":"scalar","type":"String"},{"name":"packingType","kind":"scalar","type":"String"},{"name":"layerType","kind":"scalar","type":"String"},{"name":"color","kind":"scalar","type":"String"},{"name":"flavor","kind":"scalar","type":"String"},{"name":"coating","kind":"scalar","type":"String"},{"name":"changePartOptions","kind":"scalar","type":"String"},{"name":"shelfLifeMonths","kind":"scalar","type":"Int"},{"name":"review","kind":"scalar","type":"String"},{"name":"createdAt","kind":"scalar","type":"DateTime"},{"name":"updatedAt","kind":"scalar","type":"DateTime"}],"dbName":null},"ApiMaster":{"fields":[{"name":"id","kind":"scalar","type":"String"},{"name":"drugName","kind":"scalar","type":"String"},{"name":"drugQuantity","kind":"scalar","type":"String"},{"name":"createdAt","kind":"scalar","type":"DateTime"},{"name":"updatedAt","kind":"scalar","type":"DateTime"}],"dbName":null},"VendorMaster":{"fields":[{"name":"id","kind":"scalar","type":"String"},{"name":"vendorName","kind":"scalar","type":"String"},{"name":"vendorCode","kind":"scalar","type":"String"},{"name":"contactPerson","kind":"scalar","type":"String"},{"name":"vendorEmail","kind":"scalar","type":"String"},{"name":"vendorPhone","kind":"scalar","type":"String"},{"name":"vendorAdress","kind":"scalar","type":"String"},{"name":"vendorState","kind":"scalar","type":"String"},{"name":"vendorGSTNo","kind":"scalar","type":"String"},{"name":"paymentTerms","kind":"scalar","type":"String"},{"name":"vendorBankName","kind":"scalar","type":"String"},{"name":"vendorAccountNumber","kind":"scalar","type":"String"},{"name":"vendorIFSC","kind":"scalar","type":"String"},{"name":"createdAt","kind":"scalar","type":"DateTime"},{"name":"updatedAt","kind":"scalar","type":"DateTime"}],"dbName":null},"LeaveRequest":{"fields":[{"name":"id","kind":"scalar","type":"String"},{"name":"employeeId","kind":"scalar","type":"String"},{"name":"employee","kind":"object","type":"Employee","relationName":"EmployeeLeaveRequests"},{"name":"leaveType","kind":"enum","type":"LeaveType"},{"name":"startDate","kind":"scalar","type":"DateTime"},{"name":"endDate","kind":"scalar","type":"DateTime"},{"name":"numberOfDays","kind":"scalar","type":"Int"},{"name":"requestedBy","kind":"scalar","type":"String"},{"name":"reason","kind":"scalar","type":"String"},{"name":"status","kind":"enum","type":"LeaveStatus"},{"name":"approverEmployeeId","kind":"scalar","type":"String"},{"name":"approverEmployee","kind":"object","type":"Employee","relationName":"ApproverLeaveRequests"},{"name":"approverComments","kind":"scalar","type":"String"},{"name":"approvedAt","kind":"scalar","type":"DateTime"},{"name":"rejectedAt","kind":"scalar","type":"DateTime"},{"name":"rejectionReason","kind":"scalar","type":"String"},{"name":"attachmentUrl","kind":"scalar","type":"String"},{"name":"createdAt","kind":"scalar","type":"DateTime"},{"name":"updatedAt","kind":"scalar","type":"DateTime"}],"dbName":null},"Attendance":{"fields":[{"name":"id","kind":"scalar","type":"String"},{"name":"employeeId","kind":"scalar","type":"String"},{"name":"employee","kind":"object","type":"Employee","relationName":"AttendanceToEmployee"},{"name":"attendanceDate","kind":"scalar","type":"DateTime"},{"name":"status","kind":"enum","type":"AttendanceStatus"},{"name":"checkInTime","kind":"scalar","type":"DateTime"},{"name":"checkOutTime","kind":"scalar","type":"DateTime"},{"name":"workingHours","kind":"scalar","type":"Float"},{"name":"location","kind":"scalar","type":"String"},{"name":"notes","kind":"scalar","type":"String"},{"name":"deviceId","kind":"scalar","type":"String"},{"name":"verifiedBy","kind":"scalar","type":"String"},{"name":"createdAt","kind":"scalar","type":"DateTime"},{"name":"updatedAt","kind":"scalar","type":"DateTime"}],"dbName":null},"Payroll":{"fields":[{"name":"id","kind":"scalar","type":"String"},{"name":"employeeId","kind":"scalar","type":"String"},{"name":"employee","kind":"object","type":"Employee","relationName":"EmployeeToPayroll"},{"name":"payrollMonth","kind":"scalar","type":"DateTime"},{"name":"baseSalary","kind":"scalar","type":"Float"},{"name":"housRentAllowance","kind":"scalar","type":"Float"},{"name":"conveyanceAllowance","kind":"scalar","type":"Float"},{"name":"medicalAllowance","kind":"scalar","type":"Float"},{"name":"specialAllowance","kind":"scalar","type":"Float"},{"name":"bonus","kind":"scalar","type":"Float"},{"name":"otherAdditions","kind":"scalar","type":"Float"},{"name":"totalAdditions","kind":"scalar","type":"Float"},{"name":"incomeTax","kind":"scalar","type":"Float"},{"name":"providentFund","kind":"scalar","type":"Float"},{"name":"employeeStateInsurance","kind":"scalar","type":"Float"},{"name":"otherDeductions","kind":"scalar","type":"Float"},{"name":"totalDeductions","kind":"scalar","type":"Float"},{"name":"netSalary","kind":"scalar","type":"Float"},{"name":"status","kind":"enum","type":"PayrollStatus"},{"name":"approvedBy","kind":"scalar","type":"String"},{"name":"approvedAt","kind":"scalar","type":"DateTime"},{"name":"remarks","kind":"scalar","type":"String"},{"name":"pdfUrl","kind":"scalar","type":"String"},{"name":"createdAt","kind":"scalar","type":"DateTime"},{"name":"updatedAt","kind":"scalar","type":"DateTime"}],"dbName":null},"EmployeeDocument":{"fields":[{"name":"id","kind":"scalar","type":"String"},{"name":"employeeId","kind":"scalar","type":"String"},{"name":"employee","kind":"object","type":"Employee","relationName":"EmployeeToEmployeeDocument"},{"name":"documentType","kind":"enum","type":"DocumentType"},{"name":"documentName","kind":"scalar","type":"String"},{"name":"documentNumber","kind":"scalar","type":"String"},{"name":"fileUrl","kind":"scalar","type":"String"},{"name":"expiryDate","kind":"scalar","type":"DateTime"},{"name":"issueDate","kind":"scalar","type":"DateTime"},{"name":"issuingAuthority","kind":"scalar","type":"String"},{"name":"extractedData","kind":"scalar","type":"Json"},{"name":"verificationStatus","kind":"scalar","type":"String"},{"name":"verifiedBy","kind":"scalar","type":"String"},{"name":"verifiedAt","kind":"scalar","type":"DateTime"},{"name":"remarks","kind":"scalar","type":"String"},{"name":"createdAt","kind":"scalar","type":"DateTime"},{"name":"updatedAt","kind":"scalar","type":"DateTime"}],"dbName":null},"PerformanceReview":{"fields":[{"name":"id","kind":"scalar","type":"String"},{"name":"revieweeId","kind":"scalar","type":"String"},{"name":"reviewee","kind":"object","type":"Employee","relationName":"RevieweePerformance"},{"name":"reviewerId","kind":"scalar","type":"String"},{"name":"reviewer","kind":"object","type":"Employee","relationName":"ReviewerPerformance"},{"name":"reviewPeriodStart","kind":"scalar","type":"DateTime"},{"name":"reviewPeriodEnd","kind":"scalar","type":"DateTime"},{"name":"overallRating","kind":"enum","type":"PerformanceRating"},{"name":"technicalSkills","kind":"enum","type":"PerformanceRating"},{"name":"communication","kind":"enum","type":"PerformanceRating"},{"name":"teamwork","kind":"enum","type":"PerformanceRating"},{"name":"leadership","kind":"enum","type":"PerformanceRating"},{"name":"reliability","kind":"enum","type":"PerformanceRating"},{"name":"innovation","kind":"enum","type":"PerformanceRating"},{"name":"achievements","kind":"scalar","type":"String"},{"name":"areasOfImprovement","kind":"scalar","type":"String"},{"name":"feedback","kind":"scalar","type":"String"},{"name":"goals","kind":"scalar","type":"String"},{"name":"developmentPlan","kind":"scalar","type":"String"},{"name":"acknowledgedAt","kind":"scalar","type":"DateTime"},{"name":"createdAt","kind":"scalar","type":"DateTime"},{"name":"updatedAt","kind":"scalar","type":"DateTime"}],"dbName":null},"EmployeeBenefit":{"fields":[{"name":"id","kind":"scalar","type":"String"},{"name":"employeeId","kind":"scalar","type":"String"},{"name":"employee","kind":"object","type":"Employee","relationName":"EmployeeToEmployeeBenefit"},{"name":"benefitName","kind":"scalar","type":"String"},{"name":"benefitDescription","kind":"scalar","type":"String"},{"name":"benefitType","kind":"scalar","type":"String"},{"name":"enrollmentDate","kind":"scalar","type":"DateTime"},{"name":"expiryDate","kind":"scalar","type":"DateTime"},{"name":"benefitAmount","kind":"scalar","type":"Float"},{"name":"provider","kind":"scalar","type":"String"},{"name":"policyNumber","kind":"scalar","type":"String"},{"name":"documentUrl","kind":"scalar","type":"String"},{"name":"status","kind":"scalar","type":"String"},{"name":"createdAt","kind":"scalar","type":"DateTime"},{"name":"updatedAt","kind":"scalar","type":"DateTime"}],"dbName":null},"Grievance":{"fields":[{"name":"id","kind":"scalar","type":"String"},{"name":"employeeId","kind":"scalar","type":"String"},{"name":"employee","kind":"object","type":"Employee","relationName":"EmployeeGrievance"},{"name":"grievanceType","kind":"scalar","type":"String"},{"name":"description","kind":"scalar","type":"String"},{"name":"dateOfIncident","kind":"scalar","type":"DateTime"},{"name":"submittedDate","kind":"scalar","type":"DateTime"},{"name":"status","kind":"enum","type":"GrievanceStatus"},{"name":"assignedToId","kind":"scalar","type":"String"},{"name":"assignedTo","kind":"object","type":"Employee","relationName":"AssignedToGrievance"},{"name":"investigationNotes","kind":"scalar","type":"String"},{"name":"resolution","kind":"scalar","type":"String"},{"name":"resolutionDate","kind":"scalar","type":"DateTime"},{"name":"followUpRequired","kind":"scalar","type":"Boolean"},{"name":"followUpDate","kind":"scalar","type":"DateTime"},{"name":"attachments","kind":"scalar","type":"Json"},{"name":"createdAt","kind":"scalar","type":"DateTime"},{"name":"updatedAt","kind":"scalar","type":"DateTime"}],"dbName":null},"EmployeeShift":{"fields":[{"name":"id","kind":"scalar","type":"String"},{"name":"employeeId","kind":"scalar","type":"String"},{"name":"employee","kind":"object","type":"Employee","relationName":"EmployeeToEmployeeShift"},{"name":"shiftType","kind":"enum","type":"ShiftType"},{"name":"startTime","kind":"scalar","type":"DateTime"},{"name":"endTime","kind":"scalar","type":"DateTime"},{"name":"effectiveFrom","kind":"scalar","type":"DateTime"},{"name":"effectiveUntil","kind":"scalar","type":"DateTime"},{"name":"breakDuration","kind":"scalar","type":"Int"},{"name":"rotationPattern","kind":"scalar","type":"String"},{"name":"createdAt","kind":"scalar","type":"DateTime"},{"name":"updatedAt","kind":"scalar","type":"DateTime"}],"dbName":null},"EmployeeTraining":{"fields":[{"name":"id","kind":"scalar","type":"String"},{"name":"employeeId","kind":"scalar","type":"String"},{"name":"employee","kind":"object","type":"Employee","relationName":"EmployeeToEmployeeTraining"},{"name":"trainingName","kind":"scalar","type":"String"},{"name":"trainingProvider","kind":"scalar","type":"String"},{"name":"startDate","kind":"scalar","type":"DateTime"},{"name":"endDate","kind":"scalar","type":"DateTime"},{"name":"duration","kind":"scalar","type":"Int"},{"name":"skillsAcquired","kind":"scalar","type":"String"},{"name":"certificateUrl","kind":"scalar","type":"String"},{"name":"cost","kind":"scalar","type":"Float"},{"name":"status","kind":"scalar","type":"String"},{"name":"completionDate","kind":"scalar","type":"DateTime"},{"name":"assessmentScore","kind":"scalar","type":"Float"},{"name":"createdAt","kind":"scalar","type":"DateTime"},{"name":"updatedAt","kind":"scalar","type":"DateTime"}],"dbName":null},"Designation":{"fields":[{"name":"id","kind":"scalar","type":"String"},{"name":"name","kind":"scalar","type":"String"},{"name":"description","kind":"scalar","type":"String"},{"name":"department","kind":"scalar","type":"String"},{"name":"reportingTo","kind":"scalar","type":"String"},{"name":"baseSalaryRange","kind":"scalar","type":"String"},{"name":"skills","kind":"scalar","type":"String"},{"name":"status","kind":"scalar","type":"String"},{"name":"createdAt","kind":"scalar","type":"DateTime"},{"name":"updatedAt","kind":"scalar","type":"DateTime"}],"dbName":null},"Department":{"fields":[{"name":"id","kind":"scalar","type":"String"},{"name":"name","kind":"scalar","type":"String"},{"name":"code","kind":"scalar","type":"String"},{"name":"description","kind":"scalar","type":"String"},{"name":"headOfDepartment","kind":"scalar","type":"String"},{"name":"budget","kind":"scalar","type":"Float"},{"name":"status","kind":"scalar","type":"String"},{"name":"createdAt","kind":"scalar","type":"DateTime"},{"name":"updatedAt","kind":"scalar","type":"DateTime"}],"dbName":null},"LoginAttempt":{"fields":[{"name":"id","kind":"scalar","type":"String"},{"name":"username","kind":"scalar","type":"String"},{"name":"email","kind":"scalar","type":"String"},{"name":"employeeId","kind":"scalar","type":"String"},{"name":"employee","kind":"object","type":"Employee","relationName":"LoginAttempts"},{"name":"ipAddress","kind":"scalar","type":"String"},{"name":"userAgent","kind":"scalar","type":"String"},{"name":"status","kind":"enum","type":"LoginAttemptStatus"},{"name":"failureReason","kind":"scalar","type":"String"},{"name":"deviceInfo","kind":"scalar","type":"Json"},{"name":"location","kind":"scalar","type":"String"},{"name":"latitude","kind":"scalar","type":"Float"},{"name":"longitude","kind":"scalar","type":"Float"},{"name":"timestamp","kind":"scalar","type":"DateTime"},{"name":"sessionId","kind":"scalar","type":"String"}],"dbName":null},"BlockedIP":{"fields":[{"name":"id","kind":"scalar","type":"String"},{"name":"ipAddress","kind":"scalar","type":"String"},{"name":"reason","kind":"scalar","type":"String"},{"name":"blockedBy","kind":"scalar","type":"String"},{"name":"autoBlocked","kind":"scalar","type":"Boolean"},{"name":"attemptCount","kind":"scalar","type":"Int"},{"name":"blockedAt","kind":"scalar","type":"DateTime"},{"name":"unblockedAt","kind":"scalar","type":"DateTime"},{"name":"isActive","kind":"scalar","type":"Boolean"},{"name":"notes","kind":"scalar","type":"String"}],"dbName":null},"SecurityPolicy":{"fields":[{"name":"id","kind":"scalar","type":"String"},{"name":"name","kind":"scalar","type":"String"},{"name":"maxLoginAttemptsPerIp","kind":"scalar","type":"Int"},{"name":"maxLoginAttemptsPerUsername","kind":"scalar","type":"Int"},{"name":"loginAttemptWindowMinutes","kind":"scalar","type":"Int"},{"name":"accountLockoutDurationMinutes","kind":"scalar","type":"Int"},{"name":"ipBlockDurationMinutes","kind":"scalar","type":"Int"},{"name":"requireMfa","kind":"scalar","type":"Boolean"},{"name":"requireStrongPassword","kind":"scalar","type":"Boolean"},{"name":"passwordMinLength","kind":"scalar","type":"Int"},{"name":"passwordRequireNumbers","kind":"scalar","type":"Boolean"},{"name":"passwordRequireSpecialChars","kind":"scalar","type":"Boolean"},{"name":"passwordRequireUpperCase","kind":"scalar","type":"Boolean"},{"name":"passwordExpiryDays","kind":"scalar","type":"Int"},{"name":"sessionTimeoutMinutes","kind":"scalar","type":"Int"},{"name":"enableIpWhitelisting","kind":"scalar","type":"Boolean"},{"name":"enableGeoRestriction","kind":"scalar","type":"Boolean"},{"name":"allowedCountries","kind":"scalar","type":"String"},{"name":"suspiciousActivityAlert","kind":"scalar","type":"Boolean"},{"name":"logAllAttempts","kind":"scalar","type":"Boolean"},{"name":"enableAnomalyDetection","kind":"scalar","type":"Boolean"},{"name":"createdAt","kind":"scalar","type":"DateTime"},{"name":"updatedAt","kind":"scalar","type":"DateTime"}],"dbName":null},"AccountLockout":{"fields":[{"name":"id","kind":"scalar","type":"String"},{"name":"employeeId","kind":"scalar","type":"String"},{"name":"employee","kind":"object","type":"Employee","relationName":"AccountLockouts"},{"name":"lockedAt","kind":"scalar","type":"DateTime"},{"name":"lockedUntil","kind":"scalar","type":"DateTime"},{"name":"reason","kind":"scalar","type":"String"},{"name":"failedAttempts","kind":"scalar","type":"Int"},{"name":"unlockToken","kind":"scalar","type":"String"},{"name":"unlockedAt","kind":"scalar","type":"DateTime"},{"name":"unlockedBy","kind":"scalar","type":"String"}],"dbName":null},"SecurityAuditLog":{"fields":[{"name":"id","kind":"scalar","type":"String"},{"name":"employeeId","kind":"scalar","type":"String"},{"name":"employee","kind":"object","type":"Employee","relationName":"SecurityAuditLogs"},{"name":"action","kind":"scalar","type":"String"},{"name":"ipAddress","kind":"scalar","type":"String"},{"name":"userAgent","kind":"scalar","type":"String"},{"name":"severity","kind":"scalar","type":"String"},{"name":"description","kind":"scalar","type":"String"},{"name":"metadata","kind":"scalar","type":"Json"},{"name":"timestamp","kind":"scalar","type":"DateTime"}],"dbName":null},"NavbarPermission":{"fields":[{"name":"id","kind":"scalar","type":"String"},{"name":"employeeId","kind":"scalar","type":"String"},{"name":"employee","kind":"object","type":"Employee","relationName":"NavbarPermissions"},{"name":"employeeName","kind":"scalar","type":"String"},{"name":"email","kind":"scalar","type":"String"},{"name":"allowedMenuItems","kind":"scalar","type":"String"},{"name":"createdAt","kind":"scalar","type":"DateTime"},{"name":"updatedAt","kind":"scalar","type":"DateTime"}],"dbName":null}},"enums":{},"types":{}}');
     defineDmmfProperty2(exports2.Prisma, config2.runtimeDataModel);
     config2.compilerWasm = {
       getRuntime: async () => require_query_compiler_bg(),
@@ -33553,6 +33666,254 @@ var require_default2 = __commonJS({
   "node_modules/@prisma/client/default.js"(exports2, module2) {
     module2.exports = {
       ...require_default()
+    };
+  }
+});
+
+// node_modules/@prisma/debug/dist/index.mjs
+function init(x, y) {
+  let rgx = new RegExp(`\\x1b\\[${y}m`, "g");
+  let open = `\x1B[${x}m`, close = `\x1B[${y}m`;
+  return function(txt) {
+    if (!$2.enabled || txt == null) return txt;
+    return open + (!!~("" + txt).indexOf(close) ? txt.replace(rgx, close + open) : txt) + close;
+  };
+}
+function debugCreate(namespace) {
+  const instanceProps = {
+    color: COLORS[lastColor++ % COLORS.length],
+    enabled: topProps.enabled(namespace),
+    namespace,
+    log: topProps.log,
+    extend: () => {
+    }
+    // not implemented
+  };
+  const debugCall = (...args) => {
+    const { enabled, namespace: namespace2, color, log } = instanceProps;
+    if (args.length !== 0) {
+      argsHistory.push([namespace2, ...args]);
+    }
+    if (argsHistory.length > MAX_ARGS_HISTORY) {
+      argsHistory.shift();
+    }
+    if (topProps.enabled(namespace2) || enabled) {
+      const stringArgs = args.map((arg) => {
+        if (typeof arg === "string") {
+          return arg;
+        }
+        return safeStringify(arg);
+      });
+      const ms = `+${Date.now() - lastTimestamp}ms`;
+      lastTimestamp = Date.now();
+      if (globalThis.DEBUG_COLORS) {
+        log(colors_exports[color](bold(namespace2)), ...stringArgs, colors_exports[color](ms));
+      } else {
+        log(namespace2, ...stringArgs, ms);
+      }
+    }
+  };
+  return new Proxy(debugCall, {
+    get: (_, prop) => instanceProps[prop],
+    set: (_, prop, value) => instanceProps[prop] = value
+  });
+}
+function safeStringify(value, indent = 2) {
+  const cache = /* @__PURE__ */ new Set();
+  return JSON.stringify(
+    value,
+    (key, value2) => {
+      if (typeof value2 === "object" && value2 !== null) {
+        if (cache.has(value2)) {
+          return `[Circular *]`;
+        }
+        cache.add(value2);
+      } else if (typeof value2 === "bigint") {
+        return value2.toString();
+      }
+      return value2;
+    },
+    indent
+  );
+}
+var __defProp2, __export2, colors_exports, FORCE_COLOR, NODE_DISABLE_COLORS, NO_COLOR, TERM, isTTY, $2, reset, bold, dim, italic, underline, inverse, hidden, strikethrough, black, red, green, yellow, blue, magenta, cyan, white, gray, grey, bgBlack, bgRed, bgGreen, bgYellow, bgBlue, bgMagenta, bgCyan, bgWhite, MAX_ARGS_HISTORY, COLORS, argsHistory, lastTimestamp, lastColor, processEnv, topProps, Debug2;
+var init_dist = __esm({
+  "node_modules/@prisma/debug/dist/index.mjs"() {
+    __defProp2 = Object.defineProperty;
+    __export2 = (target, all3) => {
+      for (var name2 in all3)
+        __defProp2(target, name2, { get: all3[name2], enumerable: true });
+    };
+    colors_exports = {};
+    __export2(colors_exports, {
+      $: () => $2,
+      bgBlack: () => bgBlack,
+      bgBlue: () => bgBlue,
+      bgCyan: () => bgCyan,
+      bgGreen: () => bgGreen,
+      bgMagenta: () => bgMagenta,
+      bgRed: () => bgRed,
+      bgWhite: () => bgWhite,
+      bgYellow: () => bgYellow,
+      black: () => black,
+      blue: () => blue,
+      bold: () => bold,
+      cyan: () => cyan,
+      dim: () => dim,
+      gray: () => gray,
+      green: () => green,
+      grey: () => grey,
+      hidden: () => hidden,
+      inverse: () => inverse,
+      italic: () => italic,
+      magenta: () => magenta,
+      red: () => red,
+      reset: () => reset,
+      strikethrough: () => strikethrough,
+      underline: () => underline,
+      white: () => white,
+      yellow: () => yellow
+    });
+    isTTY = true;
+    if (typeof process !== "undefined") {
+      ({ FORCE_COLOR, NODE_DISABLE_COLORS, NO_COLOR, TERM } = process.env || {});
+      isTTY = process.stdout && process.stdout.isTTY;
+    }
+    $2 = {
+      enabled: !NODE_DISABLE_COLORS && NO_COLOR == null && TERM !== "dumb" && (FORCE_COLOR != null && FORCE_COLOR !== "0" || isTTY)
+    };
+    reset = init(0, 0);
+    bold = init(1, 22);
+    dim = init(2, 22);
+    italic = init(3, 23);
+    underline = init(4, 24);
+    inverse = init(7, 27);
+    hidden = init(8, 28);
+    strikethrough = init(9, 29);
+    black = init(30, 39);
+    red = init(31, 39);
+    green = init(32, 39);
+    yellow = init(33, 39);
+    blue = init(34, 39);
+    magenta = init(35, 39);
+    cyan = init(36, 39);
+    white = init(37, 39);
+    gray = init(90, 39);
+    grey = init(90, 39);
+    bgBlack = init(40, 49);
+    bgRed = init(41, 49);
+    bgGreen = init(42, 49);
+    bgYellow = init(43, 49);
+    bgBlue = init(44, 49);
+    bgMagenta = init(45, 49);
+    bgCyan = init(46, 49);
+    bgWhite = init(47, 49);
+    MAX_ARGS_HISTORY = 100;
+    COLORS = ["green", "yellow", "blue", "magenta", "cyan", "red"];
+    argsHistory = [];
+    lastTimestamp = Date.now();
+    lastColor = 0;
+    processEnv = typeof process !== "undefined" ? process.env : {};
+    globalThis.DEBUG ??= processEnv.DEBUG ?? "";
+    globalThis.DEBUG_COLORS ??= processEnv.DEBUG_COLORS ? processEnv.DEBUG_COLORS === "true" : true;
+    topProps = {
+      enable(namespace) {
+        if (typeof namespace === "string") {
+          globalThis.DEBUG = namespace;
+        }
+      },
+      disable() {
+        const prev = globalThis.DEBUG;
+        globalThis.DEBUG = "";
+        return prev;
+      },
+      // this is the core logic to check if logging should happen or not
+      enabled(namespace) {
+        const listenedNamespaces = globalThis.DEBUG.split(",").map((s) => {
+          return s.replace(/[.+?^${}()|[\]\\]/g, "\\$&");
+        });
+        const isListened = listenedNamespaces.some((listenedNamespace) => {
+          if (listenedNamespace === "" || listenedNamespace[0] === "-") return false;
+          return namespace.match(RegExp(listenedNamespace.split("*").join(".*") + "$"));
+        });
+        const isExcluded = listenedNamespaces.some((listenedNamespace) => {
+          if (listenedNamespace === "" || listenedNamespace[0] !== "-") return false;
+          return namespace.match(RegExp(listenedNamespace.slice(1).split("*").join(".*") + "$"));
+        });
+        return isListened && !isExcluded;
+      },
+      log: (...args) => {
+        const [namespace, format, ...rest] = args;
+        const logWithFormatting = console.warn ?? console.log;
+        logWithFormatting(`${namespace} ${format}`, ...rest);
+      },
+      formatters: {}
+      // not implemented
+    };
+    Debug2 = new Proxy(debugCreate, {
+      get: (_, prop) => topProps[prop],
+      set: (_, prop, value) => topProps[prop] = value
+    });
+  }
+});
+
+// node_modules/@prisma/driver-adapter-utils/dist/index.mjs
+var DriverAdapterError, debug, ColumnTypeEnum, mockAdapterErrors;
+var init_dist2 = __esm({
+  "node_modules/@prisma/driver-adapter-utils/dist/index.mjs"() {
+    init_dist();
+    DriverAdapterError = class extends Error {
+      name = "DriverAdapterError";
+      cause;
+      constructor(payload) {
+        super(typeof payload["message"] === "string" ? payload["message"] : payload.kind);
+        this.cause = payload;
+      }
+    };
+    debug = Debug2("driver-adapter-utils");
+    ColumnTypeEnum = {
+      // Scalars
+      Int32: 0,
+      Int64: 1,
+      Float: 2,
+      Double: 3,
+      Numeric: 4,
+      Boolean: 5,
+      Character: 6,
+      Text: 7,
+      Date: 8,
+      Time: 9,
+      DateTime: 10,
+      Json: 11,
+      Enum: 12,
+      Bytes: 13,
+      Set: 14,
+      Uuid: 15,
+      // Arrays
+      Int32Array: 64,
+      Int64Array: 65,
+      FloatArray: 66,
+      DoubleArray: 67,
+      NumericArray: 68,
+      BooleanArray: 69,
+      CharacterArray: 70,
+      TextArray: 71,
+      DateArray: 72,
+      TimeArray: 73,
+      DateTimeArray: 74,
+      JsonArray: 75,
+      EnumArray: 76,
+      BytesArray: 77,
+      UuidArray: 78,
+      // Custom
+      UnknownNumber: 128
+    };
+    mockAdapterErrors = {
+      queryRaw: new Error("Not implemented: queryRaw"),
+      executeRaw: new Error("Not implemented: executeRaw"),
+      startTransaction: new Error("Not implemented: startTransaction"),
+      executeScript: new Error("Not implemented: executeScript"),
+      dispose: new Error("Not implemented: dispose")
     };
   }
 });
@@ -38480,6 +38841,26 @@ var require_lib4 = __commonJS({
   }
 });
 
+// node_modules/pg/esm/index.mjs
+var import_lib, Client, Pool, Connection, types, Query, DatabaseError, escapeIdentifier, escapeLiteral, Result, TypeOverrides, defaults, esm_default;
+var init_esm = __esm({
+  "node_modules/pg/esm/index.mjs"() {
+    import_lib = __toESM(require_lib4(), 1);
+    Client = import_lib.default.Client;
+    Pool = import_lib.default.Pool;
+    Connection = import_lib.default.Connection;
+    types = import_lib.default.types;
+    Query = import_lib.default.Query;
+    DatabaseError = import_lib.default.DatabaseError;
+    escapeIdentifier = import_lib.default.escapeIdentifier;
+    escapeLiteral = import_lib.default.escapeLiteral;
+    Result = import_lib.default.Result;
+    TypeOverrides = import_lib.default.TypeOverrides;
+    defaults = import_lib.default.defaults;
+    esm_default = import_lib.default;
+  }
+});
+
 // node_modules/postgres-array/index.js
 var require_postgres_array2 = __commonJS({
   "node_modules/postgres-array/index.js"(exports2) {
@@ -38572,6 +38953,810 @@ var require_postgres_array2 = __commonJS({
     }
     var parseArray2 = makeParseArrayWithTransform();
     exports2.parse = (source, transform2) => transform2 != null ? makeParseArrayWithTransform(transform2)(source) : parseArray2(source);
+  }
+});
+
+// node_modules/@prisma/adapter-pg/dist/index.mjs
+function fieldToColumnType(fieldTypeId) {
+  switch (fieldTypeId) {
+    case ScalarColumnType.INT2:
+    case ScalarColumnType.INT4:
+      return ColumnTypeEnum.Int32;
+    case ScalarColumnType.INT8:
+      return ColumnTypeEnum.Int64;
+    case ScalarColumnType.FLOAT4:
+      return ColumnTypeEnum.Float;
+    case ScalarColumnType.FLOAT8:
+      return ColumnTypeEnum.Double;
+    case ScalarColumnType.BOOL:
+      return ColumnTypeEnum.Boolean;
+    case ScalarColumnType.DATE:
+      return ColumnTypeEnum.Date;
+    case ScalarColumnType.TIME:
+    case ScalarColumnType.TIMETZ:
+      return ColumnTypeEnum.Time;
+    case ScalarColumnType.TIMESTAMP:
+    case ScalarColumnType.TIMESTAMPTZ:
+      return ColumnTypeEnum.DateTime;
+    case ScalarColumnType.NUMERIC:
+    case ScalarColumnType.MONEY:
+      return ColumnTypeEnum.Numeric;
+    case ScalarColumnType.JSON:
+    case ScalarColumnType.JSONB:
+      return ColumnTypeEnum.Json;
+    case ScalarColumnType.UUID:
+      return ColumnTypeEnum.Uuid;
+    case ScalarColumnType.OID:
+      return ColumnTypeEnum.Int64;
+    case ScalarColumnType.BPCHAR:
+    case ScalarColumnType.TEXT:
+    case ScalarColumnType.VARCHAR:
+    case ScalarColumnType.BIT:
+    case ScalarColumnType.VARBIT:
+    case ScalarColumnType.INET:
+    case ScalarColumnType.CIDR:
+    case ScalarColumnType.XML:
+    case AdditionalScalarColumnType.NAME:
+      return ColumnTypeEnum.Text;
+    case ScalarColumnType.BYTEA:
+      return ColumnTypeEnum.Bytes;
+    case ArrayColumnType.INT2_ARRAY:
+    case ArrayColumnType.INT4_ARRAY:
+      return ColumnTypeEnum.Int32Array;
+    case ArrayColumnType.FLOAT4_ARRAY:
+      return ColumnTypeEnum.FloatArray;
+    case ArrayColumnType.FLOAT8_ARRAY:
+      return ColumnTypeEnum.DoubleArray;
+    case ArrayColumnType.NUMERIC_ARRAY:
+    case ArrayColumnType.MONEY_ARRAY:
+      return ColumnTypeEnum.NumericArray;
+    case ArrayColumnType.BOOL_ARRAY:
+      return ColumnTypeEnum.BooleanArray;
+    case ArrayColumnType.CHAR_ARRAY:
+      return ColumnTypeEnum.CharacterArray;
+    case ArrayColumnType.BPCHAR_ARRAY:
+    case ArrayColumnType.TEXT_ARRAY:
+    case ArrayColumnType.VARCHAR_ARRAY:
+    case ArrayColumnType.VARBIT_ARRAY:
+    case ArrayColumnType.BIT_ARRAY:
+    case ArrayColumnType.INET_ARRAY:
+    case ArrayColumnType.CIDR_ARRAY:
+    case ArrayColumnType.XML_ARRAY:
+      return ColumnTypeEnum.TextArray;
+    case ArrayColumnType.DATE_ARRAY:
+      return ColumnTypeEnum.DateArray;
+    case ArrayColumnType.TIME_ARRAY:
+      return ColumnTypeEnum.TimeArray;
+    case ArrayColumnType.TIMESTAMP_ARRAY:
+      return ColumnTypeEnum.DateTimeArray;
+    case ArrayColumnType.TIMESTAMPTZ_ARRAY:
+      return ColumnTypeEnum.DateTimeArray;
+    case ArrayColumnType.JSON_ARRAY:
+    case ArrayColumnType.JSONB_ARRAY:
+      return ColumnTypeEnum.JsonArray;
+    case ArrayColumnType.BYTEA_ARRAY:
+      return ColumnTypeEnum.BytesArray;
+    case ArrayColumnType.UUID_ARRAY:
+      return ColumnTypeEnum.UuidArray;
+    case ArrayColumnType.INT8_ARRAY:
+    case ArrayColumnType.OID_ARRAY:
+      return ColumnTypeEnum.Int64Array;
+    default:
+      if (fieldTypeId >= FIRST_NORMAL_OBJECT_ID) {
+        return ColumnTypeEnum.Text;
+      }
+      throw new UnsupportedNativeDataType(fieldTypeId);
+  }
+}
+function normalize_array(element_normalizer) {
+  return (str) => (0, import_postgres_array.parse)(str, element_normalizer);
+}
+function normalize_numeric(numeric) {
+  return numeric;
+}
+function normalize_date(date5) {
+  return date5;
+}
+function normalize_timestamp(time3) {
+  return `${time3.replace(" ", "T")}+00:00`;
+}
+function normalize_timestamptz(time3) {
+  return time3.replace(" ", "T").replace(/[+-]\d{2}(:\d{2})?$/, "+00:00");
+}
+function normalize_time(time3) {
+  return time3;
+}
+function normalize_timez(time3) {
+  return time3.replace(/[+-]\d{2}(:\d{2})?$/, "");
+}
+function normalize_money(money) {
+  return money.slice(1);
+}
+function normalize_xml(xml) {
+  return xml;
+}
+function toJson(json2) {
+  return json2;
+}
+function convertBytes(serializedBytes) {
+  return parsePgBytes(serializedBytes);
+}
+function normalizeBit(bit) {
+  return bit;
+}
+function mapArg(arg, argType) {
+  if (arg === null) {
+    return null;
+  }
+  if (Array.isArray(arg) && argType.arity === "list") {
+    return arg.map((value) => mapArg(value, argType));
+  }
+  if (typeof arg === "string" && argType.scalarType === "datetime") {
+    arg = new Date(arg);
+  }
+  if (arg instanceof Date) {
+    switch (argType.dbType) {
+      case "TIME":
+      case "TIMETZ":
+        return formatTime(arg);
+      case "DATE":
+        return formatDate(arg);
+      default:
+        return formatDateTime(arg);
+    }
+  }
+  if (typeof arg === "string" && argType.scalarType === "bytes") {
+    return Buffer.from(arg, "base64");
+  }
+  if (ArrayBuffer.isView(arg)) {
+    return new Uint8Array(arg.buffer, arg.byteOffset, arg.byteLength);
+  }
+  return arg;
+}
+function formatDateTime(date5) {
+  const pad = (n, z2 = 2) => String(n).padStart(z2, "0");
+  const ms = date5.getUTCMilliseconds();
+  return pad(date5.getUTCFullYear(), 4) + "-" + pad(date5.getUTCMonth() + 1) + "-" + pad(date5.getUTCDate()) + " " + pad(date5.getUTCHours()) + ":" + pad(date5.getUTCMinutes()) + ":" + pad(date5.getUTCSeconds()) + (ms ? "." + String(ms).padStart(3, "0") : "");
+}
+function formatDate(date5) {
+  const pad = (n, z2 = 2) => String(n).padStart(z2, "0");
+  return pad(date5.getUTCFullYear(), 4) + "-" + pad(date5.getUTCMonth() + 1) + "-" + pad(date5.getUTCDate());
+}
+function formatTime(date5) {
+  const pad = (n, z2 = 2) => String(n).padStart(z2, "0");
+  const ms = date5.getUTCMilliseconds();
+  return pad(date5.getUTCHours()) + ":" + pad(date5.getUTCMinutes()) + ":" + pad(date5.getUTCSeconds()) + (ms ? "." + String(ms).padStart(3, "0") : "");
+}
+function convertDriverError(error48) {
+  if (isSocketError(error48)) {
+    return mapSocketError(error48);
+  }
+  if (isTlsError(error48)) {
+    return {
+      kind: "TlsConnectionError",
+      reason: error48.message
+    };
+  }
+  if (isDriverError(error48)) {
+    return {
+      originalCode: error48.code,
+      originalMessage: error48.message,
+      ...mapDriverError(error48)
+    };
+  }
+  throw error48;
+}
+function mapDriverError(error48) {
+  switch (error48.code) {
+    case "22001":
+      return {
+        kind: "LengthMismatch",
+        column: error48.column
+      };
+    case "22003":
+      return {
+        kind: "ValueOutOfRange",
+        cause: error48.message
+      };
+    case "22P02":
+      return {
+        kind: "InvalidInputValue",
+        message: error48.message
+      };
+    case "23505": {
+      const fields = error48.detail?.match(/Key \(([^)]+)\)/)?.at(1)?.split(", ");
+      return {
+        kind: "UniqueConstraintViolation",
+        constraint: fields !== void 0 ? { fields } : void 0
+      };
+    }
+    case "23502": {
+      const fields = error48.detail?.match(/Key \(([^)]+)\)/)?.at(1)?.split(", ");
+      return {
+        kind: "NullConstraintViolation",
+        constraint: fields !== void 0 ? { fields } : void 0
+      };
+    }
+    case "23503": {
+      let constraint;
+      if (error48.column) {
+        constraint = { fields: [error48.column] };
+      } else if (error48.constraint) {
+        constraint = { index: error48.constraint };
+      }
+      return {
+        kind: "ForeignKeyConstraintViolation",
+        constraint
+      };
+    }
+    case "3D000":
+      return {
+        kind: "DatabaseDoesNotExist",
+        db: error48.message.split(" ").at(1)?.split('"').at(1)
+      };
+    case "28000":
+      return {
+        kind: "DatabaseAccessDenied",
+        db: error48.message.split(",").find((s) => s.startsWith(" database"))?.split('"').at(1)
+      };
+    case "28P01":
+      return {
+        kind: "AuthenticationFailed",
+        user: error48.message.split(" ").pop()?.split('"').at(1)
+      };
+    case "40001":
+      return {
+        kind: "TransactionWriteConflict"
+      };
+    case "42P01":
+      return {
+        kind: "TableDoesNotExist",
+        table: error48.message.split(" ").at(1)?.split('"').at(1)
+      };
+    case "42703":
+      return {
+        kind: "ColumnNotFound",
+        column: error48.message.split(" ").at(1)?.split('"').at(1)
+      };
+    case "42P04":
+      return {
+        kind: "DatabaseAlreadyExists",
+        db: error48.message.split(" ").at(1)?.split('"').at(1)
+      };
+    case "53300":
+      return {
+        kind: "TooManyConnections",
+        cause: error48.message
+      };
+    default:
+      return {
+        kind: "postgres",
+        code: error48.code ?? "N/A",
+        severity: error48.severity ?? "N/A",
+        message: error48.message,
+        detail: error48.detail,
+        column: error48.column,
+        hint: error48.hint
+      };
+  }
+}
+function isDriverError(error48) {
+  return typeof error48.code === "string" && typeof error48.message === "string" && typeof error48.severity === "string" && (typeof error48.detail === "string" || error48.detail === void 0) && (typeof error48.column === "string" || error48.column === void 0) && (typeof error48.hint === "string" || error48.hint === void 0);
+}
+function mapSocketError(error48) {
+  switch (error48.code) {
+    case "ENOTFOUND":
+    case "ECONNREFUSED":
+      return {
+        kind: "DatabaseNotReachable",
+        host: error48.address ?? error48.hostname,
+        port: error48.port
+      };
+    case "ECONNRESET":
+      return {
+        kind: "ConnectionClosed"
+      };
+    case "ETIMEDOUT":
+      return {
+        kind: "SocketTimeout"
+      };
+  }
+}
+function isSocketError(error48) {
+  return typeof error48.code === "string" && typeof error48.syscall === "string" && typeof error48.errno === "number" && SOCKET_ERRORS.has(error48.code);
+}
+function isTlsError(error48) {
+  if (typeof error48.code === "string") {
+    return TLS_ERRORS.has(error48.code);
+  }
+  switch (error48.message) {
+    case "The server does not support SSL connections":
+    case "There was an error establishing an SSL connection":
+      return true;
+  }
+  return false;
+}
+var import_postgres_array, name, FIRST_NORMAL_OBJECT_ID, types2, ScalarColumnType, getTypeParser, AdditionalScalarColumnType, ArrayColumnType, UnsupportedNativeDataType, parsePgBytes, normalizeByteaArray, customParsers, TLS_ERRORS, SOCKET_ERRORS, types22, debug2, PgQueryable, PgTransaction, PrismaPgAdapter, PrismaPgAdapterFactory;
+var init_dist3 = __esm({
+  "node_modules/@prisma/adapter-pg/dist/index.mjs"() {
+    init_dist2();
+    init_esm();
+    init_dist2();
+    init_esm();
+    import_postgres_array = __toESM(require_postgres_array2(), 1);
+    name = "@prisma/adapter-pg";
+    FIRST_NORMAL_OBJECT_ID = 16384;
+    ({ types: types2 } = esm_default);
+    ({ builtins: ScalarColumnType, getTypeParser } = types2);
+    AdditionalScalarColumnType = {
+      NAME: 19
+    };
+    ArrayColumnType = {
+      BIT_ARRAY: 1561,
+      BOOL_ARRAY: 1e3,
+      BYTEA_ARRAY: 1001,
+      BPCHAR_ARRAY: 1014,
+      CHAR_ARRAY: 1002,
+      CIDR_ARRAY: 651,
+      DATE_ARRAY: 1182,
+      FLOAT4_ARRAY: 1021,
+      FLOAT8_ARRAY: 1022,
+      INET_ARRAY: 1041,
+      INT2_ARRAY: 1005,
+      INT4_ARRAY: 1007,
+      INT8_ARRAY: 1016,
+      JSONB_ARRAY: 3807,
+      JSON_ARRAY: 199,
+      MONEY_ARRAY: 791,
+      NUMERIC_ARRAY: 1231,
+      OID_ARRAY: 1028,
+      TEXT_ARRAY: 1009,
+      TIMESTAMP_ARRAY: 1115,
+      TIMESTAMPTZ_ARRAY: 1185,
+      TIME_ARRAY: 1183,
+      UUID_ARRAY: 2951,
+      VARBIT_ARRAY: 1563,
+      VARCHAR_ARRAY: 1015,
+      XML_ARRAY: 143
+    };
+    UnsupportedNativeDataType = class _UnsupportedNativeDataType extends Error {
+      // map of type codes to type names
+      static typeNames = {
+        16: "bool",
+        17: "bytea",
+        18: "char",
+        19: "name",
+        20: "int8",
+        21: "int2",
+        22: "int2vector",
+        23: "int4",
+        24: "regproc",
+        25: "text",
+        26: "oid",
+        27: "tid",
+        28: "xid",
+        29: "cid",
+        30: "oidvector",
+        32: "pg_ddl_command",
+        71: "pg_type",
+        75: "pg_attribute",
+        81: "pg_proc",
+        83: "pg_class",
+        114: "json",
+        142: "xml",
+        194: "pg_node_tree",
+        269: "table_am_handler",
+        325: "index_am_handler",
+        600: "point",
+        601: "lseg",
+        602: "path",
+        603: "box",
+        604: "polygon",
+        628: "line",
+        650: "cidr",
+        700: "float4",
+        701: "float8",
+        705: "unknown",
+        718: "circle",
+        774: "macaddr8",
+        790: "money",
+        829: "macaddr",
+        869: "inet",
+        1033: "aclitem",
+        1042: "bpchar",
+        1043: "varchar",
+        1082: "date",
+        1083: "time",
+        1114: "timestamp",
+        1184: "timestamptz",
+        1186: "interval",
+        1266: "timetz",
+        1560: "bit",
+        1562: "varbit",
+        1700: "numeric",
+        1790: "refcursor",
+        2202: "regprocedure",
+        2203: "regoper",
+        2204: "regoperator",
+        2205: "regclass",
+        2206: "regtype",
+        2249: "record",
+        2275: "cstring",
+        2276: "any",
+        2277: "anyarray",
+        2278: "void",
+        2279: "trigger",
+        2280: "language_handler",
+        2281: "internal",
+        2283: "anyelement",
+        2287: "_record",
+        2776: "anynonarray",
+        2950: "uuid",
+        2970: "txid_snapshot",
+        3115: "fdw_handler",
+        3220: "pg_lsn",
+        3310: "tsm_handler",
+        3361: "pg_ndistinct",
+        3402: "pg_dependencies",
+        3500: "anyenum",
+        3614: "tsvector",
+        3615: "tsquery",
+        3642: "gtsvector",
+        3734: "regconfig",
+        3769: "regdictionary",
+        3802: "jsonb",
+        3831: "anyrange",
+        3838: "event_trigger",
+        3904: "int4range",
+        3906: "numrange",
+        3908: "tsrange",
+        3910: "tstzrange",
+        3912: "daterange",
+        3926: "int8range",
+        4072: "jsonpath",
+        4089: "regnamespace",
+        4096: "regrole",
+        4191: "regcollation",
+        4451: "int4multirange",
+        4532: "nummultirange",
+        4533: "tsmultirange",
+        4534: "tstzmultirange",
+        4535: "datemultirange",
+        4536: "int8multirange",
+        4537: "anymultirange",
+        4538: "anycompatiblemultirange",
+        4600: "pg_brin_bloom_summary",
+        4601: "pg_brin_minmax_multi_summary",
+        5017: "pg_mcv_list",
+        5038: "pg_snapshot",
+        5069: "xid8",
+        5077: "anycompatible",
+        5078: "anycompatiblearray",
+        5079: "anycompatiblenonarray",
+        5080: "anycompatiblerange"
+      };
+      type;
+      constructor(code) {
+        super();
+        this.type = _UnsupportedNativeDataType.typeNames[code] || "Unknown";
+        this.message = `Unsupported column type ${this.type}`;
+      }
+    };
+    parsePgBytes = getTypeParser(ScalarColumnType.BYTEA);
+    normalizeByteaArray = getTypeParser(ArrayColumnType.BYTEA_ARRAY);
+    customParsers = {
+      [ScalarColumnType.NUMERIC]: normalize_numeric,
+      [ArrayColumnType.NUMERIC_ARRAY]: normalize_array(normalize_numeric),
+      [ScalarColumnType.TIME]: normalize_time,
+      [ArrayColumnType.TIME_ARRAY]: normalize_array(normalize_time),
+      [ScalarColumnType.TIMETZ]: normalize_timez,
+      [ScalarColumnType.DATE]: normalize_date,
+      [ArrayColumnType.DATE_ARRAY]: normalize_array(normalize_date),
+      [ScalarColumnType.TIMESTAMP]: normalize_timestamp,
+      [ArrayColumnType.TIMESTAMP_ARRAY]: normalize_array(normalize_timestamp),
+      [ScalarColumnType.TIMESTAMPTZ]: normalize_timestamptz,
+      [ArrayColumnType.TIMESTAMPTZ_ARRAY]: normalize_array(normalize_timestamptz),
+      [ScalarColumnType.MONEY]: normalize_money,
+      [ArrayColumnType.MONEY_ARRAY]: normalize_array(normalize_money),
+      [ScalarColumnType.JSON]: toJson,
+      [ArrayColumnType.JSON_ARRAY]: normalize_array(toJson),
+      [ScalarColumnType.JSONB]: toJson,
+      [ArrayColumnType.JSONB_ARRAY]: normalize_array(toJson),
+      [ScalarColumnType.BYTEA]: convertBytes,
+      [ArrayColumnType.BYTEA_ARRAY]: normalizeByteaArray,
+      [ArrayColumnType.BIT_ARRAY]: normalize_array(normalizeBit),
+      [ArrayColumnType.VARBIT_ARRAY]: normalize_array(normalizeBit),
+      [ArrayColumnType.XML_ARRAY]: normalize_array(normalize_xml)
+    };
+    TLS_ERRORS = /* @__PURE__ */ new Set([
+      "UNABLE_TO_GET_ISSUER_CERT",
+      "UNABLE_TO_GET_CRL",
+      "UNABLE_TO_DECRYPT_CERT_SIGNATURE",
+      "UNABLE_TO_DECRYPT_CRL_SIGNATURE",
+      "UNABLE_TO_DECODE_ISSUER_PUBLIC_KEY",
+      "CERT_SIGNATURE_FAILURE",
+      "CRL_SIGNATURE_FAILURE",
+      "CERT_NOT_YET_VALID",
+      "CERT_HAS_EXPIRED",
+      "CRL_NOT_YET_VALID",
+      "CRL_HAS_EXPIRED",
+      "ERROR_IN_CERT_NOT_BEFORE_FIELD",
+      "ERROR_IN_CERT_NOT_AFTER_FIELD",
+      "ERROR_IN_CRL_LAST_UPDATE_FIELD",
+      "ERROR_IN_CRL_NEXT_UPDATE_FIELD",
+      "DEPTH_ZERO_SELF_SIGNED_CERT",
+      "SELF_SIGNED_CERT_IN_CHAIN",
+      "UNABLE_TO_GET_ISSUER_CERT_LOCALLY",
+      "UNABLE_TO_VERIFY_LEAF_SIGNATURE",
+      "CERT_CHAIN_TOO_LONG",
+      "CERT_REVOKED",
+      "INVALID_CA",
+      "INVALID_PURPOSE",
+      "CERT_UNTRUSTED",
+      "CERT_REJECTED",
+      "HOSTNAME_MISMATCH",
+      "ERR_TLS_CERT_ALTNAME_FORMAT",
+      "ERR_TLS_CERT_ALTNAME_INVALID"
+    ]);
+    SOCKET_ERRORS = /* @__PURE__ */ new Set(["ENOTFOUND", "ECONNREFUSED", "ECONNRESET", "ETIMEDOUT"]);
+    types22 = esm_default.types;
+    debug2 = Debug2("prisma:driver-adapter:pg");
+    PgQueryable = class {
+      constructor(client, pgOptions) {
+        this.client = client;
+        this.pgOptions = pgOptions;
+      }
+      provider = "postgres";
+      adapterName = name;
+      /**
+       * Execute a query given as SQL, interpolating the given parameters.
+       */
+      async queryRaw(query) {
+        const tag = "[js::query_raw]";
+        debug2(`${tag} %O`, query);
+        const { fields, rows } = await this.performIO(query);
+        const columnNames = fields.map((field) => field.name);
+        let columnTypes = [];
+        try {
+          columnTypes = fields.map((field) => fieldToColumnType(field.dataTypeID));
+        } catch (e) {
+          if (e instanceof UnsupportedNativeDataType) {
+            throw new DriverAdapterError({
+              kind: "UnsupportedNativeDataType",
+              type: e.type
+            });
+          }
+          throw e;
+        }
+        const udtParser = this.pgOptions?.userDefinedTypeParser;
+        if (udtParser) {
+          for (let i = 0; i < fields.length; i++) {
+            const field = fields[i];
+            if (field.dataTypeID >= FIRST_NORMAL_OBJECT_ID && !Object.hasOwn(customParsers, field.dataTypeID)) {
+              for (let j = 0; j < rows.length; j++) {
+                rows[j][i] = await udtParser(field.dataTypeID, rows[j][i], this);
+              }
+            }
+          }
+        }
+        return {
+          columnNames,
+          columnTypes,
+          rows
+        };
+      }
+      /**
+       * Execute a query given as SQL, interpolating the given parameters and
+       * returning the number of affected rows.
+       * Note: Queryable expects a u64, but napi.rs only supports u32.
+       */
+      async executeRaw(query) {
+        const tag = "[js::execute_raw]";
+        debug2(`${tag} %O`, query);
+        return (await this.performIO(query)).rowCount ?? 0;
+      }
+      /**
+       * Run a query against the database, returning the result set.
+       * Should the query fail due to a connection error, the connection is
+       * marked as unhealthy.
+       */
+      async performIO(query) {
+        const { sql, args } = query;
+        const values = args.map((arg, i) => mapArg(arg, query.argTypes[i]));
+        try {
+          const result = await this.client.query(
+            {
+              text: sql,
+              values,
+              rowMode: "array",
+              types: {
+                // This is the error expected:
+                // No overload matches this call.
+                // The last overload gave the following error.
+                // Type '(oid: number, format?: any) => (json: string) => unknown' is not assignable to type '{ <T>(oid: number): TypeParser<string, string | T>; <T>(oid: number, format: "text"): TypeParser<string, string | T>; <T>(oid: number, format: "binary"): TypeParser<...>; }'.
+                //   Type '(json: string) => unknown' is not assignable to type 'TypeParser<Buffer, any>'.
+                //     Types of parameters 'json' and 'value' are incompatible.
+                //       Type 'Buffer' is not assignable to type 'string'.ts(2769)
+                //
+                // Because pg-types types expect us to handle both binary and text protocol versions,
+                // where as far we can see, pg will ever pass only text version.
+                //
+                // @ts-expect-error
+                getTypeParser: (oid, format) => {
+                  if (format === "text" && customParsers[oid]) {
+                    return customParsers[oid];
+                  }
+                  return types22.getTypeParser(oid, format);
+                }
+              }
+            },
+            values
+          );
+          return result;
+        } catch (e) {
+          this.onError(e);
+        }
+      }
+      onError(error48) {
+        debug2("Error in performIO: %O", error48);
+        throw new DriverAdapterError(convertDriverError(error48));
+      }
+    };
+    PgTransaction = class extends PgQueryable {
+      constructor(client, options, pgOptions, cleanup) {
+        super(client, pgOptions);
+        this.options = options;
+        this.pgOptions = pgOptions;
+        this.cleanup = cleanup;
+      }
+      async commit() {
+        debug2(`[js::commit]`);
+        this.cleanup?.();
+        this.client.release();
+      }
+      async rollback() {
+        debug2(`[js::rollback]`);
+        this.cleanup?.();
+        this.client.release();
+      }
+    };
+    PrismaPgAdapter = class extends PgQueryable {
+      constructor(client, pgOptions, release) {
+        super(client);
+        this.pgOptions = pgOptions;
+        this.release = release;
+      }
+      async startTransaction(isolationLevel) {
+        const options = {
+          usePhantomQuery: false
+        };
+        const tag = "[js::startTransaction]";
+        debug2("%s options: %O", tag, options);
+        const conn = await this.client.connect().catch((error48) => this.onError(error48));
+        const onError = (err) => {
+          debug2(`Error from pool connection: ${err.message} %O`, err);
+          this.pgOptions?.onConnectionError?.(err);
+        };
+        conn.on("error", onError);
+        const cleanup = () => {
+          conn.removeListener("error", onError);
+        };
+        try {
+          const tx = new PgTransaction(conn, options, this.pgOptions, cleanup);
+          await tx.executeRaw({ sql: "BEGIN", args: [], argTypes: [] });
+          if (isolationLevel) {
+            await tx.executeRaw({
+              sql: `SET TRANSACTION ISOLATION LEVEL ${isolationLevel}`,
+              args: [],
+              argTypes: []
+            });
+          }
+          return tx;
+        } catch (error48) {
+          cleanup();
+          conn.release(error48);
+          this.onError(error48);
+        }
+      }
+      async executeScript(script) {
+        const statements = script.split(";").map((stmt) => stmt.trim()).filter((stmt) => stmt.length > 0);
+        for (const stmt of statements) {
+          try {
+            await this.client.query(stmt);
+          } catch (error48) {
+            this.onError(error48);
+          }
+        }
+      }
+      getConnectionInfo() {
+        return {
+          schemaName: this.pgOptions?.schema,
+          supportsRelationJoins: true
+        };
+      }
+      async dispose() {
+        return this.release?.();
+      }
+      underlyingDriver() {
+        return this.client;
+      }
+    };
+    PrismaPgAdapterFactory = class {
+      constructor(poolOrConfig, options) {
+        this.options = options;
+        if (poolOrConfig instanceof esm_default.Pool) {
+          this.externalPool = poolOrConfig;
+          this.config = poolOrConfig.options;
+        } else {
+          this.externalPool = null;
+          this.config = poolOrConfig;
+        }
+      }
+      provider = "postgres";
+      adapterName = name;
+      config;
+      externalPool;
+      async connect() {
+        const client = this.externalPool ?? new esm_default.Pool(this.config);
+        const onIdleClientError = (err) => {
+          debug2(`Error from idle pool client: ${err.message} %O`, err);
+          this.options?.onPoolError?.(err);
+        };
+        client.on("error", onIdleClientError);
+        return new PrismaPgAdapter(client, this.options, async () => {
+          if (this.externalPool) {
+            if (this.options?.disposeExternalPool) {
+              await this.externalPool.end();
+              this.externalPool = null;
+            } else {
+              this.externalPool.removeListener("error", onIdleClientError);
+            }
+          } else {
+            await client.end();
+          }
+        });
+      }
+      async connectToShadowDb() {
+        const conn = await this.connect();
+        const database = `prisma_migrate_shadow_db_${globalThis.crypto.randomUUID()}`;
+        await conn.executeScript(`CREATE DATABASE "${database}"`);
+        const client = new esm_default.Pool({ ...this.config, database });
+        return new PrismaPgAdapter(client, void 0, async () => {
+          await conn.executeScript(`DROP DATABASE "${database}"`);
+          await client.end();
+        });
+      }
+    };
+  }
+});
+
+// src/config/postgres.ts
+var postgres_exports = {};
+__export(postgres_exports, {
+  default: () => postgres_default
+});
+var import_client, import_dotenv, Pool2, pool, adapter, prisma, postgres_default;
+var init_postgres = __esm({
+  "src/config/postgres.ts"() {
+    "use strict";
+    init_config();
+    import_client = __toESM(require_default2());
+    init_dist3();
+    init_esm();
+    import_dotenv = __toESM(require_main());
+    import_dotenv.default.config();
+    ({ Pool: Pool2 } = esm_default);
+    pool = new Pool2({
+      connectionString: process.env.DATABASE_URL,
+      ssl: { rejectUnauthorized: false }
+      // REQUIRED for Railway
+    });
+    adapter = new PrismaPgAdapterFactory(pool);
+    prisma = new import_client.PrismaClient({
+      adapter,
+      log: ["info", "warn", "error"]
+    });
+    postgres_default = prisma;
   }
 });
 
@@ -42320,6 +43505,539 @@ var require_jsonwebtoken = __commonJS({
       JsonWebTokenError: require_JsonWebTokenError(),
       NotBeforeError: require_NotBeforeError(),
       TokenExpiredError: require_TokenExpiredError()
+    };
+  }
+});
+
+// src/modules/adminControl/security.service.ts
+var security_service_exports = {};
+__export(security_service_exports, {
+  blockIP: () => blockIP,
+  checkAndApplyBruteForceProtection: () => checkAndApplyBruteForceProtection,
+  createSecurityAuditLog: () => createSecurityAuditLog,
+  generateSecurityReport: () => generateSecurityReport,
+  getEmployeeLoginReport: () => getEmployeeLoginReport,
+  getFailedAttempts: () => getFailedAttempts,
+  getFailedAttemptsFromIP: () => getFailedAttemptsFromIP,
+  getIPReputation: () => getIPReputation,
+  getLoginAttemptStatistics: () => getLoginAttemptStatistics,
+  getSecurityAuditLogs: () => getSecurityAuditLogs,
+  getSecurityPolicy: () => getSecurityPolicy,
+  getSuspiciousActivity: () => getSuspiciousActivity,
+  isAccountLocked: () => isAccountLocked,
+  isIPBlocked: () => isIPBlocked,
+  lockEmployeeAccount: () => lockEmployeeAccount,
+  recordLoginAttempt: () => recordLoginAttempt,
+  unblockIP: () => unblockIP,
+  unlockEmployeeAccount: () => unlockEmployeeAccount,
+  updateSecurityPolicy: () => updateSecurityPolicy
+});
+var recordLoginAttempt, getFailedAttempts, getFailedAttemptsFromIP, isIPBlocked, isAccountLocked, blockIP, unblockIP, lockEmployeeAccount, unlockEmployeeAccount, createSecurityAuditLog, getSecurityPolicy, updateSecurityPolicy, checkAndApplyBruteForceProtection, getLoginAttemptStatistics, getEmployeeLoginReport, getIPReputation, getSecurityAuditLogs, getSuspiciousActivity, generateSecurityReport;
+var init_security_service = __esm({
+  "src/modules/adminControl/security.service.ts"() {
+    "use strict";
+    init_postgres();
+    recordLoginAttempt = async (username, ipAddress, userAgent, status = "Failed", failureReason, employeeId, deviceInfo) => {
+      const employee = await postgres_default.employee.findUnique({
+        where: { username },
+        select: { id: true, email: true }
+      });
+      return await postgres_default.loginAttempt.create({
+        data: {
+          username,
+          email: employee?.email,
+          employeeId: employee?.id || employeeId,
+          ipAddress,
+          userAgent,
+          status,
+          failureReason,
+          deviceInfo,
+          timestamp: /* @__PURE__ */ new Date()
+        }
+      });
+    };
+    getFailedAttempts = async (identifier, identifier_type = "username", windowMinutes = 15) => {
+      const windowStart = new Date(Date.now() - windowMinutes * 60 * 1e3);
+      return await postgres_default.loginAttempt.findMany({
+        where: {
+          [identifier_type]: identifier,
+          status: "Failed",
+          timestamp: { gte: windowStart }
+        },
+        orderBy: { timestamp: "desc" }
+      });
+    };
+    getFailedAttemptsFromIP = async (ipAddress, windowMinutes = 15) => {
+      const windowStart = new Date(Date.now() - windowMinutes * 60 * 1e3);
+      return await postgres_default.loginAttempt.findMany({
+        where: {
+          ipAddress,
+          status: "Failed",
+          timestamp: { gte: windowStart }
+        },
+        orderBy: { timestamp: "desc" }
+      });
+    };
+    isIPBlocked = async (ipAddress) => {
+      const blockedIP = await postgres_default.blockedIP.findUnique({
+        where: { ipAddress }
+      });
+      if (!blockedIP) return false;
+      if (!blockedIP.isActive) return false;
+      if (blockedIP.unblockedAt && /* @__PURE__ */ new Date() > blockedIP.unblockedAt) {
+        await postgres_default.blockedIP.update({
+          where: { ipAddress },
+          data: { isActive: false }
+        });
+        return false;
+      }
+      return true;
+    };
+    isAccountLocked = async (employeeId) => {
+      const lockout = await postgres_default.accountLockout.findUnique({
+        where: { employeeId }
+      });
+      if (!lockout) return false;
+      if (/* @__PURE__ */ new Date() > lockout.lockedUntil && !lockout.unlockedAt) {
+        await postgres_default.accountLockout.update({
+          where: { employeeId },
+          data: { unlockedAt: /* @__PURE__ */ new Date(), unlockedBy: "auto" }
+        });
+        return false;
+      }
+      if (lockout.unlockedAt) return false;
+      return true;
+    };
+    blockIP = async (ipAddress, blockedBy, reason, autoBlocked = true, attemptCount = 0) => {
+      const security = await getSecurityPolicy();
+      const unlockTime = new Date(Date.now() + security.ipBlockDurationMinutes * 60 * 1e3);
+      const blocked = await postgres_default.blockedIP.upsert({
+        where: { ipAddress },
+        create: {
+          ipAddress,
+          reason,
+          blockedBy,
+          autoBlocked,
+          attemptCount,
+          isActive: true,
+          unblockedAt: unlockTime
+        },
+        update: {
+          reason,
+          blockedBy,
+          autoBlocked,
+          attemptCount,
+          isActive: true,
+          blockedAt: /* @__PURE__ */ new Date(),
+          unblockedAt: unlockTime
+        }
+      });
+      await createSecurityAuditLog(
+        void 0,
+        "IP_BLOCKED",
+        ipAddress,
+        "Critical",
+        `IP address blocked after ${attemptCount} failed login attempts. Reason: ${reason || "Multiple failed login attempts"}`,
+        { autoBlocked, attemptCount }
+      );
+      return blocked;
+    };
+    unblockIP = async (ipAddress, unblockedBy) => {
+      const blocked = await postgres_default.blockedIP.update({
+        where: { ipAddress },
+        data: {
+          isActive: false,
+          unblockedAt: /* @__PURE__ */ new Date()
+        }
+      });
+      await createSecurityAuditLog(
+        void 0,
+        "IP_UNBLOCKED",
+        ipAddress,
+        "Warning",
+        `IP address unblocked by admin: ${unblockedBy}`
+      );
+      return blocked;
+    };
+    lockEmployeeAccount = async (employeeId, failedAttempts, reason) => {
+      const security = await getSecurityPolicy();
+      const lockoutUntil = new Date(
+        Date.now() + security.accountLockoutDurationMinutes * 60 * 1e3
+      );
+      const lockout = await postgres_default.accountLockout.upsert({
+        where: { employeeId },
+        create: {
+          employeeId,
+          lockedUntil: lockoutUntil,
+          reason,
+          failedAttempts
+        },
+        update: {
+          lockedUntil: lockoutUntil,
+          failedAttempts,
+          reason,
+          unlockedAt: null,
+          unlockedBy: null
+        }
+      });
+      const employee = await postgres_default.employee.findUnique({
+        where: { id: employeeId },
+        select: { username: true, email: true }
+      });
+      await createSecurityAuditLog(
+        employeeId,
+        "ACCOUNT_LOCKED",
+        void 0,
+        "Critical",
+        `Account locked after ${failedAttempts} failed login attempts. Reason: ${reason}`,
+        { failedAttempts, reason, username: employee?.username }
+      );
+      return lockout;
+    };
+    unlockEmployeeAccount = async (employeeId, unlockedBy) => {
+      const lockout = await postgres_default.accountLockout.update({
+        where: { employeeId },
+        data: {
+          unlockedAt: /* @__PURE__ */ new Date(),
+          unlockedBy
+        }
+      });
+      const employee = await postgres_default.employee.findUnique({
+        where: { id: employeeId },
+        select: { username: true, email: true }
+      });
+      await createSecurityAuditLog(
+        employeeId,
+        "ACCOUNT_UNLOCKED",
+        void 0,
+        "Warning",
+        `Account unlocked by admin: ${unlockedBy}`,
+        { unlockedBy, username: employee?.username }
+      );
+      return lockout;
+    };
+    createSecurityAuditLog = async (employeeId, action, ipAddress, severity = "Info", description = "", metadata) => {
+      return await postgres_default.securityAuditLog.create({
+        data: {
+          employeeId: employeeId || void 0,
+          action,
+          ipAddress,
+          severity,
+          description,
+          metadata,
+          timestamp: /* @__PURE__ */ new Date()
+        }
+      });
+    };
+    getSecurityPolicy = async () => {
+      let policy = await postgres_default.securityPolicy.findUnique({
+        where: { name: "default" }
+      });
+      if (!policy) {
+        policy = await postgres_default.securityPolicy.create({
+          data: {
+            name: "default",
+            maxLoginAttemptsPerIp: 5,
+            maxLoginAttemptsPerUsername: 10,
+            loginAttemptWindowMinutes: 15,
+            accountLockoutDurationMinutes: 30,
+            ipBlockDurationMinutes: 60,
+            requireMfa: false,
+            requireStrongPassword: true,
+            passwordMinLength: 8,
+            passwordRequireNumbers: true,
+            passwordRequireSpecialChars: true,
+            passwordRequireUpperCase: true,
+            passwordExpiryDays: 90,
+            sessionTimeoutMinutes: 30,
+            enableIpWhitelisting: false,
+            enableGeoRestriction: false,
+            suspiciousActivityAlert: true,
+            logAllAttempts: true,
+            enableAnomalyDetection: true
+          }
+        });
+      }
+      return policy;
+    };
+    updateSecurityPolicy = async (policyId, updates) => {
+      const policy = await postgres_default.securityPolicy.update({
+        where: { id: policyId },
+        data: updates
+      });
+      await createSecurityAuditLog(
+        void 0,
+        "SECURITY_POLICY_UPDATED",
+        void 0,
+        "Warning",
+        "Security policy has been updated",
+        { policyId, updates }
+      );
+      return policy;
+    };
+    checkAndApplyBruteForceProtection = async (username, ipAddress) => {
+      const security = await getSecurityPolicy();
+      const ipBlocked = await isIPBlocked(ipAddress);
+      if (ipBlocked) {
+        return {
+          allowed: false,
+          reason: "IP_BLOCKED",
+          action: "This IP address has been blocked due to multiple failed login attempts"
+        };
+      }
+      const employee = await postgres_default.employee.findUnique({
+        where: { username },
+        select: { id: true }
+      });
+      if (employee) {
+        const accountLocked = await isAccountLocked(employee.id);
+        if (accountLocked) {
+          return {
+            allowed: false,
+            reason: "ACCOUNT_LOCKED",
+            action: "Your account has been locked due to multiple failed login attempts"
+          };
+        }
+      }
+      const failedFromIP = await getFailedAttemptsFromIP(ipAddress, security.loginAttemptWindowMinutes);
+      if (failedFromIP.length >= security.maxLoginAttemptsPerIp) {
+        await blockIP(
+          ipAddress,
+          "system",
+          `Auto-blocked after ${failedFromIP.length} failed attempts`,
+          true,
+          failedFromIP.length
+        );
+        return {
+          allowed: false,
+          reason: "IP_BLOCKED",
+          action: "Too many failed login attempts from your IP address. Please try again later."
+        };
+      }
+      if (employee) {
+        const failedFromUsername = await getFailedAttempts(username, "username", security.loginAttemptWindowMinutes);
+        if (failedFromUsername.length >= security.maxLoginAttemptsPerUsername) {
+          await lockEmployeeAccount(
+            employee.id,
+            failedFromUsername.length,
+            `Auto-locked after ${failedFromUsername.length} failed attempts`
+          );
+          return {
+            allowed: false,
+            reason: "ACCOUNT_LOCKED",
+            action: "Too many failed login attempts. Your account has been locked."
+          };
+        }
+      }
+      return { allowed: true };
+    };
+    getLoginAttemptStatistics = async (startDate, endDate, limit = 100) => {
+      const where = {};
+      if (startDate || endDate) {
+        where.timestamp = {};
+        if (startDate) where.timestamp.gte = startDate;
+        if (endDate) where.timestamp.lte = endDate;
+      }
+      const attempts = await postgres_default.loginAttempt.findMany({
+        where,
+        orderBy: { timestamp: "desc" },
+        take: limit,
+        include: {
+          employee: {
+            select: { id: true, username: true, name: true, email: true }
+          }
+        }
+      });
+      const successCount = attempts.filter((a) => a.status === "Success").length;
+      const failedCount = attempts.filter((a) => a.status === "Failed").length;
+      const blockedCount = attempts.filter((a) => a.status === "Blocked").length;
+      return {
+        totalAttempts: attempts.length,
+        successCount,
+        failedCount,
+        blockedCount,
+        successRate: attempts.length > 0 ? successCount / attempts.length * 100 : 0,
+        attempts
+      };
+    };
+    getEmployeeLoginReport = async (employeeId, days = 30) => {
+      const startDate = new Date(Date.now() - days * 24 * 60 * 60 * 1e3);
+      const attempts = await postgres_default.loginAttempt.findMany({
+        where: {
+          employeeId,
+          timestamp: { gte: startDate }
+        },
+        orderBy: { timestamp: "desc" }
+      });
+      const employee = await postgres_default.employee.findUnique({
+        where: { id: employeeId },
+        select: {
+          id: true,
+          username: true,
+          name: true,
+          email: true
+        }
+      });
+      const lockouts = await postgres_default.accountLockout.findUnique({
+        where: { employeeId }
+      });
+      return {
+        employee,
+        totalAttempts: attempts.length,
+        successCount: attempts.filter((a) => a.status === "Success").length,
+        failedCount: attempts.filter((a) => a.status === "Failed").length,
+        lastAttempt: attempts[0] || null,
+        lastSuccessfulLogin: attempts.find((a) => a.status === "Success") || null,
+        attempts,
+        accountLockout: lockouts
+      };
+    };
+    getIPReputation = async (ipAddress) => {
+      const attempts = await postgres_default.loginAttempt.findMany({
+        where: { ipAddress },
+        orderBy: { timestamp: "desc" },
+        take: 100
+      });
+      const blockedRecord = await postgres_default.blockedIP.findUnique({
+        where: { ipAddress }
+      });
+      const uniqueUsernames = new Set(attempts.map((a) => a.username)).size;
+      const successCount = attempts.filter((a) => a.status === "Success").length;
+      const failedCount = attempts.filter((a) => a.status === "Failed").length;
+      const blockedCount = attempts.filter((a) => a.status === "Blocked").length;
+      return {
+        ipAddress,
+        totalAttempts: attempts.length,
+        uniqueUsernames,
+        successCount,
+        failedCount,
+        blockedCount,
+        isCurrentlyBlocked: blockedRecord?.isActive || false,
+        blockedRecord,
+        attempts
+      };
+    };
+    getSecurityAuditLogs = async (filters, limit = 100) => {
+      const where = {};
+      if (filters?.employeeId) where.employeeId = filters.employeeId;
+      if (filters?.action) where.action = filters.action;
+      if (filters?.severity) where.severity = filters.severity;
+      if (filters?.startDate || filters?.endDate) {
+        where.timestamp = {};
+        if (filters?.startDate) where.timestamp.gte = filters.startDate;
+        if (filters?.endDate) where.timestamp.lte = filters.endDate;
+      }
+      return await postgres_default.securityAuditLog.findMany({
+        where,
+        orderBy: { timestamp: "desc" },
+        take: limit,
+        include: {
+          employee: {
+            select: { id: true, username: true, name: true, email: true }
+          }
+        }
+      });
+    };
+    getSuspiciousActivity = async (hoursBack = 24, limit = 50) => {
+      const startTime = new Date(Date.now() - hoursBack * 60 * 60 * 1e3);
+      const failedAttemptsByIP = await postgres_default.loginAttempt.groupBy({
+        by: ["ipAddress"],
+        where: {
+          status: "Failed",
+          timestamp: { gte: startTime }
+        },
+        _count: {
+          id: true
+        },
+        having: {
+          id: {
+            _count: {
+              gt: 3
+            }
+          }
+        }
+      });
+      const failedAttemptsByUsername = await postgres_default.loginAttempt.groupBy({
+        by: ["username"],
+        where: {
+          status: "Failed",
+          timestamp: { gte: startTime }
+        },
+        _count: {
+          id: true
+        },
+        having: {
+          id: {
+            _count: {
+              gt: 3
+            }
+          }
+        }
+      });
+      const blockedIPs = await postgres_default.blockedIP.findMany({
+        where: {
+          blockedAt: { gte: startTime },
+          isActive: true
+        },
+        orderBy: { blockedAt: "desc" }
+      });
+      const lockedAccounts = await postgres_default.accountLockout.findMany({
+        where: {
+          lockedAt: { gte: startTime },
+          unlockedAt: null
+        },
+        include: {
+          employee: {
+            select: { id: true, username: true, name: true, email: true }
+          }
+        },
+        orderBy: { lockedAt: "desc" }
+      });
+      return {
+        suspiciousIPAddresses: failedAttemptsByIP,
+        suspiciousUsernames: failedAttemptsByUsername,
+        recentlyBlockedIPs: blockedIPs,
+        recentlyLockedAccounts: lockedAccounts
+      };
+    };
+    generateSecurityReport = async (startDate, endDate) => {
+      const loginStats = await getLoginAttemptStatistics(startDate, endDate, 1e4);
+      const suspiciousActivity = await getSuspiciousActivity(
+        Math.ceil((Date.now() - startDate.getTime()) / (1e3 * 60 * 60))
+      );
+      const auditLogs = await getSecurityAuditLogs(
+        {
+          startDate,
+          endDate,
+          severity: "Critical"
+        },
+        1e3
+      );
+      const blockedIPs = await postgres_default.blockedIP.findMany({
+        where: {
+          blockedAt: { gte: startDate, lte: endDate }
+        }
+      });
+      const lockedAccounts = await postgres_default.accountLockout.findMany({
+        where: {
+          lockedAt: { gte: startDate, lte: endDate }
+        },
+        include: {
+          employee: {
+            select: { id: true, username: true, name: true, email: true }
+          }
+        }
+      });
+      return {
+        reportPeriod: { startDate, endDate },
+        loginStatistics: loginStats,
+        suspiciousActivity,
+        criticalAuditLogs: auditLogs,
+        ipsBlocked: blockedIPs.length,
+        accountsLocked: lockedAccounts.length,
+        blockedIPDetails: blockedIPs,
+        lockedAccountDetails: lockedAccounts
+      };
     };
   }
 });
@@ -118277,6 +119995,89 @@ var require_built3 = __commonJS({
   }
 });
 
+// src/config/redis.ts
+var import_ioredis, redis, isConnecting, connectionPromise, ensureRedisConnection, redis_default;
+var init_redis = __esm({
+  "src/config/redis.ts"() {
+    "use strict";
+    import_ioredis = __toESM(require_built3());
+    redis = null;
+    isConnecting = false;
+    connectionPromise = null;
+    if (process.env.REDIS_URL) {
+      redis = new import_ioredis.default(process.env.REDIS_URL, {
+        maxRetriesPerRequest: null,
+        // 🔑 REQUIRED for Lambda
+        enableOfflineQueue: true,
+        // 🔑 Allow queuing when reconnecting
+        lazyConnect: false,
+        // 🔑 Connect immediately
+        connectTimeout: 1e4,
+        retryStrategy(times) {
+          if (times > 10) {
+            console.error("\u274C Redis: Max retries exceeded");
+            return -1;
+          }
+          const delay = Math.min(times * 100, 3e3);
+          console.log(`\u{1F504} Redis retry attempt ${times}, waiting ${delay}ms`);
+          return delay;
+        },
+        reconnectOnError: (err) => {
+          const errorStr = err.toString();
+          if (errorStr.includes("READONLY") || errorStr.includes("CLUSTERDOWN")) {
+            return true;
+          }
+          return false;
+        }
+      });
+      redis.on("connect", () => {
+        console.log("\u2705 Redis connected");
+        isConnecting = false;
+      });
+      redis.on("error", (err) => {
+        console.error("\u274C Redis error:", err.message);
+      });
+      redis.on("close", () => {
+        console.log("\u{1F50C} Redis connection closed");
+      });
+    } else {
+      console.log("\u26A0\uFE0F Redis disabled (REDIS_URL not set)");
+    }
+    ensureRedisConnection = async () => {
+      if (!redis) {
+        return;
+      }
+      if (redis.status === "ready") {
+        return;
+      }
+      if (isConnecting && connectionPromise) {
+        return connectionPromise;
+      }
+      isConnecting = true;
+      connectionPromise = new Promise((resolve, reject) => {
+        const timeout = setTimeout(() => {
+          isConnecting = false;
+          connectionPromise = null;
+          reject(new Error("Redis connection timeout"));
+        }, 15e3);
+        redis.connect().then(() => {
+          clearTimeout(timeout);
+          isConnecting = false;
+          connectionPromise = null;
+          resolve();
+        }).catch((err) => {
+          clearTimeout(timeout);
+          isConnecting = false;
+          connectionPromise = null;
+          reject(err);
+        });
+      });
+      return connectionPromise;
+    };
+    redis_default = redis;
+  }
+});
+
 // src/modules/hr/utils/pdf.extraction.ts
 var require_pdf_extraction = __commonJS({
   "src/modules/hr/utils/pdf.extraction.ts"() {
@@ -118293,7 +120094,7 @@ module.exports = __toCommonJS(lambda_exports);
 var import_serverless_http = __toESM(require_serverless_http());
 
 // src/app.ts
-var import_express13 = __toESM(require_express2());
+var import_express16 = __toESM(require_express2());
 
 // node_modules/helmet/index.mjs
 var dangerouslyDisableDefaultSrc = /* @__PURE__ */ Symbol("dangerouslyDisableDefaultSrc");
@@ -120563,1058 +122364,11 @@ var bcryptjs_default = {
   decodeBase64
 };
 
-// node_modules/dotenv/config.js
-(function() {
-  require_main().config(
-    Object.assign(
-      {},
-      require_env_options(),
-      require_cli_options()(process.argv)
-    )
-  );
-})();
-
-// src/config/postgres.ts
-var import_client = __toESM(require_default2());
-
-// node_modules/@prisma/debug/dist/index.mjs
-var __defProp2 = Object.defineProperty;
-var __export2 = (target, all3) => {
-  for (var name2 in all3)
-    __defProp2(target, name2, { get: all3[name2], enumerable: true });
-};
-var colors_exports = {};
-__export2(colors_exports, {
-  $: () => $2,
-  bgBlack: () => bgBlack,
-  bgBlue: () => bgBlue,
-  bgCyan: () => bgCyan,
-  bgGreen: () => bgGreen,
-  bgMagenta: () => bgMagenta,
-  bgRed: () => bgRed,
-  bgWhite: () => bgWhite,
-  bgYellow: () => bgYellow,
-  black: () => black,
-  blue: () => blue,
-  bold: () => bold,
-  cyan: () => cyan,
-  dim: () => dim,
-  gray: () => gray,
-  green: () => green,
-  grey: () => grey,
-  hidden: () => hidden,
-  inverse: () => inverse,
-  italic: () => italic,
-  magenta: () => magenta,
-  red: () => red,
-  reset: () => reset,
-  strikethrough: () => strikethrough,
-  underline: () => underline,
-  white: () => white,
-  yellow: () => yellow
-});
-var FORCE_COLOR;
-var NODE_DISABLE_COLORS;
-var NO_COLOR;
-var TERM;
-var isTTY = true;
-if (typeof process !== "undefined") {
-  ({ FORCE_COLOR, NODE_DISABLE_COLORS, NO_COLOR, TERM } = process.env || {});
-  isTTY = process.stdout && process.stdout.isTTY;
-}
-var $2 = {
-  enabled: !NODE_DISABLE_COLORS && NO_COLOR == null && TERM !== "dumb" && (FORCE_COLOR != null && FORCE_COLOR !== "0" || isTTY)
-};
-function init(x, y) {
-  let rgx = new RegExp(`\\x1b\\[${y}m`, "g");
-  let open = `\x1B[${x}m`, close = `\x1B[${y}m`;
-  return function(txt) {
-    if (!$2.enabled || txt == null) return txt;
-    return open + (!!~("" + txt).indexOf(close) ? txt.replace(rgx, close + open) : txt) + close;
-  };
-}
-var reset = init(0, 0);
-var bold = init(1, 22);
-var dim = init(2, 22);
-var italic = init(3, 23);
-var underline = init(4, 24);
-var inverse = init(7, 27);
-var hidden = init(8, 28);
-var strikethrough = init(9, 29);
-var black = init(30, 39);
-var red = init(31, 39);
-var green = init(32, 39);
-var yellow = init(33, 39);
-var blue = init(34, 39);
-var magenta = init(35, 39);
-var cyan = init(36, 39);
-var white = init(37, 39);
-var gray = init(90, 39);
-var grey = init(90, 39);
-var bgBlack = init(40, 49);
-var bgRed = init(41, 49);
-var bgGreen = init(42, 49);
-var bgYellow = init(43, 49);
-var bgBlue = init(44, 49);
-var bgMagenta = init(45, 49);
-var bgCyan = init(46, 49);
-var bgWhite = init(47, 49);
-var MAX_ARGS_HISTORY = 100;
-var COLORS = ["green", "yellow", "blue", "magenta", "cyan", "red"];
-var argsHistory = [];
-var lastTimestamp = Date.now();
-var lastColor = 0;
-var processEnv = typeof process !== "undefined" ? process.env : {};
-globalThis.DEBUG ??= processEnv.DEBUG ?? "";
-globalThis.DEBUG_COLORS ??= processEnv.DEBUG_COLORS ? processEnv.DEBUG_COLORS === "true" : true;
-var topProps = {
-  enable(namespace) {
-    if (typeof namespace === "string") {
-      globalThis.DEBUG = namespace;
-    }
-  },
-  disable() {
-    const prev = globalThis.DEBUG;
-    globalThis.DEBUG = "";
-    return prev;
-  },
-  // this is the core logic to check if logging should happen or not
-  enabled(namespace) {
-    const listenedNamespaces = globalThis.DEBUG.split(",").map((s) => {
-      return s.replace(/[.+?^${}()|[\]\\]/g, "\\$&");
-    });
-    const isListened = listenedNamespaces.some((listenedNamespace) => {
-      if (listenedNamespace === "" || listenedNamespace[0] === "-") return false;
-      return namespace.match(RegExp(listenedNamespace.split("*").join(".*") + "$"));
-    });
-    const isExcluded = listenedNamespaces.some((listenedNamespace) => {
-      if (listenedNamespace === "" || listenedNamespace[0] !== "-") return false;
-      return namespace.match(RegExp(listenedNamespace.slice(1).split("*").join(".*") + "$"));
-    });
-    return isListened && !isExcluded;
-  },
-  log: (...args) => {
-    const [namespace, format, ...rest] = args;
-    const logWithFormatting = console.warn ?? console.log;
-    logWithFormatting(`${namespace} ${format}`, ...rest);
-  },
-  formatters: {}
-  // not implemented
-};
-function debugCreate(namespace) {
-  const instanceProps = {
-    color: COLORS[lastColor++ % COLORS.length],
-    enabled: topProps.enabled(namespace),
-    namespace,
-    log: topProps.log,
-    extend: () => {
-    }
-    // not implemented
-  };
-  const debugCall = (...args) => {
-    const { enabled, namespace: namespace2, color, log } = instanceProps;
-    if (args.length !== 0) {
-      argsHistory.push([namespace2, ...args]);
-    }
-    if (argsHistory.length > MAX_ARGS_HISTORY) {
-      argsHistory.shift();
-    }
-    if (topProps.enabled(namespace2) || enabled) {
-      const stringArgs = args.map((arg) => {
-        if (typeof arg === "string") {
-          return arg;
-        }
-        return safeStringify(arg);
-      });
-      const ms = `+${Date.now() - lastTimestamp}ms`;
-      lastTimestamp = Date.now();
-      if (globalThis.DEBUG_COLORS) {
-        log(colors_exports[color](bold(namespace2)), ...stringArgs, colors_exports[color](ms));
-      } else {
-        log(namespace2, ...stringArgs, ms);
-      }
-    }
-  };
-  return new Proxy(debugCall, {
-    get: (_, prop) => instanceProps[prop],
-    set: (_, prop, value) => instanceProps[prop] = value
-  });
-}
-var Debug2 = new Proxy(debugCreate, {
-  get: (_, prop) => topProps[prop],
-  set: (_, prop, value) => topProps[prop] = value
-});
-function safeStringify(value, indent = 2) {
-  const cache = /* @__PURE__ */ new Set();
-  return JSON.stringify(
-    value,
-    (key, value2) => {
-      if (typeof value2 === "object" && value2 !== null) {
-        if (cache.has(value2)) {
-          return `[Circular *]`;
-        }
-        cache.add(value2);
-      } else if (typeof value2 === "bigint") {
-        return value2.toString();
-      }
-      return value2;
-    },
-    indent
-  );
-}
-
-// node_modules/@prisma/driver-adapter-utils/dist/index.mjs
-var DriverAdapterError = class extends Error {
-  name = "DriverAdapterError";
-  cause;
-  constructor(payload) {
-    super(typeof payload["message"] === "string" ? payload["message"] : payload.kind);
-    this.cause = payload;
-  }
-};
-var debug = Debug2("driver-adapter-utils");
-var ColumnTypeEnum = {
-  // Scalars
-  Int32: 0,
-  Int64: 1,
-  Float: 2,
-  Double: 3,
-  Numeric: 4,
-  Boolean: 5,
-  Character: 6,
-  Text: 7,
-  Date: 8,
-  Time: 9,
-  DateTime: 10,
-  Json: 11,
-  Enum: 12,
-  Bytes: 13,
-  Set: 14,
-  Uuid: 15,
-  // Arrays
-  Int32Array: 64,
-  Int64Array: 65,
-  FloatArray: 66,
-  DoubleArray: 67,
-  NumericArray: 68,
-  BooleanArray: 69,
-  CharacterArray: 70,
-  TextArray: 71,
-  DateArray: 72,
-  TimeArray: 73,
-  DateTimeArray: 74,
-  JsonArray: 75,
-  EnumArray: 76,
-  BytesArray: 77,
-  UuidArray: 78,
-  // Custom
-  UnknownNumber: 128
-};
-var mockAdapterErrors = {
-  queryRaw: new Error("Not implemented: queryRaw"),
-  executeRaw: new Error("Not implemented: executeRaw"),
-  startTransaction: new Error("Not implemented: startTransaction"),
-  executeScript: new Error("Not implemented: executeScript"),
-  dispose: new Error("Not implemented: dispose")
-};
-
-// node_modules/pg/esm/index.mjs
-var import_lib = __toESM(require_lib4(), 1);
-var Client = import_lib.default.Client;
-var Pool = import_lib.default.Pool;
-var Connection = import_lib.default.Connection;
-var types = import_lib.default.types;
-var Query = import_lib.default.Query;
-var DatabaseError = import_lib.default.DatabaseError;
-var escapeIdentifier = import_lib.default.escapeIdentifier;
-var escapeLiteral = import_lib.default.escapeLiteral;
-var Result = import_lib.default.Result;
-var TypeOverrides = import_lib.default.TypeOverrides;
-var defaults = import_lib.default.defaults;
-var esm_default = import_lib.default;
-
-// node_modules/@prisma/adapter-pg/dist/index.mjs
-var import_postgres_array = __toESM(require_postgres_array2(), 1);
-var name = "@prisma/adapter-pg";
-var FIRST_NORMAL_OBJECT_ID = 16384;
-var { types: types2 } = esm_default;
-var { builtins: ScalarColumnType, getTypeParser } = types2;
-var AdditionalScalarColumnType = {
-  NAME: 19
-};
-var ArrayColumnType = {
-  BIT_ARRAY: 1561,
-  BOOL_ARRAY: 1e3,
-  BYTEA_ARRAY: 1001,
-  BPCHAR_ARRAY: 1014,
-  CHAR_ARRAY: 1002,
-  CIDR_ARRAY: 651,
-  DATE_ARRAY: 1182,
-  FLOAT4_ARRAY: 1021,
-  FLOAT8_ARRAY: 1022,
-  INET_ARRAY: 1041,
-  INT2_ARRAY: 1005,
-  INT4_ARRAY: 1007,
-  INT8_ARRAY: 1016,
-  JSONB_ARRAY: 3807,
-  JSON_ARRAY: 199,
-  MONEY_ARRAY: 791,
-  NUMERIC_ARRAY: 1231,
-  OID_ARRAY: 1028,
-  TEXT_ARRAY: 1009,
-  TIMESTAMP_ARRAY: 1115,
-  TIMESTAMPTZ_ARRAY: 1185,
-  TIME_ARRAY: 1183,
-  UUID_ARRAY: 2951,
-  VARBIT_ARRAY: 1563,
-  VARCHAR_ARRAY: 1015,
-  XML_ARRAY: 143
-};
-var UnsupportedNativeDataType = class _UnsupportedNativeDataType extends Error {
-  // map of type codes to type names
-  static typeNames = {
-    16: "bool",
-    17: "bytea",
-    18: "char",
-    19: "name",
-    20: "int8",
-    21: "int2",
-    22: "int2vector",
-    23: "int4",
-    24: "regproc",
-    25: "text",
-    26: "oid",
-    27: "tid",
-    28: "xid",
-    29: "cid",
-    30: "oidvector",
-    32: "pg_ddl_command",
-    71: "pg_type",
-    75: "pg_attribute",
-    81: "pg_proc",
-    83: "pg_class",
-    114: "json",
-    142: "xml",
-    194: "pg_node_tree",
-    269: "table_am_handler",
-    325: "index_am_handler",
-    600: "point",
-    601: "lseg",
-    602: "path",
-    603: "box",
-    604: "polygon",
-    628: "line",
-    650: "cidr",
-    700: "float4",
-    701: "float8",
-    705: "unknown",
-    718: "circle",
-    774: "macaddr8",
-    790: "money",
-    829: "macaddr",
-    869: "inet",
-    1033: "aclitem",
-    1042: "bpchar",
-    1043: "varchar",
-    1082: "date",
-    1083: "time",
-    1114: "timestamp",
-    1184: "timestamptz",
-    1186: "interval",
-    1266: "timetz",
-    1560: "bit",
-    1562: "varbit",
-    1700: "numeric",
-    1790: "refcursor",
-    2202: "regprocedure",
-    2203: "regoper",
-    2204: "regoperator",
-    2205: "regclass",
-    2206: "regtype",
-    2249: "record",
-    2275: "cstring",
-    2276: "any",
-    2277: "anyarray",
-    2278: "void",
-    2279: "trigger",
-    2280: "language_handler",
-    2281: "internal",
-    2283: "anyelement",
-    2287: "_record",
-    2776: "anynonarray",
-    2950: "uuid",
-    2970: "txid_snapshot",
-    3115: "fdw_handler",
-    3220: "pg_lsn",
-    3310: "tsm_handler",
-    3361: "pg_ndistinct",
-    3402: "pg_dependencies",
-    3500: "anyenum",
-    3614: "tsvector",
-    3615: "tsquery",
-    3642: "gtsvector",
-    3734: "regconfig",
-    3769: "regdictionary",
-    3802: "jsonb",
-    3831: "anyrange",
-    3838: "event_trigger",
-    3904: "int4range",
-    3906: "numrange",
-    3908: "tsrange",
-    3910: "tstzrange",
-    3912: "daterange",
-    3926: "int8range",
-    4072: "jsonpath",
-    4089: "regnamespace",
-    4096: "regrole",
-    4191: "regcollation",
-    4451: "int4multirange",
-    4532: "nummultirange",
-    4533: "tsmultirange",
-    4534: "tstzmultirange",
-    4535: "datemultirange",
-    4536: "int8multirange",
-    4537: "anymultirange",
-    4538: "anycompatiblemultirange",
-    4600: "pg_brin_bloom_summary",
-    4601: "pg_brin_minmax_multi_summary",
-    5017: "pg_mcv_list",
-    5038: "pg_snapshot",
-    5069: "xid8",
-    5077: "anycompatible",
-    5078: "anycompatiblearray",
-    5079: "anycompatiblenonarray",
-    5080: "anycompatiblerange"
-  };
-  type;
-  constructor(code) {
-    super();
-    this.type = _UnsupportedNativeDataType.typeNames[code] || "Unknown";
-    this.message = `Unsupported column type ${this.type}`;
-  }
-};
-function fieldToColumnType(fieldTypeId) {
-  switch (fieldTypeId) {
-    case ScalarColumnType.INT2:
-    case ScalarColumnType.INT4:
-      return ColumnTypeEnum.Int32;
-    case ScalarColumnType.INT8:
-      return ColumnTypeEnum.Int64;
-    case ScalarColumnType.FLOAT4:
-      return ColumnTypeEnum.Float;
-    case ScalarColumnType.FLOAT8:
-      return ColumnTypeEnum.Double;
-    case ScalarColumnType.BOOL:
-      return ColumnTypeEnum.Boolean;
-    case ScalarColumnType.DATE:
-      return ColumnTypeEnum.Date;
-    case ScalarColumnType.TIME:
-    case ScalarColumnType.TIMETZ:
-      return ColumnTypeEnum.Time;
-    case ScalarColumnType.TIMESTAMP:
-    case ScalarColumnType.TIMESTAMPTZ:
-      return ColumnTypeEnum.DateTime;
-    case ScalarColumnType.NUMERIC:
-    case ScalarColumnType.MONEY:
-      return ColumnTypeEnum.Numeric;
-    case ScalarColumnType.JSON:
-    case ScalarColumnType.JSONB:
-      return ColumnTypeEnum.Json;
-    case ScalarColumnType.UUID:
-      return ColumnTypeEnum.Uuid;
-    case ScalarColumnType.OID:
-      return ColumnTypeEnum.Int64;
-    case ScalarColumnType.BPCHAR:
-    case ScalarColumnType.TEXT:
-    case ScalarColumnType.VARCHAR:
-    case ScalarColumnType.BIT:
-    case ScalarColumnType.VARBIT:
-    case ScalarColumnType.INET:
-    case ScalarColumnType.CIDR:
-    case ScalarColumnType.XML:
-    case AdditionalScalarColumnType.NAME:
-      return ColumnTypeEnum.Text;
-    case ScalarColumnType.BYTEA:
-      return ColumnTypeEnum.Bytes;
-    case ArrayColumnType.INT2_ARRAY:
-    case ArrayColumnType.INT4_ARRAY:
-      return ColumnTypeEnum.Int32Array;
-    case ArrayColumnType.FLOAT4_ARRAY:
-      return ColumnTypeEnum.FloatArray;
-    case ArrayColumnType.FLOAT8_ARRAY:
-      return ColumnTypeEnum.DoubleArray;
-    case ArrayColumnType.NUMERIC_ARRAY:
-    case ArrayColumnType.MONEY_ARRAY:
-      return ColumnTypeEnum.NumericArray;
-    case ArrayColumnType.BOOL_ARRAY:
-      return ColumnTypeEnum.BooleanArray;
-    case ArrayColumnType.CHAR_ARRAY:
-      return ColumnTypeEnum.CharacterArray;
-    case ArrayColumnType.BPCHAR_ARRAY:
-    case ArrayColumnType.TEXT_ARRAY:
-    case ArrayColumnType.VARCHAR_ARRAY:
-    case ArrayColumnType.VARBIT_ARRAY:
-    case ArrayColumnType.BIT_ARRAY:
-    case ArrayColumnType.INET_ARRAY:
-    case ArrayColumnType.CIDR_ARRAY:
-    case ArrayColumnType.XML_ARRAY:
-      return ColumnTypeEnum.TextArray;
-    case ArrayColumnType.DATE_ARRAY:
-      return ColumnTypeEnum.DateArray;
-    case ArrayColumnType.TIME_ARRAY:
-      return ColumnTypeEnum.TimeArray;
-    case ArrayColumnType.TIMESTAMP_ARRAY:
-      return ColumnTypeEnum.DateTimeArray;
-    case ArrayColumnType.TIMESTAMPTZ_ARRAY:
-      return ColumnTypeEnum.DateTimeArray;
-    case ArrayColumnType.JSON_ARRAY:
-    case ArrayColumnType.JSONB_ARRAY:
-      return ColumnTypeEnum.JsonArray;
-    case ArrayColumnType.BYTEA_ARRAY:
-      return ColumnTypeEnum.BytesArray;
-    case ArrayColumnType.UUID_ARRAY:
-      return ColumnTypeEnum.UuidArray;
-    case ArrayColumnType.INT8_ARRAY:
-    case ArrayColumnType.OID_ARRAY:
-      return ColumnTypeEnum.Int64Array;
-    default:
-      if (fieldTypeId >= FIRST_NORMAL_OBJECT_ID) {
-        return ColumnTypeEnum.Text;
-      }
-      throw new UnsupportedNativeDataType(fieldTypeId);
-  }
-}
-function normalize_array(element_normalizer) {
-  return (str) => (0, import_postgres_array.parse)(str, element_normalizer);
-}
-function normalize_numeric(numeric) {
-  return numeric;
-}
-function normalize_date(date5) {
-  return date5;
-}
-function normalize_timestamp(time3) {
-  return `${time3.replace(" ", "T")}+00:00`;
-}
-function normalize_timestamptz(time3) {
-  return time3.replace(" ", "T").replace(/[+-]\d{2}(:\d{2})?$/, "+00:00");
-}
-function normalize_time(time3) {
-  return time3;
-}
-function normalize_timez(time3) {
-  return time3.replace(/[+-]\d{2}(:\d{2})?$/, "");
-}
-function normalize_money(money) {
-  return money.slice(1);
-}
-function normalize_xml(xml) {
-  return xml;
-}
-function toJson(json2) {
-  return json2;
-}
-var parsePgBytes = getTypeParser(ScalarColumnType.BYTEA);
-var normalizeByteaArray = getTypeParser(ArrayColumnType.BYTEA_ARRAY);
-function convertBytes(serializedBytes) {
-  return parsePgBytes(serializedBytes);
-}
-function normalizeBit(bit) {
-  return bit;
-}
-var customParsers = {
-  [ScalarColumnType.NUMERIC]: normalize_numeric,
-  [ArrayColumnType.NUMERIC_ARRAY]: normalize_array(normalize_numeric),
-  [ScalarColumnType.TIME]: normalize_time,
-  [ArrayColumnType.TIME_ARRAY]: normalize_array(normalize_time),
-  [ScalarColumnType.TIMETZ]: normalize_timez,
-  [ScalarColumnType.DATE]: normalize_date,
-  [ArrayColumnType.DATE_ARRAY]: normalize_array(normalize_date),
-  [ScalarColumnType.TIMESTAMP]: normalize_timestamp,
-  [ArrayColumnType.TIMESTAMP_ARRAY]: normalize_array(normalize_timestamp),
-  [ScalarColumnType.TIMESTAMPTZ]: normalize_timestamptz,
-  [ArrayColumnType.TIMESTAMPTZ_ARRAY]: normalize_array(normalize_timestamptz),
-  [ScalarColumnType.MONEY]: normalize_money,
-  [ArrayColumnType.MONEY_ARRAY]: normalize_array(normalize_money),
-  [ScalarColumnType.JSON]: toJson,
-  [ArrayColumnType.JSON_ARRAY]: normalize_array(toJson),
-  [ScalarColumnType.JSONB]: toJson,
-  [ArrayColumnType.JSONB_ARRAY]: normalize_array(toJson),
-  [ScalarColumnType.BYTEA]: convertBytes,
-  [ArrayColumnType.BYTEA_ARRAY]: normalizeByteaArray,
-  [ArrayColumnType.BIT_ARRAY]: normalize_array(normalizeBit),
-  [ArrayColumnType.VARBIT_ARRAY]: normalize_array(normalizeBit),
-  [ArrayColumnType.XML_ARRAY]: normalize_array(normalize_xml)
-};
-function mapArg(arg, argType) {
-  if (arg === null) {
-    return null;
-  }
-  if (Array.isArray(arg) && argType.arity === "list") {
-    return arg.map((value) => mapArg(value, argType));
-  }
-  if (typeof arg === "string" && argType.scalarType === "datetime") {
-    arg = new Date(arg);
-  }
-  if (arg instanceof Date) {
-    switch (argType.dbType) {
-      case "TIME":
-      case "TIMETZ":
-        return formatTime(arg);
-      case "DATE":
-        return formatDate(arg);
-      default:
-        return formatDateTime(arg);
-    }
-  }
-  if (typeof arg === "string" && argType.scalarType === "bytes") {
-    return Buffer.from(arg, "base64");
-  }
-  if (ArrayBuffer.isView(arg)) {
-    return new Uint8Array(arg.buffer, arg.byteOffset, arg.byteLength);
-  }
-  return arg;
-}
-function formatDateTime(date5) {
-  const pad = (n, z2 = 2) => String(n).padStart(z2, "0");
-  const ms = date5.getUTCMilliseconds();
-  return pad(date5.getUTCFullYear(), 4) + "-" + pad(date5.getUTCMonth() + 1) + "-" + pad(date5.getUTCDate()) + " " + pad(date5.getUTCHours()) + ":" + pad(date5.getUTCMinutes()) + ":" + pad(date5.getUTCSeconds()) + (ms ? "." + String(ms).padStart(3, "0") : "");
-}
-function formatDate(date5) {
-  const pad = (n, z2 = 2) => String(n).padStart(z2, "0");
-  return pad(date5.getUTCFullYear(), 4) + "-" + pad(date5.getUTCMonth() + 1) + "-" + pad(date5.getUTCDate());
-}
-function formatTime(date5) {
-  const pad = (n, z2 = 2) => String(n).padStart(z2, "0");
-  const ms = date5.getUTCMilliseconds();
-  return pad(date5.getUTCHours()) + ":" + pad(date5.getUTCMinutes()) + ":" + pad(date5.getUTCSeconds()) + (ms ? "." + String(ms).padStart(3, "0") : "");
-}
-var TLS_ERRORS = /* @__PURE__ */ new Set([
-  "UNABLE_TO_GET_ISSUER_CERT",
-  "UNABLE_TO_GET_CRL",
-  "UNABLE_TO_DECRYPT_CERT_SIGNATURE",
-  "UNABLE_TO_DECRYPT_CRL_SIGNATURE",
-  "UNABLE_TO_DECODE_ISSUER_PUBLIC_KEY",
-  "CERT_SIGNATURE_FAILURE",
-  "CRL_SIGNATURE_FAILURE",
-  "CERT_NOT_YET_VALID",
-  "CERT_HAS_EXPIRED",
-  "CRL_NOT_YET_VALID",
-  "CRL_HAS_EXPIRED",
-  "ERROR_IN_CERT_NOT_BEFORE_FIELD",
-  "ERROR_IN_CERT_NOT_AFTER_FIELD",
-  "ERROR_IN_CRL_LAST_UPDATE_FIELD",
-  "ERROR_IN_CRL_NEXT_UPDATE_FIELD",
-  "DEPTH_ZERO_SELF_SIGNED_CERT",
-  "SELF_SIGNED_CERT_IN_CHAIN",
-  "UNABLE_TO_GET_ISSUER_CERT_LOCALLY",
-  "UNABLE_TO_VERIFY_LEAF_SIGNATURE",
-  "CERT_CHAIN_TOO_LONG",
-  "CERT_REVOKED",
-  "INVALID_CA",
-  "INVALID_PURPOSE",
-  "CERT_UNTRUSTED",
-  "CERT_REJECTED",
-  "HOSTNAME_MISMATCH",
-  "ERR_TLS_CERT_ALTNAME_FORMAT",
-  "ERR_TLS_CERT_ALTNAME_INVALID"
-]);
-var SOCKET_ERRORS = /* @__PURE__ */ new Set(["ENOTFOUND", "ECONNREFUSED", "ECONNRESET", "ETIMEDOUT"]);
-function convertDriverError(error48) {
-  if (isSocketError(error48)) {
-    return mapSocketError(error48);
-  }
-  if (isTlsError(error48)) {
-    return {
-      kind: "TlsConnectionError",
-      reason: error48.message
-    };
-  }
-  if (isDriverError(error48)) {
-    return {
-      originalCode: error48.code,
-      originalMessage: error48.message,
-      ...mapDriverError(error48)
-    };
-  }
-  throw error48;
-}
-function mapDriverError(error48) {
-  switch (error48.code) {
-    case "22001":
-      return {
-        kind: "LengthMismatch",
-        column: error48.column
-      };
-    case "22003":
-      return {
-        kind: "ValueOutOfRange",
-        cause: error48.message
-      };
-    case "22P02":
-      return {
-        kind: "InvalidInputValue",
-        message: error48.message
-      };
-    case "23505": {
-      const fields = error48.detail?.match(/Key \(([^)]+)\)/)?.at(1)?.split(", ");
-      return {
-        kind: "UniqueConstraintViolation",
-        constraint: fields !== void 0 ? { fields } : void 0
-      };
-    }
-    case "23502": {
-      const fields = error48.detail?.match(/Key \(([^)]+)\)/)?.at(1)?.split(", ");
-      return {
-        kind: "NullConstraintViolation",
-        constraint: fields !== void 0 ? { fields } : void 0
-      };
-    }
-    case "23503": {
-      let constraint;
-      if (error48.column) {
-        constraint = { fields: [error48.column] };
-      } else if (error48.constraint) {
-        constraint = { index: error48.constraint };
-      }
-      return {
-        kind: "ForeignKeyConstraintViolation",
-        constraint
-      };
-    }
-    case "3D000":
-      return {
-        kind: "DatabaseDoesNotExist",
-        db: error48.message.split(" ").at(1)?.split('"').at(1)
-      };
-    case "28000":
-      return {
-        kind: "DatabaseAccessDenied",
-        db: error48.message.split(",").find((s) => s.startsWith(" database"))?.split('"').at(1)
-      };
-    case "28P01":
-      return {
-        kind: "AuthenticationFailed",
-        user: error48.message.split(" ").pop()?.split('"').at(1)
-      };
-    case "40001":
-      return {
-        kind: "TransactionWriteConflict"
-      };
-    case "42P01":
-      return {
-        kind: "TableDoesNotExist",
-        table: error48.message.split(" ").at(1)?.split('"').at(1)
-      };
-    case "42703":
-      return {
-        kind: "ColumnNotFound",
-        column: error48.message.split(" ").at(1)?.split('"').at(1)
-      };
-    case "42P04":
-      return {
-        kind: "DatabaseAlreadyExists",
-        db: error48.message.split(" ").at(1)?.split('"').at(1)
-      };
-    case "53300":
-      return {
-        kind: "TooManyConnections",
-        cause: error48.message
-      };
-    default:
-      return {
-        kind: "postgres",
-        code: error48.code ?? "N/A",
-        severity: error48.severity ?? "N/A",
-        message: error48.message,
-        detail: error48.detail,
-        column: error48.column,
-        hint: error48.hint
-      };
-  }
-}
-function isDriverError(error48) {
-  return typeof error48.code === "string" && typeof error48.message === "string" && typeof error48.severity === "string" && (typeof error48.detail === "string" || error48.detail === void 0) && (typeof error48.column === "string" || error48.column === void 0) && (typeof error48.hint === "string" || error48.hint === void 0);
-}
-function mapSocketError(error48) {
-  switch (error48.code) {
-    case "ENOTFOUND":
-    case "ECONNREFUSED":
-      return {
-        kind: "DatabaseNotReachable",
-        host: error48.address ?? error48.hostname,
-        port: error48.port
-      };
-    case "ECONNRESET":
-      return {
-        kind: "ConnectionClosed"
-      };
-    case "ETIMEDOUT":
-      return {
-        kind: "SocketTimeout"
-      };
-  }
-}
-function isSocketError(error48) {
-  return typeof error48.code === "string" && typeof error48.syscall === "string" && typeof error48.errno === "number" && SOCKET_ERRORS.has(error48.code);
-}
-function isTlsError(error48) {
-  if (typeof error48.code === "string") {
-    return TLS_ERRORS.has(error48.code);
-  }
-  switch (error48.message) {
-    case "The server does not support SSL connections":
-    case "There was an error establishing an SSL connection":
-      return true;
-  }
-  return false;
-}
-var types22 = esm_default.types;
-var debug2 = Debug2("prisma:driver-adapter:pg");
-var PgQueryable = class {
-  constructor(client, pgOptions) {
-    this.client = client;
-    this.pgOptions = pgOptions;
-  }
-  provider = "postgres";
-  adapterName = name;
-  /**
-   * Execute a query given as SQL, interpolating the given parameters.
-   */
-  async queryRaw(query) {
-    const tag = "[js::query_raw]";
-    debug2(`${tag} %O`, query);
-    const { fields, rows } = await this.performIO(query);
-    const columnNames = fields.map((field) => field.name);
-    let columnTypes = [];
-    try {
-      columnTypes = fields.map((field) => fieldToColumnType(field.dataTypeID));
-    } catch (e) {
-      if (e instanceof UnsupportedNativeDataType) {
-        throw new DriverAdapterError({
-          kind: "UnsupportedNativeDataType",
-          type: e.type
-        });
-      }
-      throw e;
-    }
-    const udtParser = this.pgOptions?.userDefinedTypeParser;
-    if (udtParser) {
-      for (let i = 0; i < fields.length; i++) {
-        const field = fields[i];
-        if (field.dataTypeID >= FIRST_NORMAL_OBJECT_ID && !Object.hasOwn(customParsers, field.dataTypeID)) {
-          for (let j = 0; j < rows.length; j++) {
-            rows[j][i] = await udtParser(field.dataTypeID, rows[j][i], this);
-          }
-        }
-      }
-    }
-    return {
-      columnNames,
-      columnTypes,
-      rows
-    };
-  }
-  /**
-   * Execute a query given as SQL, interpolating the given parameters and
-   * returning the number of affected rows.
-   * Note: Queryable expects a u64, but napi.rs only supports u32.
-   */
-  async executeRaw(query) {
-    const tag = "[js::execute_raw]";
-    debug2(`${tag} %O`, query);
-    return (await this.performIO(query)).rowCount ?? 0;
-  }
-  /**
-   * Run a query against the database, returning the result set.
-   * Should the query fail due to a connection error, the connection is
-   * marked as unhealthy.
-   */
-  async performIO(query) {
-    const { sql, args } = query;
-    const values = args.map((arg, i) => mapArg(arg, query.argTypes[i]));
-    try {
-      const result = await this.client.query(
-        {
-          text: sql,
-          values,
-          rowMode: "array",
-          types: {
-            // This is the error expected:
-            // No overload matches this call.
-            // The last overload gave the following error.
-            // Type '(oid: number, format?: any) => (json: string) => unknown' is not assignable to type '{ <T>(oid: number): TypeParser<string, string | T>; <T>(oid: number, format: "text"): TypeParser<string, string | T>; <T>(oid: number, format: "binary"): TypeParser<...>; }'.
-            //   Type '(json: string) => unknown' is not assignable to type 'TypeParser<Buffer, any>'.
-            //     Types of parameters 'json' and 'value' are incompatible.
-            //       Type 'Buffer' is not assignable to type 'string'.ts(2769)
-            //
-            // Because pg-types types expect us to handle both binary and text protocol versions,
-            // where as far we can see, pg will ever pass only text version.
-            //
-            // @ts-expect-error
-            getTypeParser: (oid, format) => {
-              if (format === "text" && customParsers[oid]) {
-                return customParsers[oid];
-              }
-              return types22.getTypeParser(oid, format);
-            }
-          }
-        },
-        values
-      );
-      return result;
-    } catch (e) {
-      this.onError(e);
-    }
-  }
-  onError(error48) {
-    debug2("Error in performIO: %O", error48);
-    throw new DriverAdapterError(convertDriverError(error48));
-  }
-};
-var PgTransaction = class extends PgQueryable {
-  constructor(client, options, pgOptions, cleanup) {
-    super(client, pgOptions);
-    this.options = options;
-    this.pgOptions = pgOptions;
-    this.cleanup = cleanup;
-  }
-  async commit() {
-    debug2(`[js::commit]`);
-    this.cleanup?.();
-    this.client.release();
-  }
-  async rollback() {
-    debug2(`[js::rollback]`);
-    this.cleanup?.();
-    this.client.release();
-  }
-};
-var PrismaPgAdapter = class extends PgQueryable {
-  constructor(client, pgOptions, release) {
-    super(client);
-    this.pgOptions = pgOptions;
-    this.release = release;
-  }
-  async startTransaction(isolationLevel) {
-    const options = {
-      usePhantomQuery: false
-    };
-    const tag = "[js::startTransaction]";
-    debug2("%s options: %O", tag, options);
-    const conn = await this.client.connect().catch((error48) => this.onError(error48));
-    const onError = (err) => {
-      debug2(`Error from pool connection: ${err.message} %O`, err);
-      this.pgOptions?.onConnectionError?.(err);
-    };
-    conn.on("error", onError);
-    const cleanup = () => {
-      conn.removeListener("error", onError);
-    };
-    try {
-      const tx = new PgTransaction(conn, options, this.pgOptions, cleanup);
-      await tx.executeRaw({ sql: "BEGIN", args: [], argTypes: [] });
-      if (isolationLevel) {
-        await tx.executeRaw({
-          sql: `SET TRANSACTION ISOLATION LEVEL ${isolationLevel}`,
-          args: [],
-          argTypes: []
-        });
-      }
-      return tx;
-    } catch (error48) {
-      cleanup();
-      conn.release(error48);
-      this.onError(error48);
-    }
-  }
-  async executeScript(script) {
-    const statements = script.split(";").map((stmt) => stmt.trim()).filter((stmt) => stmt.length > 0);
-    for (const stmt of statements) {
-      try {
-        await this.client.query(stmt);
-      } catch (error48) {
-        this.onError(error48);
-      }
-    }
-  }
-  getConnectionInfo() {
-    return {
-      schemaName: this.pgOptions?.schema,
-      supportsRelationJoins: true
-    };
-  }
-  async dispose() {
-    return this.release?.();
-  }
-  underlyingDriver() {
-    return this.client;
-  }
-};
-var PrismaPgAdapterFactory = class {
-  constructor(poolOrConfig, options) {
-    this.options = options;
-    if (poolOrConfig instanceof esm_default.Pool) {
-      this.externalPool = poolOrConfig;
-      this.config = poolOrConfig.options;
-    } else {
-      this.externalPool = null;
-      this.config = poolOrConfig;
-    }
-  }
-  provider = "postgres";
-  adapterName = name;
-  config;
-  externalPool;
-  async connect() {
-    const client = this.externalPool ?? new esm_default.Pool(this.config);
-    const onIdleClientError = (err) => {
-      debug2(`Error from idle pool client: ${err.message} %O`, err);
-      this.options?.onPoolError?.(err);
-    };
-    client.on("error", onIdleClientError);
-    return new PrismaPgAdapter(client, this.options, async () => {
-      if (this.externalPool) {
-        if (this.options?.disposeExternalPool) {
-          await this.externalPool.end();
-          this.externalPool = null;
-        } else {
-          this.externalPool.removeListener("error", onIdleClientError);
-        }
-      } else {
-        await client.end();
-      }
-    });
-  }
-  async connectToShadowDb() {
-    const conn = await this.connect();
-    const database = `prisma_migrate_shadow_db_${globalThis.crypto.randomUUID()}`;
-    await conn.executeScript(`CREATE DATABASE "${database}"`);
-    const client = new esm_default.Pool({ ...this.config, database });
-    return new PrismaPgAdapter(client, void 0, async () => {
-      await conn.executeScript(`DROP DATABASE "${database}"`);
-      await client.end();
-    });
-  }
-};
-
-// src/config/postgres.ts
-var import_dotenv = __toESM(require_main());
-import_dotenv.default.config();
-var { Pool: Pool2 } = esm_default;
-var pool = new Pool2({
-  connectionString: process.env.DATABASE_URL,
-  ssl: { rejectUnauthorized: false }
-  // REQUIRED for Railway
-});
-var adapter = new PrismaPgAdapterFactory(pool);
-var prisma = new import_client.PrismaClient({
-  adapter,
-  log: ["info", "warn", "error"]
-});
-var postgres_default = prisma;
+// src/modules/employee/employee.service.ts
+init_postgres();
 
 // src/common/utils/logger.ts
+init_postgres();
 var import_client2 = __toESM(require_default2());
 async function logAction(data) {
   try {
@@ -122048,32 +122802,122 @@ var generateRefreshToken = (payload) => {
 var verifyRefreshToken = (token) => import_jsonwebtoken2.default.verify(token, env.jwtRefreshSecret);
 
 // src/modules/auth/auth.service.ts
+init_postgres();
 var import_client3 = __toESM(require_default2());
-var login = async (username, password) => {
-  const employee = await postgres_default.employee.findUnique({ where: { username } });
-  if (!employee) throw new Error("Invalid credentials");
-  if (!employee.password) throw new Error("Password not set");
-  const match = await bcryptjs_default.compare(password, employee.password);
-  if (!match) throw new Error("Invalid credentials");
-  if (employee.status !== import_client3.Status.Active) {
-    throw new Error(
-      "Your account has not been approved yet. Please contact your administrator."
+var login = async (username, password, ipAddress = "unknown", userAgent, deviceInfo) => {
+  let employee;
+  let failureReason;
+  try {
+    const securityService = await Promise.resolve().then(() => (init_security_service(), security_service_exports));
+    const isBlocked = await securityService.isIPBlocked(ipAddress);
+    if (isBlocked) {
+      failureReason = "IP_BLOCKED";
+      throw new Error("Your IP address has been blocked due to multiple failed login attempts");
+    }
+    employee = await postgres_default.employee.findUnique({ where: { username } });
+    if (!employee) {
+      failureReason = "INVALID_CREDENTIALS";
+      throw new Error("Invalid credentials");
+    }
+    const isLocked = await securityService.isAccountLocked(employee.id);
+    if (isLocked) {
+      failureReason = "ACCOUNT_LOCKED";
+      throw new Error("Your account has been locked due to multiple failed login attempts");
+    }
+    if (!employee.password) {
+      failureReason = "PASSWORD_NOT_SET";
+      throw new Error("Password not set");
+    }
+    const match = await bcryptjs_default.compare(password, employee.password);
+    if (!match) {
+      failureReason = "INVALID_CREDENTIALS";
+      throw new Error("Invalid credentials");
+    }
+    if (employee.status !== import_client3.Status.Active) {
+      failureReason = "ACCOUNT_NOT_APPROVED";
+      throw new Error(
+        "Your account has not been approved yet. Please contact your administrator."
+      );
+    }
+    await securityService.recordLoginAttempt(
+      username,
+      ipAddress,
+      userAgent,
+      "Success",
+      void 0,
+      employee.id,
+      deviceInfo
     );
+    const payload = {
+      id: employee.id,
+      role: employee.role,
+      department: employee.department,
+      username: employee.username,
+      name: employee.name
+    };
+    const accessToken = generateAccessToken(payload);
+    const refreshToken = generateRefreshToken({ id: employee.id });
+    await postgres_default.employee.update({
+      where: { id: employee.id },
+      data: { refreshToken }
+    });
+    await securityService.createSecurityAuditLog(
+      employee.id,
+      "LOGIN_SUCCESS",
+      ipAddress,
+      "Info",
+      `Successful login from IP: ${ipAddress}`,
+      { username, userAgent, ...deviceInfo }
+    );
+    return { accessToken, refreshToken };
+  } catch (error48) {
+    if (employee) {
+      try {
+        const securityService = await Promise.resolve().then(() => (init_security_service(), security_service_exports));
+        await securityService.recordLoginAttempt(
+          username,
+          ipAddress,
+          userAgent,
+          "Failed",
+          failureReason || error48.message,
+          employee.id,
+          deviceInfo
+        );
+        const protection = await securityService.checkAndApplyBruteForceProtection(
+          username,
+          ipAddress
+        );
+        if (!protection.allowed) {
+          throw new Error(protection.action);
+        }
+      } catch (trackingError) {
+        console.error("Error tracking failed login:", trackingError);
+      }
+    } else {
+      try {
+        const securityService = await Promise.resolve().then(() => (init_security_service(), security_service_exports));
+        await securityService.recordLoginAttempt(
+          username,
+          ipAddress,
+          userAgent,
+          "Failed",
+          failureReason || error48.message,
+          void 0,
+          deviceInfo
+        );
+        const protection = await securityService.checkAndApplyBruteForceProtection(
+          username,
+          ipAddress
+        );
+        if (!protection.allowed) {
+          throw new Error(protection.action);
+        }
+      } catch (trackingError) {
+        console.error("Error tracking failed login:", trackingError);
+      }
+    }
+    throw error48;
   }
-  const payload = {
-    id: employee.id,
-    role: employee.role,
-    department: employee.department,
-    username: employee.username,
-    name: employee.name
-  };
-  const accessToken = generateAccessToken(payload);
-  const refreshToken = generateRefreshToken({ id: employee.id });
-  await postgres_default.employee.update({
-    where: { id: employee.id },
-    data: { refreshToken }
-  });
-  return { accessToken, refreshToken };
 };
 var refresh = async (token) => {
   const payload = verifyRefreshToken(token);
@@ -122098,11 +122942,35 @@ var logout = async (id) => {
 };
 
 // src/modules/auth/auth.controller.ts
+var getClientIp = (req) => {
+  const forwarded = req.headers["x-forwarded-for"];
+  let ip = forwarded?.split(",")[0]?.trim() || req.socket.remoteAddress || "unknown";
+  if (ip === "::1") return "127.0.0.1";
+  if (ip.startsWith("::ffff:")) {
+    ip = ip.replace("::ffff:", "");
+  }
+  return ip;
+};
 var login2 = async (req, res) => {
   try {
     const { username, password } = req.body;
-    const tokens = await login(username, password);
-    res.json(tokens);
+    const ipAddress = getClientIp(req);
+    const userAgent = req.get("user-agent") || "unknown";
+    const deviceInfo = {
+      userAgent,
+      acceptLanguage: req.get("accept-language"),
+      acceptEncoding: req.get("accept-encoding"),
+      platform: req.get("sec-ch-ua-platform"),
+      mobile: req.get("sec-ch-ua-mobile")
+    };
+    const tokens = await login(
+      username,
+      password,
+      ipAddress,
+      userAgent,
+      deviceInfo
+    );
+    res.status(200).json(tokens);
   } catch (e) {
     res.status(401).json({ message: e.message });
   }
@@ -122121,15 +122989,395 @@ var logout2 = async (req, res) => {
   res.json({ message: "Logged out" });
 };
 
+// src/common/middleware/bruteForceProtection.ts
+init_security_service();
+var bruteForceProtection = async (req, res, next) => {
+  try {
+    const ipAddress = req.ip || req.socket.remoteAddress || "unknown";
+    const { username, password } = req.body;
+    if (!username) {
+      return res.status(400).json({ message: "Username is required" });
+    }
+    const blocked = await isIPBlocked(ipAddress);
+    if (blocked) {
+      await createSecurityAuditLog(
+        void 0,
+        "LOGIN_ATTEMPT_BLOCKED",
+        ipAddress,
+        "Warning",
+        `Login attempt blocked - IP is already blocked`
+      );
+      return res.status(403).json({
+        message: "Your IP address has been temporarily blocked due to multiple failed login attempts. Please try again later.",
+        code: "IP_BLOCKED"
+      });
+    }
+    req.loginAttemptInfo = {
+      ipAddress,
+      username,
+      userAgent: req.get("user-agent")
+    };
+    next();
+  } catch (error48) {
+    console.error("Brute force protection middleware error:", error48);
+    next();
+  }
+};
+
 // src/modules/auth/auth.routes.ts
 var router2 = (0, import_express2.Router)();
-router2.post("/login", login2);
+router2.post("/login", bruteForceProtection, login2);
 router2.post("/refresh", refresh2);
 router2.post("/logout", logout2);
 var auth_routes_default = router2;
 
-// src/modules/customer/customer.routes.ts
+// src/modules/navbarPermissions/navbarPermissions.routes.ts
 var import_express3 = __toESM(require_express2());
+
+// src/modules/navbarPermissions/navbarPermissions.service.ts
+init_postgres();
+var getDefaultMenuItemsByRole = (role) => {
+  const menuPermissions = {
+    admin: [
+      "dashboard",
+      "employees",
+      "customers",
+      "purchase-orders",
+      "leads",
+      "designers",
+      "accounts",
+      "ppic",
+      "master",
+      "hr",
+      "todos",
+      "security",
+      "admin-control",
+      "notifications"
+    ],
+    manager: [
+      "dashboard",
+      "employees",
+      "customers",
+      "purchase-orders",
+      "leads",
+      "ppic",
+      "todos",
+      "notifications"
+    ],
+    employee: [
+      "dashboard",
+      "customers",
+      "leads",
+      "todos",
+      "notifications"
+    ],
+    designer: [
+      "dashboard",
+      "designer",
+      "ppic",
+      "todos",
+      "notifications"
+    ],
+    accountant: [
+      "dashboard",
+      "accounts",
+      "purchase-orders",
+      "notifications"
+    ],
+    hr: [
+      "dashboard",
+      "hr",
+      "employees",
+      "notifications"
+    ],
+    default: [
+      "dashboard",
+      "notifications"
+    ]
+  };
+  const roleKey = role.toLowerCase();
+  return menuPermissions[roleKey] || menuPermissions["default"];
+};
+var getEmployeeNavbarPermissions = async (employeeId) => {
+  const employee = await postgres_default.employee.findUnique({
+    where: { id: employeeId },
+    select: { id: true, name: true, email: true, role: true, status: true }
+  });
+  if (!employee) {
+    throw new Error("Employee not found");
+  }
+  if (employee.status !== "Active") {
+    throw new Error("Employee account is not active");
+  }
+  let permissions = await postgres_default.navbarPermission.findUnique({
+    where: { employeeId }
+  });
+  if (!permissions) {
+    const defaultMenuItems = getDefaultMenuItemsByRole(employee.role);
+    return {
+      id: void 0,
+      employeeId: employee.id,
+      employeeName: employee.name,
+      email: employee.email || "",
+      allowedMenuItems: defaultMenuItems,
+      createdAt: (/* @__PURE__ */ new Date()).toISOString(),
+      updatedAt: (/* @__PURE__ */ new Date()).toISOString()
+    };
+  }
+  return {
+    id: permissions.id,
+    employeeId: permissions.employeeId,
+    employeeName: permissions.employeeName,
+    email: permissions.email,
+    allowedMenuItems: permissions.allowedMenuItems,
+    createdAt: permissions.createdAt.toISOString(),
+    updatedAt: permissions.updatedAt.toISOString()
+  };
+};
+var getAllNavbarPermissions = async () => {
+  const permissions = await postgres_default.navbarPermission.findMany({
+    orderBy: { createdAt: "desc" }
+  });
+  return permissions.map((perm) => ({
+    id: perm.id,
+    employeeId: perm.employeeId,
+    employeeName: perm.employeeName,
+    email: perm.email,
+    allowedMenuItems: perm.allowedMenuItems,
+    createdAt: perm.createdAt.toISOString(),
+    updatedAt: perm.updatedAt.toISOString()
+  }));
+};
+var setNavbarPermissions = async (payload) => {
+  const { employeeId, employeeName, email: email3, allowedMenuItems } = payload;
+  const employee = await postgres_default.employee.findUnique({
+    where: { id: employeeId },
+    select: { id: true, name: true, email: true }
+  });
+  if (!employee) {
+    throw new Error("Employee not found");
+  }
+  const permissions = await postgres_default.navbarPermission.upsert({
+    where: { employeeId },
+    create: {
+      employeeId,
+      employeeName,
+      email: email3,
+      allowedMenuItems
+    },
+    update: {
+      employeeName,
+      email: email3,
+      allowedMenuItems
+    }
+  });
+  return {
+    id: permissions.id,
+    employeeId: permissions.employeeId,
+    employeeName: permissions.employeeName,
+    email: permissions.email,
+    allowedMenuItems: permissions.allowedMenuItems,
+    createdAt: permissions.createdAt.toISOString(),
+    updatedAt: permissions.updatedAt.toISOString()
+  };
+};
+var updateNavbarPermissions = async (employeeId, payload) => {
+  const existing = await postgres_default.navbarPermission.findUnique({
+    where: { employeeId }
+  });
+  if (!existing) {
+    throw new Error("Navbar permissions not found for this employee");
+  }
+  const updateData = {};
+  if (payload.employeeName) updateData.employeeName = payload.employeeName;
+  if (payload.email) updateData.email = payload.email;
+  if (payload.allowedMenuItems)
+    updateData.allowedMenuItems = payload.allowedMenuItems;
+  const permissions = await postgres_default.navbarPermission.update({
+    where: { employeeId },
+    data: updateData
+  });
+  return {
+    id: permissions.id,
+    employeeId: permissions.employeeId,
+    employeeName: permissions.employeeName,
+    email: permissions.email,
+    allowedMenuItems: permissions.allowedMenuItems,
+    createdAt: permissions.createdAt.toISOString(),
+    updatedAt: permissions.updatedAt.toISOString()
+  };
+};
+var deleteNavbarPermissions = async (employeeId) => {
+  const permissions = await postgres_default.navbarPermission.delete({
+    where: { employeeId }
+  });
+  return {
+    id: permissions.id,
+    employeeId: permissions.employeeId,
+    employeeName: permissions.employeeName,
+    email: permissions.email,
+    allowedMenuItems: permissions.allowedMenuItems,
+    createdAt: permissions.createdAt.toISOString(),
+    updatedAt: permissions.updatedAt.toISOString()
+  };
+};
+var bulkUpdateNavbarPermissions = async (permissions) => {
+  const results = [];
+  for (const perm of permissions) {
+    try {
+      const result = await setNavbarPermissions(perm);
+      results.push(result);
+    } catch (error48) {
+      results.push({
+        employeeId: perm.employeeId,
+        error: error48.message
+      });
+    }
+  }
+  return results;
+};
+
+// src/modules/navbarPermissions/navbarPermissions.controller.ts
+var getEmployeeNavbarPermissions2 = async (req, res) => {
+  try {
+    const employeeId = Array.isArray(req.params.employeeId) ? req.params.employeeId[0] : req.params.employeeId;
+    if (!employeeId) {
+      return res.status(400).json({
+        success: false,
+        message: "employeeId is required"
+      });
+    }
+    const permissions = await getEmployeeNavbarPermissions(employeeId);
+    res.status(200).json({
+      success: true,
+      data: permissions
+    });
+  } catch (error48) {
+    res.status(400).json({
+      success: false,
+      message: error48.message
+    });
+  }
+};
+var getAllNavbarPermissions2 = async (req, res) => {
+  try {
+    const permissions = await getAllNavbarPermissions();
+    res.status(200).json({
+      success: true,
+      data: permissions
+    });
+  } catch (error48) {
+    res.status(400).json({
+      success: false,
+      message: error48.message
+    });
+  }
+};
+var setNavbarPermissions2 = async (req, res) => {
+  try {
+    const { employeeId, employeeName, email: email3, allowedMenuItems } = req.body;
+    if (!employeeId || !allowedMenuItems) {
+      return res.status(400).json({
+        success: false,
+        message: "employeeId and allowedMenuItems are required"
+      });
+    }
+    const permissions = await setNavbarPermissions({
+      employeeId,
+      employeeName,
+      email: email3,
+      allowedMenuItems
+    });
+    res.status(201).json({
+      success: true,
+      data: permissions
+    });
+  } catch (error48) {
+    res.status(400).json({
+      success: false,
+      message: error48.message
+    });
+  }
+};
+var updateNavbarPermissions2 = async (req, res) => {
+  try {
+    const employeeId = Array.isArray(req.params.employeeId) ? req.params.employeeId[0] : req.params.employeeId;
+    const payload = req.body;
+    if (!employeeId) {
+      return res.status(400).json({
+        success: false,
+        message: "employeeId is required"
+      });
+    }
+    const permissions = await updateNavbarPermissions(employeeId, payload);
+    res.status(200).json({
+      success: true,
+      data: permissions
+    });
+  } catch (error48) {
+    res.status(400).json({
+      success: false,
+      message: error48.message
+    });
+  }
+};
+var deleteNavbarPermissions2 = async (req, res) => {
+  try {
+    const employeeId = Array.isArray(req.params.employeeId) ? req.params.employeeId[0] : req.params.employeeId;
+    if (!employeeId) {
+      return res.status(400).json({
+        success: false,
+        message: "employeeId is required"
+      });
+    }
+    const permissions = await deleteNavbarPermissions(employeeId);
+    res.status(200).json({
+      success: true,
+      message: "Navbar permissions deleted successfully",
+      data: permissions
+    });
+  } catch (error48) {
+    res.status(400).json({
+      success: false,
+      message: error48.message
+    });
+  }
+};
+var bulkUpdateNavbarPermissions2 = async (req, res) => {
+  try {
+    const { permissions } = req.body;
+    if (!permissions || !Array.isArray(permissions)) {
+      return res.status(400).json({
+        success: false,
+        message: "permissions array is required"
+      });
+    }
+    const results = await bulkUpdateNavbarPermissions(permissions);
+    res.status(200).json({
+      success: true,
+      data: results
+    });
+  } catch (error48) {
+    res.status(400).json({
+      success: false,
+      message: error48.message
+    });
+  }
+};
+
+// src/modules/navbarPermissions/navbarPermissions.routes.ts
+var router3 = (0, import_express3.Router)();
+router3.get("/employee/:employeeId", getEmployeeNavbarPermissions2);
+router3.use(protect);
+router3.get("/", authorize(["admin"]), getAllNavbarPermissions2);
+router3.post("/", authorize(["admin"]), setNavbarPermissions2);
+router3.put("/:employeeId", authorize(["admin"]), updateNavbarPermissions2);
+router3.delete("/:employeeId", authorize(["admin"]), deleteNavbarPermissions2);
+router3.post("/bulk", authorize(["admin"]), bulkUpdateNavbarPermissions2);
+var navbarPermissions_routes_default = router3;
+
+// src/modules/customer/customer.routes.ts
+var import_express4 = __toESM(require_express2());
 
 // node_modules/axios/lib/helpers/bind.js
 function bind(fn, thisArg) {
@@ -125755,6 +127003,9 @@ var {
   mergeConfig: mergeConfig2
 } = axios_default;
 
+// src/modules/customer/customer.service.ts
+init_postgres();
+
 // src/common/utils/errorMessages.ts
 var ERROR_CODES = {
   // General Errors
@@ -126044,8 +127295,8 @@ var bulkCreateCustomers = async (customers, employeeId) => {
       drugLicense: customer.drugLicense || null,
       dlExpiry: safeDate(customer.dlExpiry),
       address: customer.address || null,
-      contacts: contacts.length > 0 ? contacts : void 0,
-      // ✅ Use undefined instead of null for JSON
+      contacts: contacts.length > 0 ? JSON.stringify(contacts) : null,
+      // ✅ save as JSON string
       remarks: customer.remarks || null,
       relationshipStatus: customer.relationshipStatus || "Moderate",
       isBlacklisted: Boolean(customer.isBlacklisted),
@@ -140561,32 +141812,33 @@ var upload = (0, import_multer.default)({
 });
 
 // src/modules/customer/customer.routes.ts
-var router3 = (0, import_express3.Router)();
-router3.post("/login", loginCustomer2);
-router3.post("/status/verifyToken", verifyToken);
-router3.get("/gstr", getGSTCustomers);
-router3.post("/create", protect, createCustomer2);
-router3.get("/", encryptResponse_default, protect, getCustomers);
-router3.get("/gst-lookup", protect, lookupCustomerByGST);
-router3.get("/export", protect, exportCustomers);
-router3.post("/assign/bulk", protect, bulkAssignCustomers2);
-router3.get("/assignment-history/:customerId", protect, getCustomerAssignmentHistory2);
-router3.post(
+var router4 = (0, import_express4.Router)();
+router4.post("/login", loginCustomer2);
+router4.post("/status/verifyToken", verifyToken);
+router4.get("/gstr", getGSTCustomers);
+router4.post("/create", protect, createCustomer2);
+router4.get("/", encryptResponse_default, protect, getCustomers);
+router4.get("/gst-lookup", protect, lookupCustomerByGST);
+router4.get("/export", protect, exportCustomers);
+router4.post("/assign/bulk", protect, bulkAssignCustomers2);
+router4.get("/assignment-history/:customerId", protect, getCustomerAssignmentHistory2);
+router4.post(
   "/import",
   protect,
   upload.single("file"),
   importCustomers
 );
-router3.post("/request-credit", protect, requestCreditApproval2);
-router3.post("/blacklist", protect, blacklistCustomer2);
-router3.put("/:id", protect, updateCustomer2);
-router3.delete("/:id", protect, deleteCustomer2);
-var customer_routes_default = router3;
+router4.post("/request-credit", protect, requestCreditApproval2);
+router4.post("/blacklist", protect, blacklistCustomer2);
+router4.put("/:id", protect, updateCustomer2);
+router4.delete("/:id", protect, deleteCustomer2);
+var customer_routes_default = router4;
 
 // src/modules/todo/todo.routes.ts
-var import_express4 = __toESM(require_express2());
+var import_express5 = __toESM(require_express2());
 
 // src/modules/todo/todo.service.ts
+init_postgres();
 var getEmployeeIdFromUsername = async (username) => {
   const employee = await postgres_default.employee.findUnique({
     where: { username },
@@ -141328,100 +142580,27 @@ var validate = (schema) => (req, res, next) => {
 };
 
 // src/modules/todo/todo.routes.ts
-var router4 = (0, import_express4.Router)();
-router4.post("/create", validate(createTodoSchema), createTodoController);
-router4.get("/", validate(getTodosSchema), getTodosController);
-router4.get("/:id", validate(todoIdSchema), getTodoByIdController);
-router4.get("/employees/list", getActiveEmployeesController);
-router4.put("/:id", validate(updateTodoSchema), updateTodoController);
-router4.post("/:id/updates", validate(addUpdateSchema), addTodoUpdateController);
-router4.get("/:id/updates", validate(todoIdSchema), getTodoUpdatesController);
-router4.patch("/:id/complete", validate(todoIdSchema), completeTodoController);
-router4.delete("/:id", validate(todoIdSchema), deleteTodoController);
-router4.get("/pending/count", getPendingTodosCountController);
-var todo_routes_default = router4;
+var router5 = (0, import_express5.Router)();
+router5.post("/create", validate(createTodoSchema), createTodoController);
+router5.get("/", validate(getTodosSchema), getTodosController);
+router5.get("/:id", validate(todoIdSchema), getTodoByIdController);
+router5.get("/employees/list", getActiveEmployeesController);
+router5.put("/:id", validate(updateTodoSchema), updateTodoController);
+router5.post("/:id/updates", validate(addUpdateSchema), addTodoUpdateController);
+router5.get("/:id/updates", validate(todoIdSchema), getTodoUpdatesController);
+router5.patch("/:id/complete", validate(todoIdSchema), completeTodoController);
+router5.delete("/:id", validate(todoIdSchema), deleteTodoController);
+router5.get("/pending/count", getPendingTodosCountController);
+var todo_routes_default = router5;
 
 // src/modules/purchaseOrder/purchaseOrder.routes.ts
-var import_express5 = __toESM(require_express2());
+var import_express6 = __toESM(require_express2());
 
-// src/config/redis.ts
-var import_ioredis = __toESM(require_built3());
-var redis = null;
-var isConnecting = false;
-var connectionPromise = null;
-if (process.env.REDIS_URL) {
-  redis = new import_ioredis.default(process.env.REDIS_URL, {
-    maxRetriesPerRequest: null,
-    // 🔑 REQUIRED for Lambda
-    enableOfflineQueue: true,
-    // 🔑 Allow queuing when reconnecting
-    lazyConnect: false,
-    // 🔑 Connect immediately
-    connectTimeout: 1e4,
-    retryStrategy(times) {
-      if (times > 10) {
-        console.error("\u274C Redis: Max retries exceeded");
-        return -1;
-      }
-      const delay = Math.min(times * 100, 3e3);
-      console.log(`\u{1F504} Redis retry attempt ${times}, waiting ${delay}ms`);
-      return delay;
-    },
-    reconnectOnError: (err) => {
-      const errorStr = err.toString();
-      if (errorStr.includes("READONLY") || errorStr.includes("CLUSTERDOWN")) {
-        return true;
-      }
-      return false;
-    }
-  });
-  redis.on("connect", () => {
-    console.log("\u2705 Redis connected");
-    isConnecting = false;
-  });
-  redis.on("error", (err) => {
-    console.error("\u274C Redis error:", err.message);
-  });
-  redis.on("close", () => {
-    console.log("\u{1F50C} Redis connection closed");
-  });
-} else {
-  console.log("\u26A0\uFE0F Redis disabled (REDIS_URL not set)");
-}
-var ensureRedisConnection = async () => {
-  if (!redis) {
-    return;
-  }
-  if (redis.status === "ready") {
-    return;
-  }
-  if (isConnecting && connectionPromise) {
-    return connectionPromise;
-  }
-  isConnecting = true;
-  connectionPromise = new Promise((resolve, reject) => {
-    const timeout = setTimeout(() => {
-      isConnecting = false;
-      connectionPromise = null;
-      reject(new Error("Redis connection timeout"));
-    }, 15e3);
-    redis.connect().then(() => {
-      clearTimeout(timeout);
-      isConnecting = false;
-      connectionPromise = null;
-      resolve();
-    }).catch((err) => {
-      clearTimeout(timeout);
-      isConnecting = false;
-      connectionPromise = null;
-      reject(err);
-    });
-  });
-  return connectionPromise;
-};
-var redis_default = redis;
+// src/modules/purchaseOrder/purchaseOrder.service.ts
+init_postgres();
 
 // src/common/utils/cacheManager.ts
+init_redis();
 var import_crypto3 = __toESM(require("crypto"));
 var CACHE_TTL = {
   // Short-lived cache (5 minutes) - for frequently changing data
@@ -142586,6 +143765,7 @@ var getPurchaseOrderAssignmentHistory = async (poId) => {
 
 // src/modules/purchaseOrder/purchaseOrder.controller.ts
 var import_xlsx2 = __toESM(require_xlsx());
+init_postgres();
 
 // src/common/utils/purchaseOrder.import.utils.ts
 var toSafeString2 = (value) => {
@@ -143079,36 +144259,39 @@ var getPurchaseOrderAssignmentHistory2 = async (req, res) => {
 };
 
 // src/modules/purchaseOrder/purchaseOrder.routes.ts
-var router5 = (0, import_express5.Router)();
-router5.use(protect);
-router5.post("/create", authorize(["admin", "manager"]), createPO);
-router5.get("/analytics", encryptResponse_default, authorize(["admin", "manager"]), getAnalytics);
-router5.get("/gstr", encryptResponse_default, getGstrList);
-router5.get("/count", encryptResponse_default, getPOCount);
-router5.get("/export", exportPurchaseOrders);
-router5.get("/md-approved", encryptResponse_default, getMDApproved);
-router5.get("/ppic-approved-batches", encryptResponse_default, getPPICApprovedBatches2);
-router5.get("/batch-numbers", encryptResponse_default, getBatchNumbers2);
-router5.get("/slab/:gstNo", encryptResponse_default, getSlabLimit2);
-router5.get("/gst/:gstNo", encryptResponse_default, getPOByGST2);
-router5.post("/assign/bulk", bulkAssignPurchaseOrders2);
-router5.get("/assignment-history/:poId", getPurchaseOrderAssignmentHistory2);
-router5.get("/approvals/pending", encryptResponse_default, getPendingApprovalsApi);
-router5.post("/:id/approve", approvePoApi);
-router5.post("/:id/reject", rejectPoApi);
-router5.get("/", encryptResponse_default, getAllPOs);
-router5.get("/:id", encryptResponse_default, getPOById);
-router5.put("/:id", updatePO);
-router5.delete("/:id", authorize(["admin"]), deletePO);
-router5.post(
+var router6 = (0, import_express6.Router)();
+router6.use(protect);
+router6.post("/create", authorize(["admin", "manager"]), createPO);
+router6.get("/analytics", encryptResponse_default, authorize(["admin", "manager"]), getAnalytics);
+router6.get("/gstr", encryptResponse_default, getGstrList);
+router6.get("/count", encryptResponse_default, getPOCount);
+router6.get("/export", exportPurchaseOrders);
+router6.get("/md-approved", encryptResponse_default, getMDApproved);
+router6.get("/ppic-approved-batches", encryptResponse_default, getPPICApprovedBatches2);
+router6.get("/batch-numbers", encryptResponse_default, getBatchNumbers2);
+router6.get("/slab/:gstNo", encryptResponse_default, getSlabLimit2);
+router6.get("/gst/:gstNo", encryptResponse_default, getPOByGST2);
+router6.post("/assign/bulk", bulkAssignPurchaseOrders2);
+router6.get("/assignment-history/:poId", getPurchaseOrderAssignmentHistory2);
+router6.get("/approvals/pending", encryptResponse_default, getPendingApprovalsApi);
+router6.post("/:id/approve", approvePoApi);
+router6.post("/:id/reject", rejectPoApi);
+router6.get("/", encryptResponse_default, getAllPOs);
+router6.get("/:id", encryptResponse_default, getPOById);
+router6.put("/:id", updatePO);
+router6.delete("/:id", authorize(["admin"]), deletePO);
+router6.post(
   "/import",
   upload.single("file"),
   importPurchaseOrders
 );
-var purchaseOrder_routes_default = router5;
+var purchaseOrder_routes_default = router6;
 
 // src/modules/designer/designer.routes.ts
-var import_express6 = __toESM(require_express2());
+var import_express7 = __toESM(require_express2());
+
+// src/modules/designer/designer.service.ts
+init_postgres();
 
 // src/common/utils/s3.ts
 var import_client_s3 = require("@aws-sdk/client-s3");
@@ -143507,22 +144690,24 @@ var actionOnDesign2 = async (req, res, next) => {
 };
 
 // src/modules/designer/designer.routes.ts
-var router6 = import_express6.default.Router();
-router6.get("/", protect, encryptResponse_default, getDesignerList2);
-router6.put("/:poId/specs", protect, updateDesignSpecs2);
-router6.patch(
+var router7 = import_express7.default.Router();
+router7.get("/", protect, encryptResponse_default, getDesignerList2);
+router7.put("/:poId/specs", protect, updateDesignSpecs2);
+router7.patch(
   "/:poId/design",
   protect,
   upload.single("file"),
   uploadDesign2
 );
-router6.post("/:poId/action", protect, actionOnDesign2);
-var designer_routes_default = router6;
+router7.post("/:poId/action", protect, actionOnDesign2);
+var designer_routes_default = router7;
 
 // src/modules/accounts/accounts.routes.ts
-var import_express7 = __toESM(require_express2());
+var import_express8 = __toESM(require_express2());
 
 // src/modules/accounts/accounts.service.ts
+init_postgres();
+init_redis();
 var import_crypto5 = require("crypto");
 var CACHE_TTL2 = 60;
 var getCacheKey = (prefix, payload) => {
@@ -143909,16 +145094,19 @@ var raisePoDispute2 = async (req, res) => {
 };
 
 // src/modules/accounts/accounts.routes.ts
-var router7 = import_express7.default.Router();
-router7.get("/", protect, encryptResponse_default, getBills2);
-router7.get("/po/:poId/bills", protect, encryptResponse_default, getBillsByPo2);
-router7.post("/", protect, createBill2);
-router7.post("/:billId/dispute", protect, raiseDispute2);
-router7.post("/po/:poId/dispute", protect, raisePoDispute2);
-var accounts_routes_default = router7;
+var router8 = import_express8.default.Router();
+router8.get("/", protect, encryptResponse_default, getBills2);
+router8.get("/po/:poId/bills", protect, encryptResponse_default, getBillsByPo2);
+router8.post("/", protect, createBill2);
+router8.post("/:billId/dispute", protect, raiseDispute2);
+router8.post("/po/:poId/dispute", protect, raisePoDispute2);
+var accounts_routes_default = router8;
 
 // src/modules/ppic/ppic.routes.ts
-var import_express8 = __toESM(require_express2());
+var import_express9 = __toESM(require_express2());
+
+// src/modules/ppic/ppic.service.ts
+init_postgres();
 
 // node_modules/uuid/dist-node/stringify.js
 var byteToHex = [];
@@ -145615,30 +146803,31 @@ var PPICController = class {
 var ppicController = new PPICController();
 
 // src/modules/ppic/ppic.routes.ts
-var router8 = (0, import_express8.Router)();
-router8.use(protect);
-router8.post("/import", upload.single("file"), ppicController.bulkImport);
-router8.post("/detect-mapping", upload.single("file"), ppicController.detectMapping);
-router8.post("/test-mapping", ppicController.testMapping);
-router8.get("/batch/:batchId", ppicController.getBatchStatus);
-router8.get("/po-fields", ppicController.getPOFields);
-router8.patch("/pos/bulk/mark-rfd", ppicController.bulkMarkRFD);
-router8.patch("/pos/bulk/mark-cancelled", ppicController.bulkMarkCancelled);
-router8.patch("/pos/bulk/mark-dispatched", ppicController.bulkMarkDispatched);
-router8.get("/export", ppicController.exportPOs);
-router8.get("/pos/search", encryptResponse_default, ppicController.searchPOs);
-router8.get("/pos", encryptResponse_default, ppicController.getAllPOs);
-router8.get("/pos/:id", encryptResponse_default, ppicController.getPOById);
-router8.patch("/pos/:id/mark-rfd", ppicController.markRFD);
-router8.patch("/pos/:id/mark-cancelled", ppicController.markCancelled);
-router8.patch("/pos/:id/mark-dispatched", ppicController.markDispatched);
-var ppic_routes_default = router8;
+var router9 = (0, import_express9.Router)();
+router9.use(protect);
+router9.post("/import", upload.single("file"), ppicController.bulkImport);
+router9.post("/detect-mapping", upload.single("file"), ppicController.detectMapping);
+router9.post("/test-mapping", ppicController.testMapping);
+router9.get("/batch/:batchId", ppicController.getBatchStatus);
+router9.get("/po-fields", ppicController.getPOFields);
+router9.patch("/pos/bulk/mark-rfd", ppicController.bulkMarkRFD);
+router9.patch("/pos/bulk/mark-cancelled", ppicController.bulkMarkCancelled);
+router9.patch("/pos/bulk/mark-dispatched", ppicController.bulkMarkDispatched);
+router9.get("/export", ppicController.exportPOs);
+router9.get("/pos/search", encryptResponse_default, ppicController.searchPOs);
+router9.get("/pos", encryptResponse_default, ppicController.getAllPOs);
+router9.get("/pos/:id", encryptResponse_default, ppicController.getPOById);
+router9.patch("/pos/:id/mark-rfd", ppicController.markRFD);
+router9.patch("/pos/:id/mark-cancelled", ppicController.markCancelled);
+router9.patch("/pos/:id/mark-dispatched", ppicController.markDispatched);
+var ppic_routes_default = router9;
 
 // src/modules/master/master.routes.ts
-var import_express9 = __toESM(require_express2());
+var import_express10 = __toESM(require_express2());
 
 // src/modules/master/master.service.ts
 var import_client4 = __toESM(require_default2());
+init_postgres();
 var import_xlsx3 = __toESM(require_xlsx());
 var import_fs = __toESM(require("fs"));
 var import_win32 = __toESM(require("path/win32"));
@@ -146349,62 +147538,63 @@ var upload2 = (0, import_multer2.default)({
 });
 
 // src/modules/master/master.routes.ts
-var router9 = (0, import_express9.Router)();
-router9.use(protect);
+var router10 = (0, import_express10.Router)();
+router10.use(protect);
 var masterController = new MasterController();
-router9.post(
+router10.post(
   "/change-part-master",
   upload2.single("partPicture"),
   masterController.createChangePartMaster
 );
-router9.get("/change-part-master", masterController.getAllChangePartMasters);
-router9.get("/change-part-master/:id", masterController.getChangePartMasterById);
-router9.put("/change-part-master/:id", authorize(["admin", "manager"]), masterController.updateChangePartMaster);
-router9.delete("/change-part-master/:id", authorize(["admin"]), masterController.deleteChangePartMaster);
-router9.post("/change-part-master/bulk-port", upload2.fields([
+router10.get("/change-part-master", masterController.getAllChangePartMasters);
+router10.get("/change-part-master/:id", masterController.getChangePartMasterById);
+router10.put("/change-part-master/:id", authorize(["admin", "manager"]), masterController.updateChangePartMaster);
+router10.delete("/change-part-master/:id", authorize(["admin"]), masterController.deleteChangePartMaster);
+router10.post("/change-part-master/bulk-port", upload2.fields([
   { name: "file", maxCount: 1 },
   // Excel
   { name: "images", maxCount: 500 }
   // Pictures
 ]), authorize(["admin", "manager"]), masterController.bulkPortChangePartMaster);
-router9.post("/composition-master", masterController.createCompositionMaster);
-router9.get("/composition-master", masterController.getAllCompositionMasters);
-router9.get("/composition-master/:id", masterController.getCompositionMasterById);
-router9.put("/composition-master/:id", masterController.updateCompositionMaster);
-router9.delete("/composition-master/:id", masterController.deleteCompositionMaster);
-router9.post(
+router10.post("/composition-master", masterController.createCompositionMaster);
+router10.get("/composition-master", masterController.getAllCompositionMasters);
+router10.get("/composition-master/:id", masterController.getCompositionMasterById);
+router10.put("/composition-master/:id", masterController.updateCompositionMaster);
+router10.delete("/composition-master/:id", masterController.deleteCompositionMaster);
+router10.post(
   "/composition-master/bulk",
   upload2.single("file"),
   masterController.bulkCreateCompositionMasters
 );
-router9.post("/api-master", masterController.createApiMaster);
-router9.get("/api-master", masterController.getAllApiMasters);
-router9.get("/api-master/:id", masterController.getApiMasterById);
-router9.put("/api-master/:id", authorize(["admin", "manager"]), masterController.updateApiMaster);
-router9.delete("/api-master/:id", authorize(["admin"]), masterController.deleteApiMaster);
-router9.post(
+router10.post("/api-master", masterController.createApiMaster);
+router10.get("/api-master", masterController.getAllApiMasters);
+router10.get("/api-master/:id", masterController.getApiMasterById);
+router10.put("/api-master/:id", authorize(["admin", "manager"]), masterController.updateApiMaster);
+router10.delete("/api-master/:id", authorize(["admin"]), masterController.deleteApiMaster);
+router10.post(
   "/api-master/bulk-import",
   upload2.single("file"),
   authorize(["admin", "manager"]),
   masterController.bulkImportApiMaster
 );
-router9.post("/vendor-master", masterController.createVendorMaster);
-router9.get("/vendor-master", masterController.getAllVendorMasters);
-router9.get("/vendor-master/:id", masterController.getVendorMasterById);
-router9.put("/vendor-master/:id", authorize(["admin", "manager"]), masterController.updateVendorMaster);
-router9.delete("/vendor-master/:id", authorize(["admin"]), masterController.deleteVendorMaster);
-router9.post(
+router10.post("/vendor-master", masterController.createVendorMaster);
+router10.get("/vendor-master", masterController.getAllVendorMasters);
+router10.get("/vendor-master/:id", masterController.getVendorMasterById);
+router10.put("/vendor-master/:id", authorize(["admin", "manager"]), masterController.updateVendorMaster);
+router10.delete("/vendor-master/:id", authorize(["admin"]), masterController.deleteVendorMaster);
+router10.post(
   "/vendor-master/bulk-import",
   upload2.single("file"),
   authorize(["admin", "manager"]),
   masterController.bulkImportVendorMaster
 );
-var master_routes_default = router9;
+var master_routes_default = router10;
 
 // src/modules/ppic/ppic-advanced-filter.routes.ts
-var import_express10 = __toESM(require_express2());
+var import_express11 = __toESM(require_express2());
 
 // src/modules/ppic/ppic-advanced-filter.service.ts
+init_postgres();
 var PPICAdvancedFilterService = class {
   /**
    * Convert array filter format to object format
@@ -146948,33 +148138,34 @@ var PPICAdvancedFilterController = class {
 var ppicAdvancedFilterController = new PPICAdvancedFilterController();
 
 // src/modules/ppic/ppic-advanced-filter.routes.ts
-var router10 = (0, import_express10.Router)();
-router10.post(
+var router11 = (0, import_express11.Router)();
+router11.post(
   "/filter/advanced",
   ppicAdvancedFilterController.filterAdvanced.bind(ppicAdvancedFilterController)
 );
-router10.get(
+router11.get(
   "/filter/query",
   ppicAdvancedFilterController.filterWithQueryParams.bind(ppicAdvancedFilterController)
 );
-router10.get(
+router11.get(
   "/filter/fields",
   ppicAdvancedFilterController.getFilterFields.bind(ppicAdvancedFilterController)
 );
-router10.post(
+router11.post(
   "/filter/validate",
   ppicAdvancedFilterController.validateFilter.bind(ppicAdvancedFilterController)
 );
-router10.get(
+router11.get(
   "/filter/presets",
   ppicAdvancedFilterController.getFilterPresets.bind(ppicAdvancedFilterController)
 );
-var ppic_advanced_filter_routes_default = router10;
+var ppic_advanced_filter_routes_default = router11;
 
 // src/modules/lead/lead.routes.ts
-var import_express11 = __toESM(require_express2());
+var import_express12 = __toESM(require_express2());
 
 // src/modules/lead/lead.service.ts
+init_postgres();
 var bulkAssignLeadsToEmployees = async (assignments, adminId) => {
   const employeeIds = [...new Set(assignments.map((a) => a.employeeId))];
   const employees = await postgres_default.employee.findMany({
@@ -147347,6 +148538,9 @@ var getLeadStats = async () => {
   };
 };
 
+// src/modules/lead/lead.controller.ts
+init_postgres();
+
 // src/modules/lead/lead.validation.ts
 var flexibleDatetime = external_exports.string().refine((val) => {
   try {
@@ -147552,23 +148746,23 @@ var getStats = async (req, res) => {
 };
 
 // src/modules/lead/lead.routes.ts
-var router11 = (0, import_express11.Router)();
-router11.post("/generate", protect, generateLeads);
-router11.get("/unassigned", protect, getUnassignedLeads2);
-router11.post("/assign", protect, assignLeads);
-router11.post("/bulk-assign", protect, bulkAssignLeads);
-router11.get("/my-leads", protect, getMyLeads);
-router11.get("/", protect, getAllLeads2);
-router11.get("/stats", protect, getStats);
-router11.get("/:id", protect, getLead);
-router11.put("/:id", protect, updateLead);
-router11.post("/:leadId/follow-up", protect, addFollowUp);
-router11.get("/:leadId/follow-ups", protect, getFollowUps);
-router11.put("/follow-up/:followUpId", protect, updateFollowUp2);
-var lead_routes_default = router11;
+var router12 = (0, import_express12.Router)();
+router12.post("/generate", protect, generateLeads);
+router12.get("/unassigned", protect, getUnassignedLeads2);
+router12.post("/assign", protect, assignLeads);
+router12.post("/bulk-assign", protect, bulkAssignLeads);
+router12.get("/my-leads", protect, getMyLeads);
+router12.get("/", protect, getAllLeads2);
+router12.get("/stats", protect, getStats);
+router12.get("/:id", protect, getLead);
+router12.put("/:id", protect, updateLead);
+router12.post("/:leadId/follow-up", protect, addFollowUp);
+router12.get("/:leadId/follow-ups", protect, getFollowUps);
+router12.put("/follow-up/:followUpId", protect, updateFollowUp2);
+var lead_routes_default = router12;
 
 // src/modules/hr/hr.routes.ts
-var import_express12 = __toESM(require_express2());
+var import_express13 = __toESM(require_express2());
 
 // src/modules/hr/hr.validation.ts
 var LeaveTypeEnum = external_exports.enum([
@@ -147878,6 +149072,7 @@ var CreateBenefitSchema = external_exports.object({
 });
 
 // src/modules/hr/leave/leave.service.ts
+init_postgres();
 var leaveService = {
   async createLeaveRequest(data) {
     if (!data.employeeId || !data.requestedBy) {
@@ -148055,6 +149250,7 @@ var leaveService = {
 };
 
 // src/modules/hr/attendance/attendance.service.ts
+init_postgres();
 var attendanceService = {
   async recordAttendance(data, performedBy) {
     try {
@@ -148203,6 +149399,7 @@ var attendanceService = {
 };
 
 // src/modules/hr/payroll/payroll.service.ts
+init_postgres();
 var payrollService = {
   async createPayroll(data, createdBy) {
     try {
@@ -148344,6 +149541,7 @@ var payrollService = {
 };
 
 // src/modules/hr/documents/documents.service.ts
+init_postgres();
 var import_pdf = __toESM(require_pdf_extraction());
 var employeeDocumentService = {
   async uploadDocument(data) {
@@ -148457,6 +149655,7 @@ var employeeDocumentService = {
 };
 
 // src/modules/hr/shift/shift.service.ts
+init_postgres();
 var shiftService = {
   async assignShift(data) {
     try {
@@ -148556,6 +149755,7 @@ var shiftService = {
 };
 
 // src/modules/hr/training/training.service.ts
+init_postgres();
 var trainingService = {
   async enrollTraining(data) {
     try {
@@ -148665,6 +149865,7 @@ function calculateAverageScore(trainings) {
 }
 
 // src/modules/hr/hr.controller.ts
+init_postgres();
 var hrLeaveController = {
   async createLeaveRequest(req, res) {
     try {
@@ -148991,49 +150192,2217 @@ var hrTrainingController = {
 };
 
 // src/modules/hr/hr.routes.ts
-var router12 = (0, import_express12.Router)();
-router12.use(protect);
-router12.post("/leave/request", validate(CreateLeaveRequestSchema), hrLeaveController.createLeaveRequest);
-router12.get("/leave/requests", hrLeaveController.getLeaveRequests);
-router12.post("/leave/request/:id/approve", authorize(["admin", "manager"]), hrLeaveController.approveLeaveRequest);
-router12.post("/leave/request/:id/reject", authorize(["admin", "manager"]), hrLeaveController.rejectLeaveRequest);
-router12.get("/leave/balance/:employeeId", hrLeaveController.getLeaveBalance);
-router12.post("/attendance", validate(CreateAttendanceSchema), authorize(["admin", "manager"]), hrAttendanceController.recordAttendance);
-router12.put("/attendance/:id", validate(UpdateAttendanceSchema), authorize(["admin", "manager"]), hrAttendanceController.updateAttendance);
-router12.get("/attendance/report", hrAttendanceController.getAttendanceReport);
-router12.post("/attendance/bulk-import", authorize(["admin"]), hrAttendanceController.bulkImportAttendance);
-router12.post("/payroll", validate(CreatePayrollSchema), authorize(["admin", "manager"]), hrPayrollController.createPayroll);
-router12.post("/payroll/:id/approve", validate(ApprovePayrollSchema), authorize(["admin"]), hrPayrollController.approvePayroll);
-router12.post("/payroll/:id/process", authorize(["admin"]), hrPayrollController.processPayroll);
-router12.get("/payroll/records", hrPayrollController.getPayrollRecords);
-router12.post(
+var router13 = (0, import_express13.Router)();
+router13.use(protect);
+router13.post("/leave/request", validate(CreateLeaveRequestSchema), hrLeaveController.createLeaveRequest);
+router13.get("/leave/requests", hrLeaveController.getLeaveRequests);
+router13.post("/leave/request/:id/approve", authorize(["admin", "manager"]), hrLeaveController.approveLeaveRequest);
+router13.post("/leave/request/:id/reject", authorize(["admin", "manager"]), hrLeaveController.rejectLeaveRequest);
+router13.get("/leave/balance/:employeeId", hrLeaveController.getLeaveBalance);
+router13.post("/attendance", validate(CreateAttendanceSchema), authorize(["admin", "manager"]), hrAttendanceController.recordAttendance);
+router13.put("/attendance/:id", validate(UpdateAttendanceSchema), authorize(["admin", "manager"]), hrAttendanceController.updateAttendance);
+router13.get("/attendance/report", hrAttendanceController.getAttendanceReport);
+router13.post("/attendance/bulk-import", authorize(["admin"]), hrAttendanceController.bulkImportAttendance);
+router13.post("/payroll", validate(CreatePayrollSchema), authorize(["admin", "manager"]), hrPayrollController.createPayroll);
+router13.post("/payroll/:id/approve", validate(ApprovePayrollSchema), authorize(["admin"]), hrPayrollController.approvePayroll);
+router13.post("/payroll/:id/process", authorize(["admin"]), hrPayrollController.processPayroll);
+router13.get("/payroll/records", hrPayrollController.getPayrollRecords);
+router13.post(
   "/documents/upload",
   validate(CreateEmployeeDocumentSchema),
   hrDocumentController.uploadDocument
 );
-router12.put("/documents/:id/verify", authorize(["admin", "manager"]), hrDocumentController.verifyDocument);
-router12.get("/documents/employee/:employeeId", hrDocumentController.getEmployeeDocuments);
-router12.post("/documents/extract", hrDocumentController.extractDocumentData);
-router12.post("/shift/assign", validate(CreateEmployeeShiftSchema), authorize(["admin", "manager"]), hrShiftController.assignShift);
-router12.get("/shift/current/:employeeId", hrShiftController.getEmployeeShift);
-router12.get("/shift/history/:employeeId", hrShiftController.getShiftHistory);
-router12.put("/shift/:id", authorize(["admin", "manager"]), hrShiftController.updateShift);
-router12.post("/training/enroll", validate(CreateTrainingSchema), authorize(["admin", "manager"]), hrTrainingController.enrollTraining);
-router12.put(
+router13.put("/documents/:id/verify", authorize(["admin", "manager"]), hrDocumentController.verifyDocument);
+router13.get("/documents/employee/:employeeId", hrDocumentController.getEmployeeDocuments);
+router13.post("/documents/extract", hrDocumentController.extractDocumentData);
+router13.post("/shift/assign", validate(CreateEmployeeShiftSchema), authorize(["admin", "manager"]), hrShiftController.assignShift);
+router13.get("/shift/current/:employeeId", hrShiftController.getEmployeeShift);
+router13.get("/shift/history/:employeeId", hrShiftController.getShiftHistory);
+router13.put("/shift/:id", authorize(["admin", "manager"]), hrShiftController.updateShift);
+router13.post("/training/enroll", validate(CreateTrainingSchema), authorize(["admin", "manager"]), hrTrainingController.enrollTraining);
+router13.put(
   "/training/:id/complete",
   validate(UpdateTrainingSchema),
   authorize(["admin", "manager"]),
   hrTrainingController.completeTraining
 );
-router12.get("/training/history/:employeeId", hrTrainingController.getEmployeeTrainingHistory);
-router12.get("/training/stats/:employeeId", hrTrainingController.getTrainingStats);
-var hr_routes_default = router12;
+router13.get("/training/history/:employeeId", hrTrainingController.getEmployeeTrainingHistory);
+router13.get("/training/stats/:employeeId", hrTrainingController.getTrainingStats);
+var hr_routes_default = router13;
+
+// src/modules/adminControl/adminControl.routes.ts
+var import_express14 = __toESM(require_express2());
+
+// src/modules/adminControl/adminControl.service.ts
+init_postgres();
+var approveEmployee2 = async (employeeId, approverId, approverNotes) => {
+  const employee = await postgres_default.employee.findUnique({
+    where: { id: employeeId }
+  });
+  if (!employee) throw new Error("Employee not found");
+  if (employee.approvedForCredentials === "Approved") throw new Error("Employee already approved");
+  const updated = await postgres_default.employee.update({
+    where: { id: employeeId },
+    data: {
+      approvedForCredentials: "Approved",
+      status: "Active",
+      approvedBy: approverId,
+      approvedAt: /* @__PURE__ */ new Date()
+    }
+  });
+  await logAction({
+    action: "EMPLOYEE_APPROVED",
+    performedBy: approverId,
+    targetId: employeeId,
+    details: {
+      approverNotes,
+      employeeName: employee.name,
+      email: employee.email
+    }
+  });
+  return updated;
+};
+var rejectEmployee3 = async (employeeId, approverId, rejectionReason) => {
+  const employee = await postgres_default.employee.findUnique({
+    where: { id: employeeId }
+  });
+  if (!employee) throw new Error("Employee not found");
+  const updated = await postgres_default.employee.update({
+    where: { id: employeeId },
+    data: {
+      approvedForCredentials: "Pending",
+      status: "Inactive",
+      rejectionReason,
+      approvedBy: approverId,
+      approvedAt: /* @__PURE__ */ new Date()
+    }
+  });
+  await logAction({
+    action: "EMPLOYEE_REJECTED",
+    performedBy: approverId,
+    targetId: employeeId,
+    details: {
+      rejectionReason,
+      employeeName: employee.name
+    }
+  });
+  return updated;
+};
+var bulkApproveEmployees = async (employeeIds, approverId, approverNotes) => {
+  const updated = await postgres_default.employee.updateMany({
+    where: { id: { in: employeeIds } },
+    data: {
+      approvedForCredentials: "Approved",
+      status: "Active",
+      approvedBy: approverId,
+      approvedAt: /* @__PURE__ */ new Date()
+    }
+  });
+  await logAction({
+    action: "BULK_EMPLOYEES_APPROVED",
+    performedBy: approverId,
+    targetId: JSON.stringify(employeeIds),
+    details: {
+      approverNotes,
+      count: updated.count
+    }
+  });
+  return updated;
+};
+var updateEmployeeRole = async (employeeId, newRole, department, approverId, approverNotes) => {
+  const employee = await postgres_default.employee.findUnique({
+    where: { id: employeeId }
+  });
+  if (!employee) throw new Error("Employee not found");
+  const updated = await postgres_default.employee.update({
+    where: { id: employeeId },
+    data: {
+      role: newRole,
+      department
+    }
+  });
+  await logAction({
+    action: "EMPLOYEE_ROLE_UPDATED",
+    performedBy: approverId,
+    targetId: employeeId,
+    details: {
+      oldRole: employee.role,
+      newRole,
+      department,
+      approverNotes
+    }
+  });
+  return updated;
+};
+var getPendingEmployeeApprovals = async () => {
+  return postgres_default.employee.findMany({
+    where: {
+      approvedForCredentials: "Pending",
+      status: "Pending"
+    },
+    select: {
+      id: true,
+      name: true,
+      email: true,
+      phone: true,
+      role: true,
+      department: true,
+      createdAt: true
+    }
+  });
+};
+var getEmployeesByStatus = async (status) => {
+  return postgres_default.employee.findMany({
+    where: { status },
+    select: {
+      id: true,
+      name: true,
+      email: true,
+      role: true,
+      department: true,
+      status: true,
+      createdAt: true
+    }
+  });
+};
+var bulkUpdateEmployeeStatus = async (employeeIds, newStatus, approverId, reason) => {
+  const updated = await postgres_default.employee.updateMany({
+    where: { id: { in: employeeIds } },
+    data: { status: newStatus }
+  });
+  await logAction({
+    action: "BULK_EMPLOYEE_STATUS_UPDATED",
+    performedBy: approverId,
+    targetId: JSON.stringify(employeeIds),
+    details: {
+      newStatus,
+      reason,
+      count: updated.count
+    }
+  });
+  return updated;
+};
+var approveCustomerCredit = async (customerId, approvedCreditLimit, approverId, approverNotes) => {
+  const customer = await postgres_default.customer.findUnique({
+    where: { id: customerId }
+  });
+  if (!customer) throw new Error("Customer not found");
+  const updated = await postgres_default.customer.update({
+    where: { id: customerId },
+    data: {
+      creditLimit: approvedCreditLimit,
+      creditApprovalStatus: "Approved"
+    }
+  });
+  await logAction({
+    action: "CREDIT_APPROVED",
+    performedBy: approverId,
+    targetId: customerId,
+    details: {
+      customerName: customer.customerName,
+      approvedCreditLimit,
+      approverNotes
+    }
+  });
+  return updated;
+};
+var rejectCustomerCredit = async (customerId, approverId, rejectionReason, approverNotes) => {
+  const customer = await postgres_default.customer.findUnique({
+    where: { id: customerId }
+  });
+  if (!customer) throw new Error("Customer not found");
+  const updated = await postgres_default.customer.update({
+    where: { id: customerId },
+    data: {
+      creditApprovalStatus: "Rejected",
+      creditLimit: 0
+    }
+  });
+  await logAction({
+    action: "CREDIT_REJECTED",
+    performedBy: approverId,
+    targetId: customerId,
+    details: {
+      customerName: customer.customerName,
+      rejectionReason,
+      approverNotes
+    }
+  });
+  return updated;
+};
+var bulkCreditApproval = async (approvals, approverId, approverNotes) => {
+  const results = await Promise.all(
+    approvals.map(
+      ({ customerId, approvedCreditLimit }) => approveCustomerCredit(customerId, approvedCreditLimit, approverId, approverNotes)
+    )
+  );
+  await logAction({
+    action: "BULK_CREDIT_APPROVED",
+    performedBy: approverId,
+    targetId: JSON.stringify(approvals),
+    details: {
+      count: results.length,
+      approverNotes
+    }
+  });
+  return results;
+};
+var getPendingCreditApprovals = async () => {
+  return postgres_default.customer.findMany({
+    where: { creditApprovalStatus: "Pending" },
+    select: {
+      id: true,
+      customerName: true,
+      gstrNo: true,
+      creditLimit: true,
+      contactEmail: true,
+      contactPhone: true,
+      createdAt: true
+    }
+  });
+};
+var getBlacklistedCustomers = async () => {
+  return postgres_default.customer.findMany({
+    where: { isBlacklisted: true },
+    select: {
+      id: true,
+      customerName: true,
+      gstrNo: true,
+      blacklistReason: true,
+      blacklistedAt: true,
+      contactEmail: true
+    }
+  });
+};
+var blacklistCustomers = async (customerIds, reason, approverId, approverNotes) => {
+  const updated = await postgres_default.customer.updateMany({
+    where: { id: { in: customerIds } },
+    data: {
+      isBlacklisted: true,
+      blacklistReason: reason,
+      blacklistedAt: /* @__PURE__ */ new Date()
+    }
+  });
+  await logAction({
+    action: "CUSTOMERS_BLACKLISTED",
+    performedBy: approverId,
+    targetId: JSON.stringify(customerIds),
+    details: {
+      reason,
+      approverNotes,
+      count: updated.count
+    }
+  });
+  return updated;
+};
+var unblacklistCustomers = async (customerIds, approverId, reason) => {
+  const updated = await postgres_default.customer.updateMany({
+    where: { id: { in: customerIds } },
+    data: {
+      isBlacklisted: false,
+      blacklistReason: null,
+      blacklistedAt: null
+    }
+  });
+  await logAction({
+    action: "CUSTOMERS_UNBLACKLISTED",
+    performedBy: approverId,
+    targetId: JSON.stringify(customerIds),
+    details: {
+      reason,
+      count: updated.count
+    }
+  });
+  return updated;
+};
+var approvePurchaseOrder = async (purchaseOrderId, approvalType, approverId, approverNotes) => {
+  const po = await postgres_default.purchaseOrder.findUnique({
+    where: { id: purchaseOrderId }
+  });
+  if (!po) throw new Error("Purchase Order not found");
+  const updateData = {};
+  if (approvalType === "md") updateData.mdApproval = "Approved";
+  else if (approvalType === "accounts") updateData.accountsApproval = "Approved";
+  else if (approvalType === "designer") updateData.designerApproval = "Approved";
+  else if (approvalType === "ppic") updateData.ppicApproval = "Approved";
+  if (updateData.mdApproval === "Approved" || po.mdApproval === "Approved") {
+    updateData.overallStatus = "Processing";
+  }
+  const updated = await postgres_default.purchaseOrder.update({
+    where: { id: purchaseOrderId },
+    data: updateData
+  });
+  await logAction({
+    action: "PO_APPROVED",
+    performedBy: approverId,
+    targetId: purchaseOrderId,
+    details: {
+      approvalType,
+      poNo: po.poNo,
+      approverNotes
+    }
+  });
+  return updated;
+};
+var rejectPurchaseOrder = async (purchaseOrderId, approverId, rejectionReason, approverNotes) => {
+  const po = await postgres_default.purchaseOrder.findUnique({
+    where: { id: purchaseOrderId }
+  });
+  if (!po) throw new Error("Purchase Order not found");
+  const updated = await postgres_default.purchaseOrder.update({
+    where: { id: purchaseOrderId },
+    data: {
+      overallStatus: "Rejected"
+    }
+  });
+  await logAction({
+    action: "PO_REJECTED",
+    performedBy: approverId,
+    targetId: purchaseOrderId,
+    details: {
+      poNo: po.poNo,
+      rejectionReason,
+      approverNotes
+    }
+  });
+  return updated;
+};
+var getPendingPurchaseOrders = async (approvalType) => {
+  const where = {};
+  if (approvalType === "md") where.mdApproval = "Pending";
+  else if (approvalType === "accounts") where.accountsApproval = "Pending";
+  else if (approvalType === "designer") where.designerApproval = "Pending";
+  else if (approvalType === "ppic") where.ppicApproval = "Pending";
+  return postgres_default.purchaseOrder.findMany({
+    where,
+    select: {
+      id: true,
+      poNo: true,
+      poDate: true,
+      partyName: true,
+      amount: true,
+      overallStatus: true,
+      mdApproval: true,
+      accountsApproval: true,
+      designerApproval: true,
+      ppicApproval: true,
+      createdAt: true
+    }
+  });
+};
+var bulkApprovePurchaseOrders = async (purchaseOrderIds, approvalType, approverId, approverNotes) => {
+  const updateData = {};
+  if (approvalType === "md") updateData.mdApproval = "Approved";
+  else if (approvalType === "accounts") updateData.accountsApproval = "Approved";
+  else if (approvalType === "designer") updateData.designerApproval = "Approved";
+  else if (approvalType === "ppic") updateData.ppicApproval = "Approved";
+  const updated = await postgres_default.purchaseOrder.updateMany({
+    where: { id: { in: purchaseOrderIds } },
+    data: updateData
+  });
+  await logAction({
+    action: "BULK_PO_APPROVED",
+    performedBy: approverId,
+    targetId: JSON.stringify(purchaseOrderIds),
+    details: {
+      approvalType,
+      approverNotes,
+      count: updated.count
+    }
+  });
+  return updated;
+};
+var bulkAssignCustomers3 = async (customerIds, assignedToEmployeeId, approverId, reason) => {
+  const assignmentHistories = await Promise.all(
+    customerIds.map(async (customerId) => {
+      const customer = await postgres_default.customer.findUnique({
+        where: { id: customerId },
+        select: { assignedToEmployeeId: true }
+      });
+      await postgres_default.customer.update({
+        where: { id: customerId },
+        data: {
+          assignedToEmployeeId,
+          assignedAt: /* @__PURE__ */ new Date()
+        }
+      });
+      return postgres_default.customerAssignmentHistory.create({
+        data: {
+          customerId,
+          assignedToEmployeeId,
+          assignedByEmployeeId: approverId,
+          previousEmployeeId: customer?.assignedToEmployeeId || null,
+          reason
+        }
+      });
+    })
+  );
+  await logAction({
+    action: "BULK_CUSTOMERS_ASSIGNED",
+    performedBy: approverId,
+    targetId: JSON.stringify(customerIds),
+    details: {
+      assignedToEmployeeId,
+      reason,
+      count: customerIds.length
+    }
+  });
+  return assignmentHistories;
+};
+var bulkAssignLeads2 = async (leadIds, assignedToEmployeeId, approverId, reason) => {
+  const leads = await postgres_default.lead.findMany({
+    where: { id: { in: leadIds } }
+  });
+  const assignmentHistories = await Promise.all(
+    leads.map(async (lead) => {
+      await postgres_default.lead.update({
+        where: { id: lead.id },
+        data: {
+          assignedToEmployeeId,
+          assignedAt: /* @__PURE__ */ new Date()
+        }
+      });
+      return postgres_default.leadAssignmentHistory.create({
+        data: {
+          leadId: lead.id,
+          assignedToEmployeeId,
+          assignedByEmployeeId: approverId,
+          notes: reason
+        }
+      });
+    })
+  );
+  await logAction({
+    action: "BULK_LEADS_ASSIGNED",
+    performedBy: approverId,
+    targetId: JSON.stringify(leadIds),
+    details: {
+      assignedToEmployeeId,
+      reason,
+      count: leadIds.length
+    }
+  });
+  return assignmentHistories;
+};
+var bulkAssignPurchaseOrders3 = async (purchaseOrderIds, assignedToEmployeeId, approverId, reason) => {
+  const assignmentHistories = await Promise.all(
+    purchaseOrderIds.map(async (poId) => {
+      const po = await postgres_default.purchaseOrder.findUnique({
+        where: { id: poId },
+        select: { assignedToEmployeeId: true }
+      });
+      await postgres_default.purchaseOrder.update({
+        where: { id: poId },
+        data: {
+          assignedToEmployeeId,
+          assignedAt: /* @__PURE__ */ new Date()
+        }
+      });
+      return postgres_default.purchaseOrderAssignmentHistory.create({
+        data: {
+          purchaseOrderId: poId,
+          assignedToEmployeeId,
+          assignedByEmployeeId: approverId,
+          previousEmployeeId: po?.assignedToEmployeeId || null,
+          reason
+        }
+      });
+    })
+  );
+  await logAction({
+    action: "BULK_POS_ASSIGNED",
+    performedBy: approverId,
+    targetId: JSON.stringify(purchaseOrderIds),
+    details: {
+      assignedToEmployeeId,
+      reason,
+      count: purchaseOrderIds.length
+    }
+  });
+  return assignmentHistories;
+};
+var getDashboardAnalytics = async (timeframe, department) => {
+  const now = /* @__PURE__ */ new Date();
+  let startDate = /* @__PURE__ */ new Date();
+  if (timeframe === "day") startDate.setDate(now.getDate() - 1);
+  else if (timeframe === "week") startDate.setDate(now.getDate() - 7);
+  else if (timeframe === "month") startDate.setMonth(now.getMonth() - 1);
+  else if (timeframe === "quarter") startDate.setMonth(now.getMonth() - 3);
+  else if (timeframe === "year") startDate.setFullYear(now.getFullYear() - 1);
+  const whereEmployee = department ? { department } : {};
+  const [
+    totalEmployees,
+    activeEmployees,
+    inactiveEmployees,
+    pendingApprovals,
+    totalCustomers,
+    blacklistedCustomers,
+    pendingCreditApprovals,
+    totalPurchaseOrders,
+    processingPOs,
+    totalLeads,
+    totalAttendance,
+    avgAttendanceRate
+  ] = await Promise.all([
+    postgres_default.employee.count({ where: whereEmployee }),
+    postgres_default.employee.count({ where: { ...whereEmployee, status: "Active" } }),
+    postgres_default.employee.count({ where: { ...whereEmployee, status: "Inactive" } }),
+    postgres_default.employee.count({
+      where: { ...whereEmployee, approvedForCredentials: "Pending" }
+    }),
+    postgres_default.customer.count(),
+    postgres_default.customer.count({ where: { isBlacklisted: true } }),
+    postgres_default.customer.count({ where: { creditApprovalStatus: "Pending" } }),
+    postgres_default.purchaseOrder.count(),
+    postgres_default.purchaseOrder.count({
+      where: { overallStatus: "Processing" }
+    }),
+    postgres_default.lead.count(),
+    postgres_default.attendance.count({ where: { attendanceDate: { gte: startDate } } }),
+    postgres_default.attendance.count({
+      where: {
+        attendanceDate: { gte: startDate },
+        status: "Present"
+      }
+    })
+  ]);
+  const employeePerformance = await getTopPerformingEmployees(5, department);
+  return {
+    timeframe,
+    period: { startDate, endDate: now },
+    employees: {
+      total: totalEmployees,
+      active: activeEmployees,
+      inactive: inactiveEmployees,
+      pendingApprovals
+    },
+    customers: {
+      total: totalCustomers,
+      blacklisted: blacklistedCustomers,
+      pendingCreditApprovals
+    },
+    purchaseOrders: {
+      total: totalPurchaseOrders,
+      processing: processingPOs
+    },
+    leads: {
+      total: totalLeads
+    },
+    attendance: {
+      total: totalAttendance,
+      presentCount: avgAttendanceRate,
+      rate: totalAttendance > 0 ? avgAttendanceRate / totalAttendance * 100 : 0
+    },
+    topPerformers: employeePerformance
+  };
+};
+var getTopPerformingEmployees = async (limit = 5, department) => {
+  return postgres_default.employee.findMany({
+    where: {
+      ...department && { department },
+      status: "Active"
+    },
+    include: {
+      assignedCustomers: true,
+      assignedLeads: true,
+      assignedPurchaseOrders: true
+    },
+    take: limit,
+    orderBy: { createdAt: "desc" }
+  });
+};
+var getSystemStatistics = async () => {
+  const [
+    totalEmployees,
+    totalCustomers,
+    totalPOs,
+    totalLeads,
+    totalTodos,
+    totalLeaveRequests,
+    totalAttendanceRecords
+  ] = await Promise.all([
+    postgres_default.employee.count(),
+    postgres_default.customer.count(),
+    postgres_default.purchaseOrder.count(),
+    postgres_default.lead.count(),
+    postgres_default.todo.count(),
+    postgres_default.leaveRequest.count(),
+    postgres_default.attendance.count()
+  ]);
+  return {
+    employees: totalEmployees,
+    customers: totalCustomers,
+    purchaseOrders: totalPOs,
+    leads: totalLeads,
+    todos: totalTodos,
+    leaveRequests: totalLeaveRequests,
+    attendanceRecords: totalAttendanceRecords
+  };
+};
+var getAuditLogs = async (action, performedBy, targetId, startDate, endDate, limit = 50, offset = 0) => {
+  const where = {};
+  if (action) where.action = { contains: action, mode: "insensitive" };
+  if (performedBy) where.performedBy = performedBy;
+  if (targetId) where.targetId = targetId;
+  if (startDate || endDate) {
+    where.timestamp = {};
+    if (startDate) where.timestamp.gte = startDate;
+    if (endDate) where.timestamp.lte = endDate;
+  }
+  const [logs, total] = await Promise.all([
+    postgres_default.auditLog.findMany({
+      where,
+      orderBy: { timestamp: "desc" },
+      take: limit,
+      skip: offset
+    }),
+    postgres_default.auditLog.count({ where })
+  ]);
+  return { logs, total, limit, offset };
+};
+var createDesignation = async (data, createdBy) => {
+  const designation = await postgres_default.designation.create({
+    data
+  });
+  await logAction({
+    action: "DESIGNATION_CREATED",
+    performedBy: createdBy,
+    targetId: designation.id,
+    details: {
+      designation: designation.name
+    }
+  });
+  return designation;
+};
+var createDepartment = async (data, createdBy) => {
+  const department = await postgres_default.department.create({
+    data
+  });
+  await logAction({
+    action: "DEPARTMENT_CREATED",
+    performedBy: createdBy,
+    targetId: department.id,
+    details: {
+      department: department.name
+    }
+  });
+  return department;
+};
+var createVendorMaster = async (data, createdBy) => {
+  const vendor = await postgres_default.vendorMaster.create({
+    data
+  });
+  await logAction({
+    action: "VENDOR_CREATED",
+    performedBy: createdBy,
+    targetId: vendor.id,
+    details: {
+      vendor: vendor.vendorName
+    }
+  });
+  return vendor;
+};
+var getAllDesignations = async () => {
+  return postgres_default.designation.findMany({
+    where: { status: "Active" },
+    orderBy: { createdAt: "desc" }
+  });
+};
+var getAllDepartments = async () => {
+  return postgres_default.department.findMany({
+    where: { status: "Active" },
+    orderBy: { createdAt: "desc" }
+  });
+};
+var getAllVendors = async () => {
+  return postgres_default.vendorMaster.findMany({
+    orderBy: { createdAt: "desc" }
+  });
+};
+var approveLeaveBulk = async (leaveRequestIds, approverId, approverComments) => {
+  const updated = await postgres_default.leaveRequest.updateMany({
+    where: { id: { in: leaveRequestIds } },
+    data: {
+      status: "Approved",
+      approverEmployeeId: approverId,
+      approverComments,
+      approvedAt: /* @__PURE__ */ new Date()
+    }
+  });
+  await logAction({
+    action: "BULK_LEAVES_APPROVED",
+    performedBy: approverId,
+    targetId: JSON.stringify(leaveRequestIds),
+    details: {
+      approverComments,
+      count: updated.count
+    }
+  });
+  return updated;
+};
+var rejectLeaveBulk = async (leaveRequestIds, approverId, rejectionReason) => {
+  const updated = await postgres_default.leaveRequest.updateMany({
+    where: { id: { in: leaveRequestIds } },
+    data: {
+      status: "Rejected",
+      approverEmployeeId: approverId,
+      rejectionReason,
+      rejectedAt: /* @__PURE__ */ new Date()
+    }
+  });
+  await logAction({
+    action: "BULK_LEAVES_REJECTED",
+    performedBy: approverId,
+    targetId: JSON.stringify(leaveRequestIds),
+    details: {
+      rejectionReason,
+      count: updated.count
+    }
+  });
+  return updated;
+};
+var getPendingLeaves = async () => {
+  return postgres_default.leaveRequest.findMany({
+    where: { status: "Pending" },
+    include: {
+      employee: {
+        select: {
+          id: true,
+          name: true,
+          email: true,
+          department: true
+        }
+      }
+    },
+    orderBy: { createdAt: "desc" }
+  });
+};
+var resolveGrievance = async (grievanceId, resolutionNotes, status, resolvedBy) => {
+  const grievance = await postgres_default.grievance.findUnique({
+    where: { id: grievanceId }
+  });
+  if (!grievance) throw new Error("Grievance not found");
+  const updated = await postgres_default.grievance.update({
+    where: { id: grievanceId },
+    data: {
+      status,
+      resolution: resolutionNotes,
+      resolutionDate: /* @__PURE__ */ new Date()
+    }
+  });
+  await logAction({
+    action: "GRIEVANCE_RESOLVED",
+    performedBy: resolvedBy,
+    targetId: grievanceId,
+    details: {
+      status,
+      resolutionNotes
+    }
+  });
+  return updated;
+};
+var getPendingGrievances = async () => {
+  return postgres_default.grievance.findMany({
+    where: {
+      status: { in: ["Filed", "UnderReview", "InProgress"] }
+    },
+    include: {
+      employee: {
+        select: {
+          id: true,
+          name: true,
+          email: true,
+          department: true
+        }
+      },
+      assignedTo: {
+        select: {
+          id: true,
+          name: true,
+          email: true
+        }
+      }
+    },
+    orderBy: { submittedDate: "asc" }
+  });
+};
+var approvePayrollBulk = async (payrollIds, approverId, remarks) => {
+  const updated = await postgres_default.payroll.updateMany({
+    where: { id: { in: payrollIds } },
+    data: {
+      status: "Approved",
+      approvedBy: approverId,
+      approvedAt: /* @__PURE__ */ new Date(),
+      remarks
+    }
+  });
+  await logAction({
+    action: "BULK_PAYROLL_APPROVED",
+    performedBy: approverId,
+    targetId: JSON.stringify(payrollIds),
+    details: {
+      remarks,
+      count: updated.count
+    }
+  });
+  return updated;
+};
+var getPendingPayroll = async () => {
+  return postgres_default.payroll.findMany({
+    where: { status: "Submitted" },
+    include: {
+      employee: {
+        select: {
+          id: true,
+          name: true,
+          email: true,
+          department: true
+        }
+      }
+    },
+    orderBy: { payrollMonth: "desc" }
+  });
+};
+var deleteRecords = async (recordType, recordIds, deletedBy, reason) => {
+  let deleted;
+  switch (recordType) {
+    case "lead":
+      deleted = await postgres_default.lead.deleteMany({
+        where: { id: { in: recordIds } }
+      });
+      break;
+    case "todo":
+      deleted = await postgres_default.todo.deleteMany({
+        where: { id: { in: recordIds } }
+      });
+      break;
+    case "notification":
+      deleted = await postgres_default.notification.deleteMany({
+        where: { id: { in: recordIds } }
+      });
+      break;
+    case "auditlog":
+      deleted = await postgres_default.auditLog.deleteMany({
+        where: { id: { in: recordIds } }
+      });
+      break;
+    default:
+      throw new Error("Invalid record type");
+  }
+  await logAction({
+    action: "BULK_DELETE",
+    performedBy: deletedBy,
+    targetId: JSON.stringify(recordIds),
+    details: {
+      recordType,
+      reason,
+      count: deleted.count
+    }
+  });
+  return deleted;
+};
+var getEmployeeStatisticsByDepartment = async () => {
+  const departments = await postgres_default.department.findMany({
+    where: { status: "Active" }
+  });
+  const stats = await Promise.all(
+    departments.map(async (dept) => {
+      const total = await postgres_default.employee.count({
+        where: { department: dept.name }
+      });
+      const active = await postgres_default.employee.count({
+        where: { department: dept.name, status: "Active" }
+      });
+      return {
+        department: dept.name,
+        total,
+        active,
+        inactive: total - active
+      };
+    })
+  );
+  return stats;
+};
+var getLeadStatistics = async (startDate, endDate) => {
+  const where = {};
+  if (startDate || endDate) {
+    where.createdAt = {};
+    if (startDate) where.createdAt.gte = startDate;
+    if (endDate) where.createdAt.lte = endDate;
+  }
+  const statuses = ["New", "Contacted", "Interested", "Qualified", "Converted", "Lost", "OnHold"];
+  const stats = await Promise.all(
+    statuses.map(async (status) => {
+      const count = await postgres_default.lead.count({
+        where: { ...where, status }
+      });
+      return { status, count };
+    })
+  );
+  return stats;
+};
+var getPurchaseOrderStatistics = async (startDate, endDate) => {
+  const where = {};
+  if (startDate || endDate) {
+    where.poDate = {};
+    if (startDate) where.poDate.gte = startDate;
+    if (endDate) where.poDate.lte = endDate;
+  }
+  const statuses = ["Pending", "Processing", "Completed", "Rejected", "Cancelled"];
+  const stats = await Promise.all(
+    statuses.map(async (status) => {
+      const count = await postgres_default.purchaseOrder.count({
+        where: { ...where, overallStatus: status }
+      });
+      return { status, count };
+    })
+  );
+  return stats;
+};
+var getAttendanceStatistics = async (startDate, endDate) => {
+  const where = {};
+  if (startDate || endDate) {
+    where.attendanceDate = {};
+    if (startDate) where.attendanceDate.gte = startDate;
+    if (endDate) where.attendanceDate.lte = endDate;
+  }
+  const statuses = ["Present", "Absent", "Leave", "HalfDay", "WFH", "Holidays", "WeekOff"];
+  const stats = await Promise.all(
+    statuses.map(async (status) => {
+      const count = await postgres_default.attendance.count({
+        where: { ...where, status }
+      });
+      return { status, count };
+    })
+  );
+  return stats;
+};
+
+// src/modules/adminControl/adminControl.validation.ts
+var approveEmployeeSchema = external_exports.object({
+  employeeId: external_exports.string().uuid("Invalid employee ID"),
+  approverNotes: external_exports.string().optional()
+});
+var rejectEmployeeSchema = external_exports.object({
+  employeeId: external_exports.string().uuid("Invalid employee ID"),
+  rejectionReason: external_exports.string().min(10, "Rejection reason must be at least 10 characters")
+});
+var bulkApproveEmployeesSchema = external_exports.object({
+  employeeIds: external_exports.array(external_exports.string().uuid()).min(1, "At least one employee ID required"),
+  approverNotes: external_exports.string().optional()
+});
+var updateEmployeeRoleSchema = external_exports.object({
+  employeeId: external_exports.string().uuid("Invalid employee ID"),
+  newRole: external_exports.string().min(1, "Role is required"),
+  department: external_exports.string().optional(),
+  approverNotes: external_exports.string().optional()
+});
+var approveCreditSchema = external_exports.object({
+  customerId: external_exports.string().uuid("Invalid customer ID"),
+  approvedCreditLimit: external_exports.number().positive("Credit limit must be positive"),
+  approverNotes: external_exports.string().optional()
+});
+var rejectCreditSchema = external_exports.object({
+  customerId: external_exports.string().uuid("Invalid customer ID"),
+  rejectionReason: external_exports.string().min(10, "Rejection reason required"),
+  approverNotes: external_exports.string().optional()
+});
+var bulkCreditApprovalSchema = external_exports.object({
+  approvals: external_exports.array(
+    external_exports.object({
+      customerId: external_exports.string().uuid(),
+      approvedCreditLimit: external_exports.number().positive()
+    })
+  ).min(1),
+  approverNotes: external_exports.string().optional()
+});
+var approvePurchaseOrderSchema = external_exports.object({
+  purchaseOrderId: external_exports.string().uuid("Invalid PO ID"),
+  approverNotes: external_exports.string().optional()
+});
+var rejectPurchaseOrderSchema = external_exports.object({
+  purchaseOrderId: external_exports.string().uuid("Invalid PO ID"),
+  rejectionReason: external_exports.string().min(10, "Rejection reason required"),
+  approverNotes: external_exports.string().optional()
+});
+var bulkPOApprovalSchema = external_exports.object({
+  purchaseOrderIds: external_exports.array(external_exports.string().uuid()).min(1),
+  approvalType: external_exports.enum(["md", "accounts", "designer", "ppic"]),
+  approverNotes: external_exports.string().optional()
+});
+var approveLeavesSchema = external_exports.object({
+  leaveRequestIds: external_exports.array(external_exports.string().uuid()).min(1),
+  approverComments: external_exports.string().optional()
+});
+var rejectLeavesSchema = external_exports.object({
+  leaveRequestIds: external_exports.array(external_exports.string().uuid()).min(1),
+  rejectionReason: external_exports.string().min(10, "Rejection reason required")
+});
+var bulkAssignCustomersSchema = external_exports.object({
+  customerIds: external_exports.array(external_exports.string().uuid()).min(1),
+  assignedToEmployeeId: external_exports.string().uuid("Invalid employee ID"),
+  reason: external_exports.string().optional()
+});
+var bulkAssignLeadsSchema2 = external_exports.object({
+  leadIds: external_exports.array(external_exports.string().uuid()).min(1),
+  assignedToEmployeeId: external_exports.string().uuid("Invalid employee ID"),
+  reason: external_exports.string().optional()
+});
+var bulkAssignPurchaseOrdersSchema = external_exports.object({
+  purchaseOrderIds: external_exports.array(external_exports.string().uuid()).min(1),
+  assignedToEmployeeId: external_exports.string().uuid("Invalid employee ID"),
+  reason: external_exports.string().optional()
+});
+var createDesignationSchema = external_exports.object({
+  name: external_exports.string().min(1, "Designation name required"),
+  description: external_exports.string().optional(),
+  department: external_exports.string().min(1, "Department required"),
+  reportingTo: external_exports.string().optional(),
+  baseSalaryRange: external_exports.string().optional(),
+  skills: external_exports.array(external_exports.string()).optional()
+});
+var createDepartmentSchema = external_exports.object({
+  name: external_exports.string().min(1, "Department name required"),
+  code: external_exports.string().optional(),
+  description: external_exports.string().optional(),
+  headOfDepartment: external_exports.string().optional(),
+  budget: external_exports.number().optional()
+});
+var createVendorMasterSchema = external_exports.object({
+  vendorName: external_exports.string().min(1, "Vendor name required"),
+  vendorCode: external_exports.string().optional(),
+  contactPerson: external_exports.string().optional(),
+  vendorEmail: external_exports.string().email().optional(),
+  vendorPhone: external_exports.string().optional(),
+  vendorAdress: external_exports.string().optional(),
+  vendorState: external_exports.string().optional(),
+  vendorGSTNo: external_exports.string().optional(),
+  paymentTerms: external_exports.string().optional(),
+  vendorBankName: external_exports.string().optional(),
+  vendorAccountNumber: external_exports.string().optional(),
+  vendorIFSC: external_exports.string().optional()
+});
+var analyticsFilterSchema = external_exports.object({
+  startDate: external_exports.string().datetime().optional(),
+  endDate: external_exports.string().datetime().optional(),
+  department: external_exports.string().optional(),
+  status: external_exports.string().optional(),
+  limit: external_exports.number().int().positive().default(50),
+  offset: external_exports.number().int().nonnegative().default(0)
+});
+var exportReportSchema = external_exports.object({
+  reportType: external_exports.enum(["employees", "customers", "purchaseorders", "leads", "attendance", "payroll"]),
+  startDate: external_exports.string().datetime().optional(),
+  endDate: external_exports.string().datetime().optional(),
+  department: external_exports.string().optional(),
+  status: external_exports.string().optional()
+});
+var auditLogFilterSchema = external_exports.object({
+  action: external_exports.string().optional(),
+  performedBy: external_exports.string().optional(),
+  targetId: external_exports.string().optional(),
+  startDate: external_exports.string().datetime().optional(),
+  endDate: external_exports.string().datetime().optional(),
+  limit: external_exports.number().int().positive().default(50),
+  offset: external_exports.number().int().nonnegative().default(0)
+});
+var getAuditLogsSchema = external_exports.object({
+  filter: auditLogFilterSchema.optional()
+});
+var blacklistCustomerSchema2 = external_exports.object({
+  customerIds: external_exports.array(external_exports.string().uuid()).min(1),
+  reason: external_exports.string().min(10, "Reason required"),
+  approverNotes: external_exports.string().optional()
+});
+var unblacklistCustomerSchema = external_exports.object({
+  customerIds: external_exports.array(external_exports.string().uuid()).min(1),
+  reason: external_exports.string().optional()
+});
+var getEmployeePerformanceSchema = external_exports.object({
+  employeeId: external_exports.string().uuid().optional(),
+  startDate: external_exports.string().datetime().optional(),
+  endDate: external_exports.string().datetime().optional(),
+  department: external_exports.string().optional()
+});
+var getDashboardAnalyticsSchema = external_exports.object({
+  timeframe: external_exports.enum(["day", "week", "month", "quarter", "year"]).default("month"),
+  department: external_exports.string().optional()
+});
+var deleteRecordsSchema = external_exports.object({
+  recordType: external_exports.enum(["lead", "todo", "notification", "auditlog"]),
+  recordIds: external_exports.array(external_exports.string().uuid()).min(1),
+  reason: external_exports.string().optional(),
+  confirmDelete: external_exports.boolean().refine((val) => val === true, "Deletion must be confirmed")
+});
+var archiveRecordsSchema = external_exports.object({
+  recordType: external_exports.enum(["customer", "employee", "purchaseorder"]),
+  recordIds: external_exports.array(external_exports.string().uuid()).min(1),
+  reason: external_exports.string().optional()
+});
+var updateEmployeeStatusSchema = external_exports.object({
+  employeeId: external_exports.string().uuid("Invalid employee ID"),
+  newStatus: external_exports.enum(["Pending", "Active", "Inactive"]),
+  reason: external_exports.string().optional()
+});
+var bulkUpdateEmployeeStatusSchema = external_exports.object({
+  employeeIds: external_exports.array(external_exports.string().uuid()).min(1),
+  newStatus: external_exports.enum(["Pending", "Active", "Inactive"]),
+  reason: external_exports.string().optional()
+});
+var resolveGrievanceSchema = external_exports.object({
+  grievanceId: external_exports.string().uuid("Invalid grievance ID"),
+  resolutionNotes: external_exports.string().min(20, "Resolution notes must be detailed"),
+  status: external_exports.enum(["Resolved", "Closed", "Withdrawn"])
+});
+var assignGrievanceSchema = external_exports.object({
+  grievanceId: external_exports.string().uuid("Invalid grievance ID"),
+  assignedToEmployeeId: external_exports.string().uuid("Invalid employee ID"),
+  notes: external_exports.string().optional()
+});
+var approvePayrollSchema = external_exports.object({
+  payrollIds: external_exports.array(external_exports.string().uuid()).min(1),
+  approvedBy: external_exports.string().optional(),
+  remarks: external_exports.string().optional()
+});
+var generatePayrollReportSchema = external_exports.object({
+  payrollMonth: external_exports.string().datetime(),
+  department: external_exports.string().optional(),
+  status: external_exports.enum(["Draft", "Submitted", "Approved", "Processed", "Paid", "Rejected"]).optional()
+});
+
+// src/modules/adminControl/adminControl.controller.ts
+var approveEmployeeController = async (req, res) => {
+  try {
+    const payload = approveEmployeeSchema.parse(req.body);
+    const result = await approveEmployee2(payload.employeeId, req.user?.id, payload.approverNotes);
+    return sendSuccess(res, result, "Employee approved successfully", 200);
+  } catch (err) {
+    return handleError(res, err);
+  }
+};
+var rejectEmployeeController = async (req, res) => {
+  try {
+    const payload = rejectEmployeeSchema.parse(req.body);
+    const result = await rejectEmployee3(
+      payload.employeeId,
+      req.user?.id,
+      payload.rejectionReason
+    );
+    return sendSuccess(res, result, "Employee rejected successfully", 200);
+  } catch (err) {
+    return handleError(res, err);
+  }
+};
+var bulkApproveEmployees2 = async (req, res) => {
+  try {
+    const payload = bulkApproveEmployeesSchema.parse(req.body);
+    const result = await bulkApproveEmployees(
+      payload.employeeIds,
+      req.user?.id,
+      payload.approverNotes
+    );
+    return sendSuccess(res, result, "Employees approved in bulk", 200);
+  } catch (err) {
+    return handleError(res, err);
+  }
+};
+var updateEmployeeRole2 = async (req, res) => {
+  try {
+    const payload = updateEmployeeRoleSchema.parse(req.body);
+    const result = await updateEmployeeRole(
+      payload.employeeId,
+      payload.newRole,
+      payload.department,
+      req.user?.id,
+      payload.approverNotes
+    );
+    return sendSuccess(res, result, "Employee role updated successfully", 200);
+  } catch (err) {
+    return handleError(res, err);
+  }
+};
+var getPendingEmployeeApprovals2 = async (req, res) => {
+  try {
+    const result = await getPendingEmployeeApprovals();
+    return sendSuccess(
+      res,
+      result,
+      `Found ${result.length} pending employee approvals`,
+      200
+    );
+  } catch (err) {
+    return handleError(res, err);
+  }
+};
+var getEmployeesByStatus2 = async (req, res) => {
+  try {
+    const { status } = req.query;
+    if (!status) {
+      return sendError(res, "MISSING_REQUIRED_FIELD", "Status parameter required");
+    }
+    const result = await getEmployeesByStatus(status);
+    return sendSuccess(res, result, `Retrieved employees with status: ${status}`, 200);
+  } catch (err) {
+    return handleError(res, err);
+  }
+};
+var bulkUpdateEmployeeStatus2 = async (req, res) => {
+  try {
+    const payload = bulkUpdateEmployeeStatusSchema.parse(req.body);
+    const result = await bulkUpdateEmployeeStatus(
+      payload.employeeIds,
+      payload.newStatus,
+      req.user?.id,
+      payload.reason
+    );
+    return sendSuccess(res, result, "Employee statuses updated in bulk", 200);
+  } catch (err) {
+    return handleError(res, err);
+  }
+};
+var approveCustomerCredit2 = async (req, res) => {
+  try {
+    const payload = approveCreditSchema.parse(req.body);
+    const result = await approveCustomerCredit(
+      payload.customerId,
+      payload.approvedCreditLimit,
+      req.user?.id,
+      payload.approverNotes
+    );
+    return sendSuccess(res, result, "Customer credit approved", 200);
+  } catch (err) {
+    return handleError(res, err);
+  }
+};
+var rejectCustomerCredit2 = async (req, res) => {
+  try {
+    const payload = rejectCreditSchema.parse(req.body);
+    const result = await rejectCustomerCredit(
+      payload.customerId,
+      req.user?.id,
+      payload.rejectionReason,
+      payload.approverNotes
+    );
+    return sendSuccess(res, result, "Customer credit rejected", 200);
+  } catch (err) {
+    return handleError(res, err);
+  }
+};
+var bulkCreditApproval2 = async (req, res) => {
+  try {
+    const payload = bulkCreditApprovalSchema.parse(req.body);
+    const result = await bulkCreditApproval(
+      payload.approvals,
+      req.user?.id,
+      payload.approverNotes
+    );
+    return sendSuccess(res, result, `Approved ${result.length} customer credits`, 200);
+  } catch (err) {
+    return handleError(res, err);
+  }
+};
+var getPendingCreditApprovals2 = async (req, res) => {
+  try {
+    const result = await getPendingCreditApprovals();
+    return sendSuccess(res, result, `Found ${result.length} pending credit approvals`, 200);
+  } catch (err) {
+    return handleError(res, err);
+  }
+};
+var getBlacklistedCustomers2 = async (req, res) => {
+  try {
+    const result = await getBlacklistedCustomers();
+    return sendSuccess(res, result, `Found ${result.length} blacklisted customers`, 200);
+  } catch (err) {
+    return handleError(res, err);
+  }
+};
+var blacklistCustomers2 = async (req, res) => {
+  try {
+    const payload = blacklistCustomerSchema2.parse(req.body);
+    const result = await blacklistCustomers(
+      payload.customerIds,
+      payload.reason,
+      req.user?.id,
+      payload.approverNotes
+    );
+    return sendSuccess(res, result, `Blacklisted ${result.count} customers`, 200);
+  } catch (err) {
+    return handleError(res, err);
+  }
+};
+var unblacklistCustomers2 = async (req, res) => {
+  try {
+    const payload = unblacklistCustomerSchema.parse(req.body);
+    const result = await unblacklistCustomers(
+      payload.customerIds,
+      req.user?.id,
+      payload.reason
+    );
+    return sendSuccess(res, result, `Unblacklisted ${result.count} customers`, 200);
+  } catch (err) {
+    return handleError(res, err);
+  }
+};
+var approvePurchaseOrder2 = async (req, res) => {
+  try {
+    const payload = approvePurchaseOrderSchema.parse(req.body);
+    const approvalType = req.query.type || "md";
+    const result = await approvePurchaseOrder(
+      payload.purchaseOrderId,
+      approvalType,
+      req.user?.id,
+      payload.approverNotes
+    );
+    return sendSuccess(res, result, "Purchase Order approved", 200);
+  } catch (err) {
+    return handleError(res, err);
+  }
+};
+var rejectPurchaseOrder2 = async (req, res) => {
+  try {
+    const payload = rejectPurchaseOrderSchema.parse(req.body);
+    const result = await rejectPurchaseOrder(
+      payload.purchaseOrderId,
+      req.user?.id,
+      payload.rejectionReason,
+      payload.approverNotes
+    );
+    return sendSuccess(res, result, "Purchase Order rejected", 200);
+  } catch (err) {
+    return handleError(res, err);
+  }
+};
+var getPendingPurchaseOrders2 = async (req, res) => {
+  try {
+    const { approvalType } = req.query;
+    const result = await getPendingPurchaseOrders(approvalType);
+    return sendSuccess(res, result, `Found ${result.length} pending purchase orders`, 200);
+  } catch (err) {
+    return handleError(res, err);
+  }
+};
+var bulkApprovePOs = async (req, res) => {
+  try {
+    const payload = bulkPOApprovalSchema.parse(req.body);
+    const result = await bulkApprovePurchaseOrders(
+      payload.purchaseOrderIds,
+      payload.approvalType,
+      req.user?.id,
+      payload.approverNotes
+    );
+    return sendSuccess(res, result, `Approved ${result.count} purchase orders`, 200);
+  } catch (err) {
+    return handleError(res, err);
+  }
+};
+var bulkAssignCustomersController = async (req, res) => {
+  try {
+    const payload = bulkAssignCustomersSchema.parse(req.body);
+    const result = await bulkAssignCustomers3(
+      payload.customerIds,
+      payload.assignedToEmployeeId,
+      req.user?.id,
+      payload.reason
+    );
+    return sendSuccess(res, result, `Assigned ${result.length} customers`, 200);
+  } catch (err) {
+    return handleError(res, err);
+  }
+};
+var bulkAssignLeadsController = async (req, res) => {
+  try {
+    const payload = bulkAssignLeadsSchema2.parse(req.body);
+    const result = await bulkAssignLeads2(
+      payload.leadIds,
+      payload.assignedToEmployeeId,
+      req.user?.id,
+      payload.reason
+    );
+    return sendSuccess(res, result, `Assigned ${result.length} leads`, 200);
+  } catch (err) {
+    return handleError(res, err);
+  }
+};
+var bulkAssignPurchaseOrdersController = async (req, res) => {
+  try {
+    const payload = bulkAssignPurchaseOrdersSchema.parse(req.body);
+    const result = await bulkAssignPurchaseOrders3(
+      payload.purchaseOrderIds,
+      payload.assignedToEmployeeId,
+      req.user?.id,
+      payload.reason
+    );
+    return sendSuccess(res, result, `Assigned ${result.length} purchase orders`, 200);
+  } catch (err) {
+    return handleError(res, err);
+  }
+};
+var getDashboardAnalyticsController = async (req, res) => {
+  try {
+    const payload = getDashboardAnalyticsSchema.parse(req.query);
+    const result = await getDashboardAnalytics(
+      payload.timeframe,
+      payload.department
+    );
+    return sendSuccess(res, result, "Dashboard analytics retrieved", 200);
+  } catch (err) {
+    return handleError(res, err);
+  }
+};
+var getSystemStatistics2 = async (req, res) => {
+  try {
+    const result = await getSystemStatistics();
+    return sendSuccess(res, result, "System statistics retrieved", 200);
+  } catch (err) {
+    return handleError(res, err);
+  }
+};
+var getAuditLogsController = async (req, res) => {
+  try {
+    const {
+      action,
+      performedBy,
+      targetId,
+      startDate,
+      endDate,
+      limit = 50,
+      offset = 0
+    } = req.query;
+    const result = await getAuditLogs(
+      action,
+      performedBy,
+      targetId,
+      startDate ? new Date(startDate) : void 0,
+      endDate ? new Date(endDate) : void 0,
+      parseInt(limit, 10),
+      parseInt(offset, 10)
+    );
+    return sendSuccess(res, result, "Audit logs retrieved", 200);
+  } catch (err) {
+    return handleError(res, err);
+  }
+};
+var createDesignationController = async (req, res) => {
+  try {
+    const payload = createDesignationSchema.parse(req.body);
+    const result = await createDesignation(payload, req.user?.id);
+    return sendSuccess(res, result, "Designation created successfully", 201);
+  } catch (err) {
+    return handleError(res, err);
+  }
+};
+var createDepartmentController = async (req, res) => {
+  try {
+    const payload = createDepartmentSchema.parse(req.body);
+    const result = await createDepartment(payload, req.user?.id);
+    return sendSuccess(res, result, "Department created successfully", 201);
+  } catch (err) {
+    return handleError(res, err);
+  }
+};
+var createVendorMasterController = async (req, res) => {
+  try {
+    const payload = createVendorMasterSchema.parse(req.body);
+    const result = await createVendorMaster(payload, req.user?.id);
+    return sendSuccess(res, result, "Vendor created successfully", 201);
+  } catch (err) {
+    return handleError(res, err);
+  }
+};
+var getAllDesignations2 = async (req, res) => {
+  try {
+    const result = await getAllDesignations();
+    return sendSuccess(res, result, "Designations retrieved", 200);
+  } catch (err) {
+    return handleError(res, err);
+  }
+};
+var getAllDepartments2 = async (req, res) => {
+  try {
+    const result = await getAllDepartments();
+    return sendSuccess(res, result, "Departments retrieved", 200);
+  } catch (err) {
+    return handleError(res, err);
+  }
+};
+var getAllVendors2 = async (req, res) => {
+  try {
+    const result = await getAllVendors();
+    return sendSuccess(res, result, "Vendors retrieved", 200);
+  } catch (err) {
+    return handleError(res, err);
+  }
+};
+var approveLeaves = async (req, res) => {
+  try {
+    const payload = approveLeavesSchema.parse(req.body);
+    const result = await approveLeaveBulk(
+      payload.leaveRequestIds,
+      req.user?.id,
+      payload.approverComments
+    );
+    return sendSuccess(res, result, `Approved ${result.count} leave requests`, 200);
+  } catch (err) {
+    return handleError(res, err);
+  }
+};
+var rejectLeaves = async (req, res) => {
+  try {
+    const payload = rejectLeavesSchema.parse(req.body);
+    const result = await rejectLeaveBulk(
+      payload.leaveRequestIds,
+      req.user?.id,
+      payload.rejectionReason
+    );
+    return sendSuccess(res, result, `Rejected ${result.count} leave requests`, 200);
+  } catch (err) {
+    return handleError(res, err);
+  }
+};
+var getPendingLeaves2 = async (req, res) => {
+  try {
+    const result = await getPendingLeaves();
+    return sendSuccess(res, result, `Found ${result.length} pending leave requests`, 200);
+  } catch (err) {
+    return handleError(res, err);
+  }
+};
+var resolveGrievanceController = async (req, res) => {
+  try {
+    const payload = resolveGrievanceSchema.parse(req.body);
+    const result = await resolveGrievance(
+      payload.grievanceId,
+      payload.resolutionNotes,
+      payload.status,
+      req.user?.id
+    );
+    return sendSuccess(res, result, "Grievance resolved successfully", 200);
+  } catch (err) {
+    return handleError(res, err);
+  }
+};
+var getPendingGrievances2 = async (req, res) => {
+  try {
+    const result = await getPendingGrievances();
+    return sendSuccess(res, result, `Found ${result.length} pending grievances`, 200);
+  } catch (err) {
+    return handleError(res, err);
+  }
+};
+var approvePayroll = async (req, res) => {
+  try {
+    const payload = approvePayrollSchema.parse(req.body);
+    const result = await approvePayrollBulk(
+      payload.payrollIds,
+      req.user?.id,
+      payload.remarks
+    );
+    return sendSuccess(res, result, `Approved ${result.count} payroll records`, 200);
+  } catch (err) {
+    return handleError(res, err);
+  }
+};
+var getPendingPayroll2 = async (req, res) => {
+  try {
+    const result = await getPendingPayroll();
+    return sendSuccess(res, result, `Found ${result.length} pending payroll records`, 200);
+  } catch (err) {
+    return handleError(res, err);
+  }
+};
+var getEmployeeStatisticsByDepartment2 = async (req, res) => {
+  try {
+    const result = await getEmployeeStatisticsByDepartment();
+    return sendSuccess(res, result, "Employee statistics by department retrieved", 200);
+  } catch (err) {
+    return handleError(res, err);
+  }
+};
+var getLeadStatistics2 = async (req, res) => {
+  try {
+    const { startDate, endDate } = req.query;
+    const result = await getLeadStatistics(
+      startDate ? new Date(startDate) : void 0,
+      endDate ? new Date(endDate) : void 0
+    );
+    return sendSuccess(res, result, "Lead statistics retrieved", 200);
+  } catch (err) {
+    return handleError(res, err);
+  }
+};
+var getPurchaseOrderStatistics2 = async (req, res) => {
+  try {
+    const { startDate, endDate } = req.query;
+    const result = await getPurchaseOrderStatistics(
+      startDate ? new Date(startDate) : void 0,
+      endDate ? new Date(endDate) : void 0
+    );
+    return sendSuccess(res, result, "Purchase Order statistics retrieved", 200);
+  } catch (err) {
+    return handleError(res, err);
+  }
+};
+var getAttendanceStatistics2 = async (req, res) => {
+  try {
+    const { startDate, endDate } = req.query;
+    const result = await getAttendanceStatistics(
+      startDate ? new Date(startDate) : void 0,
+      endDate ? new Date(endDate) : void 0
+    );
+    return sendSuccess(res, result, "Attendance statistics retrieved", 200);
+  } catch (err) {
+    return handleError(res, err);
+  }
+};
+var deleteRecords2 = async (req, res) => {
+  try {
+    const payload = deleteRecordsSchema.parse(req.body);
+    const result = await deleteRecords(
+      payload.recordType,
+      payload.recordIds,
+      req.user?.id,
+      payload.reason
+    );
+    return sendSuccess(res, result, `Deleted ${result.count} records`, 200);
+  } catch (err) {
+    return handleError(res, err);
+  }
+};
+
+// src/modules/adminControl/adminControl.routes.ts
+var router14 = (0, import_express14.Router)();
+router14.use(protect);
+router14.use(authorize(["admin", "manager"]));
+router14.get("/dashboard/analytics", getDashboardAnalyticsController);
+router14.get("/system/statistics", getSystemStatistics2);
+router14.get("/statistics/employees-by-department", getEmployeeStatisticsByDepartment2);
+router14.get("/statistics/leads", getLeadStatistics2);
+router14.get("/statistics/purchase-orders", getPurchaseOrderStatistics2);
+router14.get("/statistics/attendance", getAttendanceStatistics2);
+router14.get("/audit-logs", getAuditLogsController);
+router14.get("/employees/pending-approvals", getPendingEmployeeApprovals2);
+router14.get("/employees/by-status", getEmployeesByStatus2);
+router14.post("/employees/approve", approveEmployeeController);
+router14.post("/employees/approve/bulk", bulkApproveEmployees2);
+router14.post("/employees/reject", rejectEmployeeController);
+router14.post("/employees/update-role", updateEmployeeRole2);
+router14.post("/employees/update-status/bulk", bulkUpdateEmployeeStatus2);
+router14.get("/credit/pending-approvals", getPendingCreditApprovals2);
+router14.post("/credit/approve", approveCustomerCredit2);
+router14.post("/credit/approve/bulk", bulkCreditApproval2);
+router14.post("/credit/reject", rejectCustomerCredit2);
+router14.get("/customers/blacklisted", getBlacklistedCustomers2);
+router14.post("/customers/blacklist", blacklistCustomers2);
+router14.post("/customers/unblacklist", unblacklistCustomers2);
+router14.get("/purchase-orders/pending-approvals", getPendingPurchaseOrders2);
+router14.post("/purchase-orders/approve", approvePurchaseOrder2);
+router14.post("/purchase-orders/approve/bulk", bulkApprovePOs);
+router14.post("/purchase-orders/reject", rejectPurchaseOrder2);
+router14.post("/assignments/customers/bulk", bulkAssignCustomersController);
+router14.post("/assignments/leads/bulk", bulkAssignLeadsController);
+router14.post("/assignments/purchase-orders/bulk", bulkAssignPurchaseOrdersController);
+router14.get("/leaves/pending", getPendingLeaves2);
+router14.post("/leaves/approve/bulk", approveLeaves);
+router14.post("/leaves/reject/bulk", rejectLeaves);
+router14.get("/grievances/pending", getPendingGrievances2);
+router14.post("/grievances/resolve", resolveGrievanceController);
+router14.get("/payroll/pending", getPendingPayroll2);
+router14.post("/payroll/approve/bulk", approvePayroll);
+router14.get("/master/designations", getAllDesignations2);
+router14.post("/master/designations", createDesignationController);
+router14.get("/master/departments", getAllDepartments2);
+router14.post("/master/departments", createDepartmentController);
+router14.get("/master/vendors", getAllVendors2);
+router14.post("/master/vendors", createVendorMasterController);
+router14.post("/data/delete", deleteRecords2);
+var adminControl_routes_default = router14;
+
+// src/modules/adminControl/security.routes.ts
+var import_express15 = __toESM(require_express2());
+
+// src/modules/adminControl/security.controller.ts
+init_security_service();
+
+// src/modules/adminControl/security.validation.ts
+var ipAddressRegex = /^(\d{1,3}\.){3}\d{1,3}$/;
+var flexibleDateTime = external_exports.string().refine(
+  (val) => !isNaN(new Date(val).getTime()),
+  "Invalid date format"
+);
+var blockIPSchema = external_exports.object({
+  ipAddress: external_exports.string().regex(ipAddressRegex, "Invalid IP address"),
+  reason: external_exports.string().optional()
+});
+var unblockIPSchema = external_exports.object({
+  ipAddress: external_exports.string().regex(ipAddressRegex, "Invalid IP address")
+});
+var lockAccountSchema = external_exports.object({
+  employeeId: external_exports.string().uuid("Invalid employee ID"),
+  reason: external_exports.string()
+});
+var unlockAccountSchema = external_exports.object({
+  employeeId: external_exports.string().uuid("Invalid employee ID")
+});
+var getLoginAttemptsSchema = external_exports.object({
+  username: external_exports.string().optional(),
+  employeeId: external_exports.string().uuid().optional(),
+  ipAddress: external_exports.string().optional(),
+  startDate: flexibleDateTime.optional(),
+  endDate: flexibleDateTime.optional(),
+  status: external_exports.enum(["Success", "Failed", "Blocked"]).optional(),
+  limit: external_exports.coerce.number().int().positive().max(1e3).default(100),
+  offset: external_exports.coerce.number().int().nonnegative().default(0)
+});
+var getIPReputationSchema = external_exports.object({
+  ipAddress: external_exports.string().regex(ipAddressRegex, "Invalid IP address")
+});
+var getSecurityAuditLogsSchema = external_exports.object({
+  employeeId: external_exports.string().uuid().optional(),
+  action: external_exports.string().optional(),
+  severity: external_exports.enum(["Info", "Warning", "Critical"]).optional(),
+  startDate: flexibleDateTime.optional(),
+  endDate: flexibleDateTime.optional(),
+  limit: external_exports.coerce.number().int().positive().max(1e3).default(100),
+  offset: external_exports.coerce.number().int().nonnegative().default(0)
+});
+var updateSecurityPolicySchema = external_exports.object({
+  maxLoginAttemptsPerIp: external_exports.number().int().positive().optional(),
+  maxLoginAttemptsPerUsername: external_exports.number().int().positive().optional(),
+  loginAttemptWindowMinutes: external_exports.number().int().positive().optional(),
+  accountLockoutDurationMinutes: external_exports.number().int().positive().optional(),
+  ipBlockDurationMinutes: external_exports.number().int().positive().optional(),
+  requireMfa: external_exports.boolean().optional(),
+  requireStrongPassword: external_exports.boolean().optional(),
+  passwordMinLength: external_exports.number().int().min(6).max(20).optional(),
+  passwordRequireNumbers: external_exports.boolean().optional(),
+  passwordRequireSpecialChars: external_exports.boolean().optional(),
+  passwordRequireUpperCase: external_exports.boolean().optional(),
+  passwordExpiryDays: external_exports.number().int().positive().optional(),
+  sessionTimeoutMinutes: external_exports.number().int().positive().optional(),
+  enableIpWhitelisting: external_exports.boolean().optional(),
+  enableGeoRestriction: external_exports.boolean().optional(),
+  allowedCountries: external_exports.array(external_exports.string()).optional(),
+  suspiciousActivityAlert: external_exports.boolean().optional(),
+  logAllAttempts: external_exports.boolean().optional(),
+  enableAnomalyDetection: external_exports.boolean().optional()
+});
+var generateSecurityReportSchema = external_exports.object({
+  startDate: flexibleDateTime,
+  endDate: flexibleDateTime
+});
+var checkBruteForceSchema = external_exports.object({
+  username: external_exports.string().min(1),
+  ipAddress: external_exports.string().regex(ipAddressRegex, "Invalid IP address")
+});
+var getLoginHistorySchema = external_exports.object({
+  employeeId: external_exports.string().uuid("Invalid employee ID"),
+  days: external_exports.coerce.number().int().positive().default(30)
+});
+var getSuspiciousActivitySchema = external_exports.object({
+  hoursBack: external_exports.coerce.number().int().positive().default(24),
+  limit: external_exports.coerce.number().int().positive().max(1e3).default(50)
+});
+var getBlockedIPsSchema = external_exports.object({
+  isActive: external_exports.coerce.boolean().optional(),
+  limit: external_exports.coerce.number().int().positive().max(1e3).default(100),
+  offset: external_exports.coerce.number().int().nonnegative().default(0)
+});
+var getLockedAccountsSchema = external_exports.object({
+  isLocked: external_exports.coerce.boolean().default(true),
+  limit: external_exports.coerce.number().int().positive().max(1e3).default(100),
+  offset: external_exports.coerce.number().int().nonnegative().default(0)
+});
+
+// src/modules/adminControl/security.controller.ts
+var getClientIp2 = (req) => {
+  const forwarded = req.headers["x-forwarded-for"];
+  let ip = forwarded?.split(",")[0]?.trim() || req.socket.remoteAddress || "unknown";
+  if (ip === "::1") return "127.0.0.1";
+  if (ip.startsWith("::ffff:")) {
+    ip = ip.replace("::ffff:", "");
+  }
+  return ip;
+};
+var checkBruteForceController = async (req, res) => {
+  try {
+    const payload = checkBruteForceSchema.parse(req.body);
+    const ipAddress = getClientIp2(req);
+    console.log(`Login attempt for ${payload.username} from IP: ${ipAddress}`);
+    const result = await checkAndApplyBruteForceProtection(
+      payload.username,
+      ipAddress
+    );
+    return sendSuccess(
+      res,
+      result,
+      result.allowed ? "Login attempt allowed" : result.action,
+      result.allowed ? 200 : 403
+    );
+  } catch (err) {
+    return handleError(res, err);
+  }
+};
+var blockIPController = async (req, res) => {
+  try {
+    const payload = blockIPSchema.parse(req.body);
+    const result = await blockIP(
+      payload.ipAddress,
+      req.user?.id,
+      payload.reason,
+      false
+      // Manual block, not auto
+    );
+    return sendSuccess(res, result, "IP address blocked successfully", 200);
+  } catch (err) {
+    return handleError(res, err);
+  }
+};
+var unblockIPController = async (req, res) => {
+  try {
+    const payload = unblockIPSchema.parse(req.body);
+    const result = await unblockIP(payload.ipAddress, req.user?.id);
+    return sendSuccess(res, result, "IP address unblocked successfully", 200);
+  } catch (err) {
+    return handleError(res, err);
+  }
+};
+var getBlockedIPsController = async (req, res) => {
+  try {
+    const query = getBlockedIPsSchema.parse(req.query);
+    const where = {};
+    if (query.isActive !== void 0) {
+      where.isActive = query.isActive;
+    }
+    const blockedIPs = await (init_postgres(), __toCommonJS(postgres_exports)).default.blockedIP.findMany({
+      where,
+      orderBy: { blockedAt: "desc" },
+      skip: query.offset,
+      take: query.limit
+    });
+    const total = await (init_postgres(), __toCommonJS(postgres_exports)).default.blockedIP.count({ where });
+    return sendSuccess(
+      res,
+      {
+        total,
+        count: blockedIPs.length,
+        data: blockedIPs
+      },
+      "Retrieved blocked IPs",
+      200
+    );
+  } catch (err) {
+    return handleError(res, err);
+  }
+};
+var getIPReputationController = async (req, res) => {
+  try {
+    const payload = getIPReputationSchema.parse(req.query);
+    const result = await getIPReputation(payload.ipAddress);
+    return sendSuccess(res, result, "IP reputation retrieved", 200);
+  } catch (err) {
+    return handleError(res, err);
+  }
+};
+var lockAccountController = async (req, res) => {
+  try {
+    const payload = lockAccountSchema.parse(req.body);
+    const result = await lockEmployeeAccount(
+      payload.employeeId,
+      0,
+      payload.reason
+    );
+    return sendSuccess(res, result, "Account locked successfully", 200);
+  } catch (err) {
+    return handleError(res, err);
+  }
+};
+var unlockAccountController = async (req, res) => {
+  try {
+    const payload = unlockAccountSchema.parse(req.body);
+    const result = await unlockEmployeeAccount(
+      payload.employeeId,
+      req.user?.id
+    );
+    return sendSuccess(res, result, "Account unlocked successfully", 200);
+  } catch (err) {
+    return handleError(res, err);
+  }
+};
+var getLockedAccountsController = async (req, res) => {
+  try {
+    const query = getLockedAccountsSchema.parse(req.query);
+    const lockedAccounts = await (init_postgres(), __toCommonJS(postgres_exports)).default.accountLockout.findMany({
+      where: query.isLocked ? {
+        unlockedAt: null,
+        lockedUntil: { gt: /* @__PURE__ */ new Date() }
+      } : {},
+      skip: query.offset,
+      take: query.limit,
+      include: {
+        employee: {
+          select: {
+            id: true,
+            username: true,
+            name: true,
+            email: true,
+            department: true
+          }
+        }
+      },
+      orderBy: { lockedAt: "desc" }
+    });
+    const total = await (init_postgres(), __toCommonJS(postgres_exports)).default.accountLockout.count({
+      where: query.isLocked ? {
+        unlockedAt: null,
+        lockedUntil: { gt: /* @__PURE__ */ new Date() }
+      } : {}
+    });
+    return sendSuccess(
+      res,
+      {
+        total,
+        count: lockedAccounts.length,
+        data: lockedAccounts
+      },
+      "Retrieved locked accounts",
+      200
+    );
+  } catch (err) {
+    return handleError(res, err);
+  }
+};
+var getLoginAttemptsController = async (req, res) => {
+  try {
+    const query = getLoginAttemptsSchema.parse(req.query);
+    const where = {};
+    if (query.username) where.username = query.username;
+    if (query.employeeId) where.employeeId = query.employeeId;
+    if (query.ipAddress) where.ipAddress = query.ipAddress;
+    if (query.status) where.status = query.status;
+    if (query.startDate || query.endDate) {
+      where.timestamp = {};
+      if (query.startDate) where.timestamp.gte = new Date(query.startDate);
+      if (query.endDate) where.timestamp.lte = new Date(query.endDate);
+    }
+    const prisma2 = (init_postgres(), __toCommonJS(postgres_exports)).default;
+    const attempts = await prisma2.loginAttempt.findMany({
+      where,
+      skip: query.offset,
+      take: query.limit,
+      include: {
+        employee: {
+          select: { id: true, username: true, name: true, email: true }
+        }
+      },
+      orderBy: { timestamp: "desc" }
+    });
+    const total = await prisma2.loginAttempt.count({ where });
+    return sendSuccess(
+      res,
+      {
+        total,
+        count: attempts.length,
+        data: attempts
+      },
+      "Retrieved login attempts",
+      200
+    );
+  } catch (err) {
+    return handleError(res, err);
+  }
+};
+var getLoginStatisticsController = async (req, res) => {
+  try {
+    const query = getLoginAttemptsSchema.parse(req.query);
+    const startDate = query.startDate ? new Date(query.startDate) : void 0;
+    const endDate = query.endDate ? new Date(query.endDate) : void 0;
+    const result = await getLoginAttemptStatistics(startDate, endDate, query.limit);
+    return sendSuccess(res, result, "Login statistics retrieved", 200);
+  } catch (err) {
+    return handleError(res, err);
+  }
+};
+var getEmployeeLoginHistoryController = async (req, res) => {
+  try {
+    const payload = getLoginHistorySchema.parse(req.query);
+    const result = await getEmployeeLoginReport(payload.employeeId, payload.days);
+    return sendSuccess(res, result, "Employee login history retrieved", 200);
+  } catch (err) {
+    return handleError(res, err);
+  }
+};
+var getSecurityAuditLogsController = async (req, res) => {
+  try {
+    const query = getSecurityAuditLogsSchema.parse(req.query);
+    const filters = {};
+    if (query.employeeId) filters.employeeId = query.employeeId;
+    if (query.action) filters.action = query.action;
+    if (query.severity) filters.severity = query.severity;
+    if (query.startDate || query.endDate) {
+      filters.startDate = query.startDate ? new Date(query.startDate) : void 0;
+      filters.endDate = query.endDate ? new Date(query.endDate) : void 0;
+    }
+    const prisma2 = (init_postgres(), __toCommonJS(postgres_exports)).default;
+    const logs = await prisma2.securityAuditLog.findMany({
+      where: {
+        ...filters.employeeId && { employeeId: filters.employeeId },
+        ...filters.action && { action: filters.action },
+        ...filters.severity && { severity: filters.severity },
+        ...(filters.startDate || filters.endDate) && {
+          timestamp: {
+            ...filters.startDate && { gte: filters.startDate },
+            ...filters.endDate && { lte: filters.endDate }
+          }
+        }
+      },
+      skip: query.offset,
+      take: query.limit,
+      include: {
+        employee: {
+          select: { id: true, username: true, name: true, email: true }
+        }
+      },
+      orderBy: { timestamp: "desc" }
+    });
+    const total = await prisma2.securityAuditLog.count({
+      where: {
+        ...filters.employeeId && { employeeId: filters.employeeId },
+        ...filters.action && { action: filters.action },
+        ...filters.severity && { severity: filters.severity },
+        ...(filters.startDate || filters.endDate) && {
+          timestamp: {
+            ...filters.startDate && { gte: filters.startDate },
+            ...filters.endDate && { lte: filters.endDate }
+          }
+        }
+      }
+    });
+    return sendSuccess(
+      res,
+      {
+        total,
+        count: logs.length,
+        data: logs
+      },
+      "Retrieved security audit logs",
+      200
+    );
+  } catch (err) {
+    return handleError(res, err);
+  }
+};
+var getSuspiciousActivityController = async (req, res) => {
+  try {
+    const query = getSuspiciousActivitySchema.parse(req.query);
+    const result = await getSuspiciousActivity(query.hoursBack, query.limit);
+    return sendSuccess(res, result, "Suspicious activity retrieved", 200);
+  } catch (err) {
+    return handleError(res, err);
+  }
+};
+var getSecurityPolicyController = async (req, res) => {
+  try {
+    const policy = await getSecurityPolicy();
+    return sendSuccess(res, policy, "Security policy retrieved", 200);
+  } catch (err) {
+    return handleError(res, err);
+  }
+};
+var updateSecurityPolicyController = async (req, res) => {
+  try {
+    const payload = updateSecurityPolicySchema.parse(req.body);
+    const policy = await getSecurityPolicy();
+    const updated = await updateSecurityPolicy(policy.id, payload);
+    return sendSuccess(res, updated, "Security policy updated successfully", 200);
+  } catch (err) {
+    return handleError(res, err);
+  }
+};
+var generateSecurityReportController = async (req, res) => {
+  try {
+    const payload = generateSecurityReportSchema.parse(req.body);
+    const startDate = new Date(payload.startDate);
+    const endDate = new Date(payload.endDate);
+    if (startDate > endDate) {
+      return sendError(res, "INVALID_DATE_RANGE", "Start date must be before end date");
+    }
+    const report = await generateSecurityReport(startDate, endDate);
+    return sendSuccess(res, report, "Security report generated successfully", 200);
+  } catch (err) {
+    return handleError(res, err);
+  }
+};
+var getSecurityDashboardController = async (req, res) => {
+  try {
+    const now = /* @__PURE__ */ new Date();
+    const last24h = new Date(now.getTime() - 24 * 60 * 60 * 1e3);
+    const last7d = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1e3);
+    const last30d = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1e3);
+    const [stats24h, stats7d, stats30d, suspicious, policy] = await Promise.all([
+      getLoginAttemptStatistics(last24h, now),
+      getLoginAttemptStatistics(last7d, now),
+      getLoginAttemptStatistics(last30d, now),
+      getSuspiciousActivity(24, 10),
+      getSecurityPolicy()
+    ]);
+    const prisma2 = (init_postgres(), __toCommonJS(postgres_exports)).default;
+    const [blockedIPsCount, lockedAccountsCount] = await Promise.all([
+      prisma2.blockedIP.count({ where: { isActive: true } }),
+      prisma2.accountLockout.count({
+        where: {
+          unlockedAt: null,
+          lockedUntil: { gt: now }
+        }
+      })
+    ]);
+    return sendSuccess(
+      res,
+      {
+        last24Hours: stats24h,
+        last7Days: stats7d,
+        last30Days: stats30d,
+        suspiciousActivity: suspicious,
+        activeBlockedIPs: blockedIPsCount,
+        lockedAccounts: lockedAccountsCount,
+        securityPolicy: policy
+      },
+      "Security dashboard data retrieved",
+      200
+    );
+  } catch (err) {
+    return handleError(res, err);
+  }
+};
+
+// src/modules/adminControl/security.routes.ts
+var router15 = (0, import_express15.Router)();
+router15.use(protect);
+router15.use(authorize(["admin"]));
+router15.post("/check-brute-force", checkBruteForceController);
+router15.get("/login-attempts", getLoginAttemptsController);
+router15.get("/login-statistics", getLoginStatisticsController);
+router15.get("/login-history/:employeeId", getEmployeeLoginHistoryController);
+router15.post("/block-ip", blockIPController);
+router15.post("/unblock-ip", unblockIPController);
+router15.get("/blocked-ips", getBlockedIPsController);
+router15.get("/ip-reputation", getIPReputationController);
+router15.post("/lock-account", lockAccountController);
+router15.post("/unlock-account", unlockAccountController);
+router15.get("/locked-accounts", getLockedAccountsController);
+router15.get("/audit-logs", getSecurityAuditLogsController);
+router15.get("/suspicious-activity", getSuspiciousActivityController);
+router15.get("/policy", getSecurityPolicyController);
+router15.put("/policy", updateSecurityPolicyController);
+router15.post("/generate-report", generateSecurityReportController);
+router15.get("/dashboard", getSecurityDashboardController);
+var security_routes_default = router15;
 
 // src/app.ts
-var app = (0, import_express13.default)();
+var app = (0, import_express16.default)();
 app.use(helmet({ crossOriginResourcePolicy: false }));
-app.use(import_express13.default.json({ limit: "50mb" }));
-app.use(import_express13.default.urlencoded({ extended: true, limit: "50mb" }));
+app.use(import_express16.default.json({ limit: "50mb" }));
+app.use(import_express16.default.urlencoded({ extended: true, limit: "50mb" }));
 app.use((req, res, next) => {
   if (req.method === "OPTIONS") {
     res.setHeader("Access-Control-Allow-Origin", req.headers.origin || "*");
@@ -149047,8 +152416,10 @@ app.use((req, res, next) => {
   }
   next();
 });
+app.set("trust proxy", true);
 app.use("/api/employees", employee_routes_default);
 app.use("/api/auth", auth_routes_default);
+app.use("/api/navbar-permissions", navbarPermissions_routes_default);
 app.use("/api/customers", customer_routes_default);
 app.use("/api/todos", todo_routes_default);
 app.use("/api/po", purchaseOrder_routes_default);
@@ -149059,6 +152430,8 @@ app.use("/api/master", master_routes_default);
 app.use("/api/ppicfilter", ppic_advanced_filter_routes_default);
 app.use("/api/lead", lead_routes_default);
 app.use("/api/hr", hr_routes_default);
+app.use("/api/admin", adminControl_routes_default);
+app.use("/api/admin/security", security_routes_default);
 app.get("/health", (_req, res) => res.status(200).json({ status: "OK" }));
 app.use((_req, res) => res.status(404).json({ message: "Route not found" }));
 var app_default = app;

@@ -16,4 +16,8 @@ router.post("/:id/approve", authorize(["admin"]), controller.approve);
 router.post("/:id/reject", authorize(["admin"]), controller.rejectEmployee);
 router.post("/:id/activate", authorize(["admin"]), controller.activate);
 
+// Login permission controls (separate from status)
+router.post("/:id/enable-login", authorize(["admin"]), controller.enableLogin);
+router.post("/:id/disable-login", authorize(["admin"]), controller.disableLogin);
+
 export default router;

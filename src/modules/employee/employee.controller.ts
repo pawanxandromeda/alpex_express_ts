@@ -88,3 +88,31 @@ export const activate = async (req: AuthRequest, res: Response) => {
     res.status(400).json({ success: false, message: (error as Error).message });
   }
 };
+
+export const enableLogin = async (req: AuthRequest, res: Response) => {
+  try {
+    const adminId = req.user!.id;
+    const employee = await service.toggleEmployeeLogin(req.params.id as string, true, adminId);
+    res.json({ 
+      success: true, 
+      message: "Employee login access enabled", 
+      data: employee 
+    });
+  } catch (error) {
+    res.status(400).json({ success: false, message: (error as Error).message });
+  }
+};
+
+export const disableLogin = async (req: AuthRequest, res: Response) => {
+  try {
+    const adminId = req.user!.id;
+    const employee = await service.toggleEmployeeLogin(req.params.id as string, false, adminId);
+    res.json({ 
+      success: true, 
+      message: "Employee login access disabled", 
+      data: employee 
+    });
+  } catch (error) {
+    res.status(400).json({ success: false, message: (error as Error).message });
+  }
+};

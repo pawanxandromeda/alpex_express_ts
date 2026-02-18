@@ -210,6 +210,9 @@ model Employee {
   securityAuditLogs      SecurityAuditLog[]       @relation("SecurityAuditLogs")
   navbarPermissions      NavbarPermission?        @relation("NavbarPermissions")
 
+  // Login Access Control
+  canLogin               Boolean                  @default(true)
+
   createdAt              DateTime                 @default(now())
   updatedAt              DateTime                 @updatedAt
   

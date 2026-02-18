@@ -130,6 +130,8 @@ export const getEmployees = async () =>
       department: true,
       phone: true,
       dateOfJoining: true,
+      fatherName: true,
+      canLogin: true,
       status: true,
       email: true,
       ctc: true,
@@ -285,7 +287,8 @@ export const activateEmployee = async (id: string, adminId: string) => {
 
   const updated = await prisma.employee.update({
     where: { id },
-    data: { status: "Active" },
+    data: { status: "Active",
+      canLogin: true, },
   });
 
   try {
@@ -306,9 +309,42 @@ export const activateEmployee = async (id: string, adminId: string) => {
   return updated;
 };
 
+// Toggle employee login access (independent of status)
+export const toggleEmployeeLogin = async (id: string, canLogin: boolean, adminId: string) => {
+  const employee = await prisma.employee.findUnique({ 
+    where: { id } 
+  });
+  
+  if (!employee) throw new Error("Employee not found");
+
+  const updated = await prisma.employee.update({
+    where: { id },
+    data: { canLogin },
+  });
+
+  try {
+    await logAction({
+      action: canLogin ? "ENABLE_EMPLOYEE_LOGIN" : "DISABLE_EMPLOYEE_LOGIN",
+      performedBy: adminId,
+      targetId: id,
+      details: { 
+        canLogin,
+        previousCanLogin: employee.canLogin
+      },
+    });
+  } catch (logError) {
+    console.error('Error logging login toggle action:', logError);
+    // Don't throw - just log the error and continue
+  }
+
+  return updated;
+};
+
 // Soft delete
 export const deleteEmployee = async (id: string) =>
   prisma.employee.update({
     where: { id },
-    data: { status: "Inactive" },
+    data: { status: "Inactive",
+      canLogin: false,
+     },
   });
