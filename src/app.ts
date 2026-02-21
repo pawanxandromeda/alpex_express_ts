@@ -26,42 +26,42 @@ app.use(express.json({ limit: "50mb" }));
 app.use(express.urlencoded({ extended: true, limit: "50mb" }));
 
 
-app.use((req, res, next) => {
-  if (req.method === "OPTIONS") {
-    res.setHeader("Access-Control-Allow-Origin", (req.headers.origin as string) || "*");
-    res.setHeader("Access-Control-Allow-Methods", "GET,POST,PUT,PATCH,DELETE,OPTIONS");
-    res.setHeader(
-      "Access-Control-Allow-Headers",
-      "Content-Type,Authorization,X-Requested-With,Access-Control-Request-Method,Access-Control-Request-Headers"
-    );
-    res.setHeader("Access-Control-Allow-Credentials", "true");
-    return res.sendStatus(204);
-  }
-  next();
-});
+// app.use((req, res, next) => {
+//   if (req.method === "OPTIONS") {
+//     res.setHeader("Access-Control-Allow-Origin", (req.headers.origin as string) || "*");
+//     res.setHeader("Access-Control-Allow-Methods", "GET,POST,PUT,PATCH,DELETE,OPTIONS");
+//     res.setHeader(
+//       "Access-Control-Allow-Headers",
+//       "Content-Type,Authorization,X-Requested-With,Access-Control-Request-Method,Access-Control-Request-Headers"
+//     );
+//     res.setHeader("Access-Control-Allow-Credentials", "true");
+//     return res.sendStatus(204);
+//   }
+//   next();
+// });
 
-// const allowedOrigins = [
-//   "http://localhost:8080",
-//   "http://127.0.0.1:8080"
-// ];
+const allowedOrigins = [
+  "http://localhost:8080",
+  "http://127.0.0.1:8080"
+];
 
-// app.use(
-//   cors({
-//     origin: (origin, callback) => {
-//       // allow non-browser tools like Postman
-//       if (!origin) return callback(null, true);
+app.use(
+  cors({
+    origin: (origin, callback) => {
+      // allow non-browser tools like Postman
+      if (!origin) return callback(null, true);
 
-//       if (allowedOrigins.includes(origin)) {
-//         callback(null, true);
-//       } else {
-//         callback(new Error("Not allowed by CORS"));
-//       }
-//     },
-//     credentials: true,
-//     methods: ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
-//     allowedHeaders: ["Content-Type", "Authorization"]
-//   })
-// );
+      if (allowedOrigins.includes(origin)) {
+        callback(null, true);
+      } else {
+        callback(new Error("Not allowed by CORS"));
+      }
+    },
+    credentials: true,
+    methods: ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
+    allowedHeaders: ["Content-Type", "Authorization"]
+  })
+);
 app.set("trust proxy", true);
 
 /* ROUTES */
