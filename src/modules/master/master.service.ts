@@ -326,7 +326,8 @@ async parseCompositionFile(
       ? Number(item.shelfLifeMonths)
       : null,
 
-    review: item.review ?? null
+    review: item.review ?? null,
+    source: 'COMPOSITION_BULK_IMPORT'
   }));
 
   return await prisma.compositionMaster.createMany({
@@ -507,5 +508,207 @@ async parseCompositionFile(
         fs.unlinkSync(file.path);
       }
     }
+  }
+
+  // ============ COMPOSITION VERIFICATION METHODS ============
+
+  /**
+   * Get all compositions imported from PPIC bulk import
+   */
+  async getPpicImportedCompositions(page: number = 1, limit: number = 10) {
+    const skip = (page - 1) * limit;
+
+    const [data, total] = await Promise.all([
+      prisma.compositionMaster.findMany({
+        where: { source: 'PPIC_BULK_IMPORT' },
+        skip,
+        take: limit,
+        orderBy: { createdAt: 'desc' },
+        include: {
+          purchaseOrders: {
+            select: {
+              id: true,
+              poNo: true,
+              brandName: true,
+              partyName: true,
+              createdAt: true,
+            },
+          },
+        },
+      }),
+      prisma.compositionMaster.count({
+        where: { source: 'PPIC_BULK_IMPORT' },
+      }),
+    ]);
+
+    return {
+      data,
+      total,
+      page,
+      totalPages: Math.ceil(total / limit),
+      source: 'PPIC_BULK_IMPORT',
+    };
+  }
+
+  /**
+   * Get all compositions imported from Composition bulk import
+   */
+  async getCompositionBulkImported(page: number = 1, limit: number = 10) {
+    const skip = (page - 1) * limit;
+
+    const [data, total] = await Promise.all([
+      prisma.compositionMaster.findMany({
+        where: { source: 'COMPOSITION_BULK_IMPORT' },
+        skip,
+        take: limit,
+        orderBy: { createdAt: 'desc' },
+        include: {
+          purchaseOrders: {
+            select: {
+              id: true,
+              poNo: true,
+              brandName: true,
+              partyName: true,
+              createdAt: true,
+            },
+          },
+        },
+      }),
+      prisma.compositionMaster.count({
+        where: { source: 'COMPOSITION_BULK_IMPORT' },
+      }),
+    ]);
+
+    return {
+      data,
+      total,
+      page,
+      totalPages: Math.ceil(total / limit),
+      source: 'COMPOSITION_BULK_IMPORT',
+    };
+  }
+
+  /**
+   * Get all manually created compositions
+   */
+  async getManuallyCreatedCompositions(page: number = 1, limit: number = 10) {
+    const skip = (page - 1) * limit;
+
+    const [data, total] = await Promise.all([
+      prisma.compositionMaster.findMany({
+        where: { source: 'MANUAL' },
+        skip,
+        take: limit,
+        orderBy: { createdAt: 'desc' },
+        include: {
+          purchaseOrders: {
+            select: {
+              id: true,
+              poNo: true,
+              brandName: true,
+              partyName: true,
+              createdAt: true,
+            },
+          },
+        },
+      }),
+      prisma.compositionMaster.count({
+        where: { source: 'MANUAL' },
+      }),
+    ]);
+
+    return {
+      data,
+      total,
+      page,
+      totalPages: Math.ceil(total / limit),
+      source: 'MANUAL',
+    };
+  }
+
+  /**
+   * Get composition statistics grouped by source
+   */
+  async getCompositionStatsBySource() {
+    const [ppicCount, compositionBulkCount, manualCount, totalCount] = await Promise.all([
+      prisma.compositionMaster.count({
+        where: { source: 'PPIC_BULK_IMPORT' },
+      }),
+      prisma.compositionMaster.count({
+        where: { source: 'COMPOSITION_BULK_IMPORT' },
+      }),
+      prisma.compositionMaster.count({
+        where: { source: 'MANUAL' },
+      }),
+      prisma.compositionMaster.count(),
+    ]);
+
+    return {
+      total: totalCount,
+      bySource: {
+        ppicBulkImport: ppicCount,
+        compositionBulkImport: compositionBulkCount,
+        manual: manualCount,
+      },
+      percentage: {
+        ppicBulkImport: ((ppicCount / totalCount) * 100).toFixed(2),
+        compositionBulkImport: ((compositionBulkCount / totalCount) * 100).toFixed(2),
+        manual: ((manualCount / totalCount) * 100).toFixed(2),
+      },
+    };
+  }
+
+  /**
+   * Verify a specific PPIC imported composition and get all its linked POs
+   */
+  async verifyPpicComposition(compositionId: string) {
+    const composition = await prisma.compositionMaster.findUnique({
+      where: { id: compositionId },
+      include: {
+        purchaseOrders: {
+          select: {
+            id: true,
+            poNo: true,
+            brandName: true,
+            partyName: true,
+            customerId: true,
+            customer: {
+              select: {
+                id: true,
+                customerName: true,
+                gstrNo: true,
+              },
+            },
+            assignedToEmployeeId: true,
+            assignedToEmployee: {
+              select: {
+                id: true,
+                name: true,
+                email: true,
+              },
+            },
+            createdAt: true,
+          },
+        },
+      },
+    });
+
+    if (!composition) {
+      throw new Error('Composition not found');
+    }
+
+    if (composition.source !== 'PPIC_BULK_IMPORT') {
+      throw new Error(
+        `Composition is not from PPIC bulk import. Source: ${composition.source}`
+      );
+    }
+
+    return {
+      composition,
+      linkedPurchaseOrders: composition.purchaseOrders || [],
+      totalLinkedPOs: composition.purchaseOrders?.length || 0,
+      verified: true,
+      verificationTime: new Date(),
+    };
   }
 }

@@ -128,6 +128,14 @@ enum DocumentType {
   Other
 }
 
+enum ProformaInvoiceStatus {
+  Draft
+  Sent
+  Verified
+  Rejected
+  Converted
+}
+
 model Employee {
   id                     String                   @id @default(uuid())
   name                   String
@@ -210,6 +218,13 @@ model Employee {
   securityAuditLogs      SecurityAuditLog[]       @relation("SecurityAuditLogs")
   navbarPermissions      NavbarPermission?        @relation("NavbarPermissions")
 
+  // Proforma Invoice Approval Relations
+  piPreparedBy           ProformaInvoice[]        @relation("PI_PreparedBy")
+  piCheckedBy            ProformaInvoice[]        @relation("PI_CheckedBy")
+  piAccountant           ProformaInvoice[]        @relation("PI_Accountant")
+  piDesigner             ProformaInvoice[]        @relation("PI_Designer")
+  piAuthorisedBy         ProformaInvoice[]        @relation("PI_AuthorisedBy")
+
   // Login Access Control
   canLogin               Boolean                  @default(true)
 
@@ -251,6 +266,7 @@ model Customer {
   promotor             String?
   blacklistedAt        DateTime?
   purchaseOrders       PurchaseOrder[]
+  proformaInvoices     ProformaInvoice[]
   leads                Lead[]
   annualTurnover       String?
   assignmentHistory    CustomerAssignmentHistory[]
@@ -392,6 +408,8 @@ model PurchaseOrder {
   orderThrough                String?
   address                     String?
   composition                 String?
+  compositionId               String?
+  compositionMaster           CompositionMaster? @relation(fields: [compositionId], references: [id], onDelete: SetNull)
   notes                       String?
   rmStatus                    String?
   poQty                       String?
@@ -455,6 +473,7 @@ model PurchaseOrder {
 
   @@index([gstNo])
   @@index([customerId])
+  @@index([compositionId])
   @@index([assignedToEmployeeId])
   @@index([poDate])
   @@index([overallStatus])
@@ -495,6 +514,122 @@ model PurchaseOrderAssignmentHistory {
   @@index([assignedAt])
 }
 
+model ProformaInvoice {
+  id                       String                           @id @default(uuid())
+  piNo                     String?                          @unique
+  piDate                   DateTime?
+  customerId               String
+  customer                 Customer                         @relation(fields: [customerId], references: [id])
+  
+  // Customer & Shipping Info
+  brandName                String?
+  partyName                String?
+  gstNo                    String?
+  address                  String?
+  section                  String?
+  
+  // Transport Details
+  transporter              String?
+  destination              String?
+  modeOfTransport          String?
+  courier                  String?
+  
+  // Composition & Line Items
+  composition              String?
+  compositionId            String?
+  compositionMaster        CompositionMaster?               @relation(fields: [compositionId], references: [id], onDelete: SetNull)
+  lineItems                ProformaInvoiceLineItem[]
+  
+  // Legacy single item fields (for compatibility)
+  piQty                    String?
+  piRate                   String?
+  amount                   String?
+  mrp                      String?
+  
+  // Financial Details
+  paymentTerms             String?
+  deliveryTerms            String?
+  subtotal                 String?
+  gstAmount                String?
+  grandTotal               String?
+  advance                  String?
+  notes                    String?
+  
+  // Order Type
+  orderType                String?                          @default("NEW")
+  
+  // Approval Workflow
+  preparedByEmployeeId     String?
+  preparedBy               Employee?                        @relation("PI_PreparedBy", fields: [preparedByEmployeeId], references: [id])
+  checkedByEmployeeId      String?
+  checkedBy                Employee?                        @relation("PI_CheckedBy", fields: [checkedByEmployeeId], references: [id])
+  accountantEmployeeId     String?
+  accountant               Employee?                        @relation("PI_Accountant", fields: [accountantEmployeeId], references: [id])
+  designerEmployeeId       String?
+  designer                 Employee?                        @relation("PI_Designer", fields: [designerEmployeeId], references: [id])
+  authorisedByEmployeeId   String?
+  authorisedBy             Employee?                        @relation("PI_AuthorisedBy", fields: [authorisedByEmployeeId], references: [id])
+  
+  // Bank Details
+  bankDetails              Json?
+  termsAndConditions       Json?
+  
+  // Status & Verification
+  status                   ProformaInvoiceStatus            @default(Draft)
+  verificationStatus       String                           @default("Pending")
+  verifiedBy               String?
+  verifiedAt               DateTime?
+  rejectionReason          String?
+  
+  // PDF & Conversion
+  pdfUrl                   String?
+  pdfFileName              String?
+  
+  convertedToPOId          String?
+  convertedAt              DateTime?
+  convertedBy              String?
+  
+  createdBy                String
+  createdAt                DateTime                         @default(now())
+  updatedAt                DateTime                         @updatedAt
+  
+  @@index([customerId])
+  @@index([compositionId])
+  @@index([status])
+  @@index([verificationStatus])
+  @@index([piDate])
+  @@index([createdAt])
+  @@index([piNo])
+}
+
+model ProformaInvoiceLineItem {
+  id                       String                  @id @default(uuid())
+  piId                     String
+  proformaInvoice          ProformaInvoice         @relation(fields: [piId], references: [id], onDelete: Cascade)
+  
+  itemNo                   Int
+  brandName                String?
+  composition              String?
+  compositionId            String?
+  compositionMaster        CompositionMaster?      @relation(fields: [compositionId], references: [id], onDelete: SetNull)
+  
+  orderType                String?
+  packing                  String?
+  section                  String?
+  
+  qty                      String?
+  mrp                      String?
+  rate                     String?
+  amount                   String?
+  gst                      String?
+  
+  createdAt                DateTime                @default(now())
+  updatedAt                DateTime                @updatedAt
+  
+  @@index([piId])
+  @@unique([piId, itemNo])
+}
+
 model Notification {
   id        String   @id @default(uuid())
   userId    String
@@ -533,8 +668,14 @@ model ChangePartMaster {
 }
 
 
+enum CompositionSource {
+  PPIC_BULK_IMPORT
+  COMPOSITION_BULK_IMPORT
+  MANUAL
+}
+
 model CompositionMaster {
-  id                   String   @id @default(uuid())
+  id                   String                  @id @default(uuid())
   composition          String? 
   formType             String? 
   packingType          String? 
@@ -542,11 +683,18 @@ model CompositionMaster {
   color                String? 
   flavor               String? 
   coating              String? 
-  changePartOptions    String[] @default([])  // fixed
+  changePartOptions    String[]                @default([])  // fixed
   shelfLifeMonths      Int? 
   review               String? 
-  createdAt            DateTime @default(now())
-  updatedAt            DateTime @updatedAt
+  source               CompositionSource       @default(MANUAL)
+  purchaseOrders       PurchaseOrder[]         @relation()
+  proformaInvoices     ProformaInvoice[]
+  proformaLineItems    ProformaInvoiceLineItem[]
+  createdAt            DateTime                @default(now())
+  updatedAt            DateTime                @updatedAt
+  
+  @@index([composition])
+  @@index([source])
 }
 
 

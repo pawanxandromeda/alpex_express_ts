@@ -395,4 +395,76 @@ async bulkCreateCompositionMasters(req: Request, res: Response) {
       });
     }
   }
+
+  // ============ COMPOSITION VERIFICATION CONTROLLERS ============
+
+  /**
+   * Get all compositions imported from PPIC bulk import
+   */
+  async getPpicImportedCompositions(req: Request, res: Response) {
+    try {
+      const page = parseInt(req.query.page as string) || 1;
+      const limit = parseInt(req.query.limit as string) || 10;
+
+      const result = await masterService.getPpicImportedCompositions(page, limit);
+      res.status(200).json(result);
+    } catch (error) {
+      res.status(500).json({ error: (error as Error).message });
+    }
+  }
+
+  /**
+   * Get all compositions imported from Composition bulk import
+   */
+  async getCompositionBulkImported(req: Request, res: Response) {
+    try {
+      const page = parseInt(req.query.page as string) || 1;
+      const limit = parseInt(req.query.limit as string) || 10;
+
+      const result = await masterService.getCompositionBulkImported(page, limit);
+      res.status(200).json(result);
+    } catch (error) {
+      res.status(500).json({ error: (error as Error).message });
+    }
+  }
+
+  /**
+   * Get all manually created compositions
+   */
+  async getManuallyCreatedCompositions(req: Request, res: Response) {
+    try {
+      const page = parseInt(req.query.page as string) || 1;
+      const limit = parseInt(req.query.limit as string) || 10;
+
+      const result = await masterService.getManuallyCreatedCompositions(page, limit);
+      res.status(200).json(result);
+    } catch (error) {
+      res.status(500).json({ error: (error as Error).message });
+    }
+  }
+
+  /**
+   * Get composition statistics grouped by source
+   */
+  async getCompositionStatsBySource(req: Request, res: Response) {
+    try {
+      const result = await masterService.getCompositionStatsBySource();
+      res.status(200).json(result);
+    } catch (error) {
+      res.status(500).json({ error: (error as Error).message });
+    }
+  }
+
+  /**
+   * Verify a specific PPIC imported composition
+   */
+  async verifyPpicComposition(req: Request, res: Response) {
+    try {
+      const compositionId = req.params.id as string;
+      const result = await masterService.verifyPpicComposition(compositionId);
+      res.status(200).json(result);
+    } catch (error) {
+      res.status(400).json({ error: (error as Error).message });
+    }
+  }
 }

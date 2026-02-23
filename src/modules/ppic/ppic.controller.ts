@@ -457,7 +457,7 @@ async getAllPOs(req: Request, res: Response, next: NextFunction) {
    */
   async exportPOs(req: Request, res: Response, next: NextFunction) {
     try {
-      const format = (req.query.format as string) || "csv";
+      const format = ((req.query.format as string) || "csv").trim().toLowerCase();
       const filters = {
         gstNo: req.query.gstNo as string,
         poNo: req.query.poNo as string,
@@ -467,6 +467,32 @@ async getAllPOs(req: Request, res: Response, next: NextFunction) {
         dateTo: req.query.dateTo as string,
       };
 
+      // Parse selected columns from frontend
+      // Can be passed as: ?columns=col1,col2,col3 or ?columns=["col1","col2"]
+      let selectedColumns: string[] = [];
+      console.log("Received columns param:", req.query.columns);
+      if (req.query.columns) {
+        const columnsParam = req.query.columns as string;
+        try {
+          // Try parsing as JSON array first
+          if (columnsParam.startsWith("[")) {
+            selectedColumns = JSON.parse(columnsParam);
+          } else {
+            // Parse as comma-separated string
+            selectedColumns = columnsParam
+              .split(",")
+              .map((col) => col.trim())
+              .filter((col) => col.length > 0);
+          }
+        } catch (err) {
+          // If parsing fails, treat as comma-separated
+          selectedColumns = columnsParam
+            .split(",")
+            .map((col) => col.trim())
+            .filter((col) => col.length > 0);
+        }
+      }
+
       if (!["csv", "xlsx", "json"].includes(format)) {
         return sendError(
           res,
@@ -475,8 +501,12 @@ async getAllPOs(req: Request, res: Response, next: NextFunction) {
         );
       }
 
-      const buffer = await PPICService.exportPOs(format as "csv" | "xlsx" | "json", filters);
-      
+      const buffer = await PPICService.exportPOs(
+        format as "csv" | "xlsx" | "json",
+        filters,
+        selectedColumns
+      );
+
       const mimeTypes: Record<string, string> = {
         csv: "text/csv",
         xlsx: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",

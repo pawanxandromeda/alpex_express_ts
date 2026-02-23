@@ -66,6 +66,7 @@ export const createPO = async (req: AuthRequest, res: Response) => {
       /** 🔥 AUTO FROM AUTH 🔥 */
       createdBy: req.user.username|| req.user.id,
       createdByDept: req.user.department || "Unknown",
+      createdByEmployeeId: req.user.id,
       orderThrough: req.user.username,
     };
 

@@ -138,6 +138,10 @@ export const createPurchaseOrder = async (data: any) => {
         salesComments: data.salesComments,
         orderThrough: data.orderThrough || "Direct",
         
+        // 🔐 Assignment - assign to the user creating the PO
+        assignedToEmployeeId: data.assignedToEmployeeId || data.createdByEmployeeId,
+        assignedAt: new Date(),
+        
         // Timestamp (audit log)
         timestamp: timestampData as any,
         
@@ -260,6 +264,9 @@ export const createPurchaseOrderWithCreditCheck = async (data: any) => {
         customerId: customer.id,
         mdApproval: "Approved",
         accountsApproval: "Approved",
+        // 🔐 Assignment - assign to the user creating the PO
+        assignedToEmployeeId: data.assignedToEmployeeId || data.createdByEmployeeId,
+        assignedAt: new Date(),
         timestamp: timestampData as any,
       },
       include: { customer: true },

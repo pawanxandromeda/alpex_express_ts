@@ -37,6 +37,13 @@ router.post(
   masterController.bulkCreateCompositionMasters
 );
 
+// CompositionMaster Verification Routes (PPIC/Bulk Import Tracking)
+router.get('/composition-master/verify/ppic-imported', masterController.getPpicImportedCompositions);
+router.get('/composition-master/verify/composition-bulk-imported', masterController.getCompositionBulkImported);
+router.get('/composition-master/verify/manually-created', masterController.getManuallyCreatedCompositions);
+router.get('/composition-master/verify/stats', masterController.getCompositionStatsBySource);
+router.get('/composition-master/verify/:id', masterController.verifyPpicComposition);
+
 
 // ApiMaster routes
 router.post('/api-master', masterController.createApiMaster);

@@ -18,6 +18,7 @@ import leadRoutes from "./modules/lead/lead.routes";
 import HrRoutes from "./modules/hr/hr.routes";
 import adminControlRoutes from "./modules/adminControl/adminControl.routes";
 import securityRoutes from "./modules/adminControl/security.routes";
+import performaRoutes from "./modules/performa/performa.routes";
 
 const app: Application = express();
 
@@ -80,6 +81,7 @@ app.use("/api/lead", leadRoutes);
 app.use("/api/hr", HrRoutes);
 app.use("/api/admin", adminControlRoutes);
 app.use("/api/admin/security", securityRoutes);
+app.use("/api/performa", performaRoutes);
 
 app.get("/health", (_req, res) => res.status(200).json({ status: "OK" }));
 

@@ -229,10 +229,43 @@ private static async createSinglePurchaseOrder(
       if (customer) customerId = customer.id;
     }
 
+    // Link composition if exists (but don't fail if it errors)
+    let compositionId = null;
+    if (data.composition && typeof data.composition === 'string') {
+      try {
+        const compositionStr = data.composition.trim();
+        // Try to find exact match first
+        let composition = await prisma.compositionMaster.findFirst({
+          where: {
+            composition: {
+              equals: compositionStr,
+              mode: 'insensitive'
+            }
+          }
+        });
+        
+        // If no match, create a new composition entry with PPIC_BULK_IMPORT source
+        if (!composition) {
+          composition = await prisma.compositionMaster.create({
+            data: {
+              composition: compositionStr,
+              source: 'PPIC_BULK_IMPORT'
+            }
+          });
+        }
+        
+        if (composition) compositionId = composition.id;
+      } catch (compositionError) {
+        // Log composition linking error but continue - PO will still save
+        console.warn(`Warning: Failed to link composition for row ${row.rowIndex}:`, compositionError);
+      }
+    }
+
     // Sanitize data - only keep fields present in sheet headers
     const createData: any = this.sanitizeData(data, sheetHeaders);
 
     if (customerId) createData.customerId = customerId;
+    if (compositionId) createData.compositionId = compositionId;
     if (data.gstNo) createData.gstNo = data.gstNo;
 
     // Create audit log
@@ -264,7 +297,7 @@ private static async createSinglePurchaseOrder(
   private static sanitizeData(data: Record<string, any>, sheetHeaders: string[] = []): Record<string, any> {
     // Valid fields in PurchaseOrder schema
     const validFields = new Set([
-      "id", "gstNo", "customerId", "poNo", "poDate", "dispatchDate", "brandName",
+      "id", "gstNo", "customerId", "compositionId", "poNo", "poDate", "dispatchDate", "brandName",
       "partyName", "batchNo", "paymentTerms", "invCha", "cylChar", "orderThrough",
       "address", "composition", "notes", "rmStatus", "poQty", "poRate", "amount",
       "mrp", "section", "specialRequirements", "tabletCapsuleDrySyrupBottle",
@@ -688,13 +721,17 @@ static async getAllImportedPOs(
   }
 
   /**
-   * Export purchase orders to CSV, XLSX, or JSON
+   * Export purchase orders to CSV, XLSX, or JSON with column selection
    */
   static async exportPOs(
     format: "csv" | "xlsx" | "json",
-    filters: Record<string, any> = {}
+    filters: Record<string, any> = {},
+    selectedColumns: string[] = []
   ): Promise<Buffer> {
     try {
+      // Normalize format: trim whitespace and convert to lowercase
+      const normalizedFormat = format.toString().trim().toLowerCase();
+
       // Build where clause
       const where: any = {};
 
@@ -712,16 +749,18 @@ static async getAllImportedPOs(
         if (filters.dateTo) where.poDate.lte = new Date(filters.dateTo);
       }
 
-      // Fetch all matching purchase orders
+      // Fetch all matching purchase orders (filtered)
       const pos = await prisma.purchaseOrder.findMany({
         where,
         orderBy: { createdAt: "desc" },
         include: {
           customer: {
             select: {
+              id: true,
               customerName: true,
               gstrNo: true,
               contactEmail: true,
+              contactPhone: true,
             },
           },
         },
@@ -731,16 +770,16 @@ static async getAllImportedPOs(
         throw new Error("No purchase orders found with the given filters");
       }
 
-      if (format === "json") {
+      if (normalizedFormat === "json") {
         return Buffer.from(JSON.stringify(pos, null, 2));
       }
 
-      if (format === "csv") {
-        return this.generateCSV(pos);
+      if (normalizedFormat === "csv") {
+        return this.generateCSV(pos, selectedColumns);
       }
 
-      if (format === "xlsx") {
-        return this.generateXLSX(pos);
+      if (normalizedFormat === "xlsx") {
+        return this.generateXLSX(pos, selectedColumns);
       }
 
       throw new Error(`Unsupported format: ${format}`);
@@ -750,37 +789,45 @@ static async getAllImportedPOs(
   }
 
   /**
-   * Generate CSV from purchase orders
+   * Generate CSV from purchase orders with selected columns
    */
-  private static generateCSV(pos: any[]): Buffer {
+  private static generateCSV(pos: any[], selectedColumns: string[] = []): Buffer {
     if (pos.length === 0) {
       return Buffer.from("No data");
     }
 
-    // Get all unique keys from first PO
-    const headers = new Set<string>();
-    pos.forEach((po) => {
-      Object.keys(po).forEach((key) => {
-        if (key !== "customer") headers.add(key);
-      });
-      if (po.customer) {
-        headers.add("customerName");
-        headers.add("customerEmail");
-      }
-    });
+    // Determine columns to export
+    let columnsToExport: string[] = selectedColumns;
 
-    const headerArray = Array.from(headers);
+    // If no columns selected, use all available columns
+    if (!columnsToExport || columnsToExport.length === 0) {
+      const headers = new Set<string>();
+      pos.forEach((po) => {
+        Object.keys(po).forEach((key) => {
+          if (key !== "customer") headers.add(key);
+        });
+        if (po.customer) {
+          headers.add("customerName");
+          headers.add("customerEmail");
+          headers.add("customerPhone");
+        }
+      });
+      columnsToExport = Array.from(headers);
+    }
 
     // Build CSV
-    let csv = headerArray.join(",") + "\n";
+    let csv = columnsToExport.join(",") + "\n";
 
     pos.forEach((po) => {
-      const row = headerArray.map((header) => {
+      const row = columnsToExport.map((header) => {
         let value: any = "";
+
         if (header === "customerName") {
           value = po.customer?.customerName || "";
         } else if (header === "customerEmail") {
           value = po.customer?.contactEmail || "";
+        } else if (header === "customerPhone") {
+          value = po.customer?.contactPhone || "";
         } else {
           value = po[header] || "";
         }
@@ -806,32 +853,137 @@ static async getAllImportedPOs(
   }
 
   /**
-   * Generate XLSX from purchase orders
+   * Generate professional XLSX from purchase orders with selected columns
    */
-  private static generateXLSX(pos: any[]): Buffer {
+  private static generateXLSX(pos: any[], selectedColumns: string[] = []): Buffer {
     try {
       const XLSX = require("xlsx");
 
-      // Flatten data for XLSX
-      const flatData = pos.map((po) => ({
-        ...po,
-        customerName: po.customer?.customerName || "",
-        customerEmail: po.customer?.contactEmail || "",
-        customer: undefined, // Remove nested object
-      }));
+      // Determine columns to export
+      let columnsToExport: string[] = selectedColumns;
 
-      // Remove undefined/null nested objects
-      flatData.forEach((item: any) => {
-        Object.keys(item).forEach((key) => {
-          if (item[key] === undefined || (typeof item[key] === "object" && key === "customer")) {
-            delete item[key];
+      // If no columns selected, use all available columns
+      if (!columnsToExport || columnsToExport.length === 0) {
+        const headers = new Set<string>();
+        pos.forEach((po) => {
+          Object.keys(po).forEach((key) => {
+            if (key !== "customer") headers.add(key);
+          });
+          if (po.customer) {
+            headers.add("customerName");
+            headers.add("customerEmail");
+            headers.add("customerPhone");
           }
         });
+        columnsToExport = Array.from(headers);
+      }
+
+      // Flatten and serialize data for XLSX with selected columns
+      const flatData = pos.map((po) => {
+        const item: Record<string, any> = {};
+
+        // Add only selected columns
+        columnsToExport.forEach((col) => {
+          let value: any = "";
+
+          if (col === "customerName") {
+            value = po.customer?.customerName || "";
+          } else if (col === "customerEmail") {
+            value = po.customer?.contactEmail || "";
+          } else if (col === "customerPhone") {
+            value = po.customer?.contactPhone || "";
+          } else {
+            value = po[col];
+          }
+
+          // Handle different data types
+          if (value === undefined || value === null) {
+            item[col] = "";
+          } else if (value instanceof Date) {
+            item[col] = value.toISOString().split("T")[0]; // Format as YYYY-MM-DD
+          } else if (typeof value === "object") {
+            item[col] = JSON.stringify(value);
+          } else {
+            item[col] = value;
+          }
+        });
+
+        return item;
       });
 
-      const worksheet = XLSX.utils.json_to_sheet(flatData);
+      // Create worksheet
+      const worksheet = XLSX.utils.json_to_sheet(flatData, {
+        header: columnsToExport,
+      });
+
+      // Professional styling
+      // Set column widths
+      const columnWidths = columnsToExport.map((col) => ({
+        wch: Math.min(Math.max(col.length + 2, 12), 30), // Min 12, Max 30
+      }));
+      worksheet["!cols"] = columnWidths;
+
+      // Style header row
+      const headerStyle = {
+        font: { bold: true, color: { rgb: "FFFFFF" } },
+        fill: { fgColor: { rgb: "4472C4" } },
+        alignment: { horizontal: "center", vertical: "center" },
+        border: {
+          top: { style: "thin" },
+          bottom: { style: "thin" },
+          left: { style: "thin" },
+          right: { style: "thin" },
+        },
+      };
+
+      // Apply header styling
+      for (let i = 0; i < columnsToExport.length; i++) {
+        const cellRef = XLSX.utils.encode_cell({ r: 0, c: i });
+        if (worksheet[cellRef]) {
+          worksheet[cellRef].s = headerStyle;
+        }
+      }
+
+      // Style data rows with alternating colors
+      const dataStyle = {
+        alignment: { horizontal: "left", vertical: "center" },
+        border: {
+          top: { style: "thin" },
+          bottom: { style: "thin" },
+          left: { style: "thin" },
+          right: { style: "thin" },
+        },
+      };
+
+      const alternateRowStyle = {
+        ...dataStyle,
+        fill: { fgColor: { rgb: "D9E1F2" } },
+      };
+
+      for (let i = 1; i < flatData.length + 1; i++) {
+        for (let j = 0; j < columnsToExport.length; j++) {
+          const cellRef = XLSX.utils.encode_cell({ r: i, c: j });
+          if (worksheet[cellRef]) {
+            // Apply alternating row colors
+            worksheet[cellRef].s = i % 2 === 0 ? alternateRowStyle : dataStyle;
+          }
+        }
+      }
+
+      // Freeze header row
+      worksheet["!freeze"] = { xSplit: 0, ySplit: 1 };
+
+      // Create workbook and add worksheet
       const workbook = XLSX.utils.book_new();
       XLSX.utils.book_append_sheet(workbook, worksheet, "PurchaseOrders");
+
+      // Add metadata
+      if (!workbook.Props) {
+        workbook.Props = {};
+      }
+      workbook.Props.Title = "Purchase Orders Export";
+      workbook.Props.Author = "PPIC System";
+      workbook.Props.CreatedDate = new Date();
 
       return XLSX.write(workbook, { type: "buffer" });
     } catch (err) {

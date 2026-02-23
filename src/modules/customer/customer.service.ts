@@ -58,7 +58,10 @@ export const loginCustomer = async (gstrNo: string, customerID: string): Promise
 export const getAllCustomers = async (employeeId: string): Promise<BackendCustomer[]> => {
   return prisma.customer.findMany({
     where: {
-      createdByEmployeeId: employeeId
+      OR: [
+        { createdByEmployeeId: employeeId },
+        { assignedToEmployeeId: employeeId }
+      ]
     },
     select: {
       id: true,
@@ -75,6 +78,8 @@ export const getAllCustomers = async (employeeId: string): Promise<BackendCustom
       relationshipStatus: true,
       gstCopy: true,
       dlExpiry: true,
+      assignedToEmployeeId: true,
+      assignedAt: true,
       createdAt: true,
       updatedAt: true
     }
