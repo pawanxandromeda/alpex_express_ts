@@ -225,6 +225,11 @@ model Employee {
   piDesigner             ProformaInvoice[]        @relation("PI_Designer")
   piAuthorisedBy         ProformaInvoice[]        @relation("PI_AuthorisedBy")
 
+  // Maintenance Module Relations
+  maintenanceMachineAssignedTo Machine[]           @relation("MaintenanceMachineAssignedTo")
+  maintenanceRecordAssignedTo  MaintenanceRecord[] @relation("MaintenanceRecordAssignedTo")
+  fixedAssetAssignedTo         FixedAsset[]        @relation("FixedAssetAssignedTo")
+
   // Login Access Control
   canLogin               Boolean                  @default(true)
 
@@ -1111,3 +1116,442 @@ model NavbarPermission {
   @@index([employeeId])
   @@index([createdAt])
 }
+
+// ============ MAINTENANCE & ASSETS MODULE ============
+
+enum MachineStatus {
+  Operational
+  UnderMaintenance
+  Breakdown
+  Inactive
+  Reserved
+}
+
+enum MaintenanceType {
+  Preventive
+  Corrective
+  Predictive
+  Emergency
+}
+
+enum MaintenanceStatus {
+  Scheduled
+  InProgress
+  OnHold
+  Completed
+  Cancelled
+}
+
+enum PartStatus {
+  Available
+  OutOfStock
+  OnOrder
+  Damaged
+  Obsolete
+}
+
+enum BrokenPartDisposition {
+  Scrapped
+  InStorage
+  ReturnedToVendor
+  RepairInProgress
+  Sold
+  Recycled
+}
+
+// Machine Type - Categorization of machines
+model MachineType {
+  id                    String          @id @default(uuid())
+  name                  String          @unique // e.g., "Tablet Press", "Capsule Filling", "Mixer"
+  code                  String          @unique
+  description           String?
+  category              String          // e.g., "Production", "Utility", "Support"
+  manufacturer          String?
+  modelNumber           String?
+  capacity              String?
+  powerRequirement      String?
+  maintenanceFrequency  String?         // e.g., "Monthly", "Quarterly"
+  averageLifespan       String?
+  customFields          Json?           // Dynamic field structure: {fieldName: {type, required, default}}
+  isActive              Boolean         @default(true)
+  createdAt             DateTime        @default(now())
+  updatedAt             DateTime        @updatedAt
+  machines              Machine[]
+  
+  @@index([category])
+  @@index([isActive])
+}
+
+// Machine - Core machine/asset tracking
+model Machine {
+  id                        String              @id @default(uuid())
+  name                      String              // e.g., "Tablet Press - A1"
+  code                      String              @unique
+  machineTypeId             String
+  machineType               MachineType         @relation(fields: [machineTypeId], references: [id], onDelete: Restrict)
+  serialNumber              String?             @unique
+  location                  String
+  department                String
+  status                    MachineStatus       @default(Operational)
+  
+  // Asset Information
+  purchaseDate              DateTime?
+  purchasePrice             Float?
+  supplier                  String?
+  warrantyExpiry            DateTime?
+  depreciation              Float?              // Percentage per year
+  
+  // Operational Details
+  installationDate          DateTime?
+  lastMaintenanceDate       DateTime?
+  nextScheduledMaintenance  DateTime?
+  operatingHours            Float?              @default(0)
+  hoursPerDay               Float?
+  utilizationRate           Float?              // Percentage
+  
+  // Additional Info
+  documentation             String?             // URL/path to manuals
+  contacts                  Json?               // {vendor: {name, phone, email}}
+  powerRequirement          String?
+  spaceRequired             String?
+  
+  // Dynamic fields (stored as JSON, structure defined in MachineType)
+  customFields              Json?
+  
+  // Relations
+  maintenanceRecords        MaintenanceRecord[]
+  sparePartsAssigned        MachineSparePart[]
+  currentStatus             MachineCurrentStatus? @relation("MachineCurrentStatus")
+  assignedToEmployeeId      String?
+  assignedToEmployee        Employee?           @relation("MaintenanceMachineAssignedTo", fields: [assignedToEmployeeId], references: [id], onDelete: SetNull)
+  
+  createdBy                 String
+  createdAt                 DateTime            @default(now())
+  updatedAt                 DateTime            @updatedAt
+  
+  @@index([machineTypeId])
+  @@index([location])
+  @@index([department])
+  @@index([status])
+  @@index([lastMaintenanceDate])
+  @@index([nextScheduledMaintenance])
+}
+
+// Real-time machine status tracking
+model MachineCurrentStatus {
+  id                    String          @id @default(uuid())
+  machineId             String          @unique
+  machine               Machine         @relation("MachineCurrentStatus", fields: [machineId], references: [id], onDelete: Cascade)
+  
+  currentStatus         MachineStatus   @default(Operational)
+  statusChangedAt       DateTime        @default(now())
+  usedInProduction      Boolean         @default(false)
+  productionLineId      String?
+  currentActivity       String?         // e.g., "Running Production PO-123", "In Maintenance", "Under Repair"
+  operatorEmployeeId    String?
+  maintainerEmployeeId  String?
+  estimatedDowntimeEnd  DateTime?
+  
+  updatedAt             DateTime        @updatedAt
+  
+  @@index([machineId])
+  @@index([currentStatus])
+  @@index([usedInProduction])
+}
+
+// Maintenance Records
+model MaintenanceRecord {
+  id                        String              @id @default(uuid())
+  machineId                 String
+  machine                   Machine             @relation(fields: [machineId], references: [id], onDelete: Cascade)
+  
+  maintenanceType           MaintenanceType     @default(Preventive)
+  status                    MaintenanceStatus   @default(Scheduled)
+  
+  scheduledDate             DateTime
+  startDate                 DateTime?
+  completionDate            DateTime?
+  
+  description               String
+  findings                  String?             // What was found/inspected
+  workDone                  String?             // What maintenance was performed
+  
+  assignedToEmployeeId      String?
+  assignedToEmployee        Employee?           @relation("MaintenanceRecordAssignedTo", fields: [assignedToEmployeeId], references: [id], onDelete: SetNull)
+  
+  // Tracking
+  partsUsed                 MaintenancePartUsage[]
+  estimatedDurationHours    Int?
+  actualDurationHours       Int?
+  downtime                  Int?                // In minutes
+  
+  // Cost tracking
+  laborCost                 Float?
+  materialCost              Float?
+  totalCost                 Float?
+  
+  nextMaintenanceDate       DateTime?
+  brokenParts               BrokenPart[]
+  notes                     String?
+  attachments               Json?               // URLs to images/documents
+  
+  createdBy                 String
+  verifiedBy                String?
+  
+  createdAt                 DateTime            @default(now())
+  updatedAt                 DateTime            @updatedAt
+  
+  @@index([machineId])
+  @@index([status])
+  @@index([scheduledDate])
+  @@index([completionDate])
+  @@index([assignedToEmployeeId])
+}
+
+// Part/Spare Part Master
+model Part {
+  id                    String          @id @default(uuid())
+  name                  String
+  code                  String          @unique
+  description           String?
+  category              String          // e.g., "Bearing", "Seal", "Motor", "Bearing"
+  partNumber            String?         @unique
+  manufacturer          String?
+  supplierIds           String[]        // Array of supplier IDs
+  
+  // Inventory
+  quantityInStock       Int             @default(0)
+  minimumStock          Int             @default(5)
+  reorderPoint          Int             @default(10)
+  reorderQuantity       Int             @default(20)
+  
+  // Cost
+  unitCost              Float?
+  sellingPrice          Float?
+  lastPriceUpdate       DateTime?
+  
+  // Standards
+  status                PartStatus      @default(Available)
+  acceptableAlternatives String[]       // IDs of alternative parts
+  compatibility         Json?           // {machineTypeIds: [...]}
+  
+  // Tracking
+  usageHistory          MaintenancePartUsage[]
+  orders                PartOrder[]
+  brokenParts           BrokenPart[]
+  
+  usedInMachines        MachineSparePart[]
+  
+  isActive              Boolean         @default(true)
+  createdAt             DateTime        @default(now())
+  updatedAt             DateTime        @updatedAt
+  
+  @@index([category])
+  @@index([status])
+  @@index([code])
+}
+
+// Machine Spare Parts - Assignment of parts to machines
+model MachineSparePart {
+  id                    String          @id @default(uuid())
+  machineId             String
+  machine               Machine         @relation(fields: [machineId], references: [id], onDelete: Cascade)
+  partId                String
+  part                  Part            @relation(fields: [partId], references: [id], onDelete: Restrict)
+  
+  quantityRequired      Int
+  criticality           String          @default("Medium") // High, Medium, Low
+  lastReplacedDate      DateTime?
+  replacementCycle      Int?           // In days
+  notes                 String?
+  
+  @@unique([machineId, partId])
+  @@index([machineId])
+  @@index([partId])
+}
+
+// Maintenance Part Usage Tracking
+model MaintenancePartUsage {
+  id                    String          @id @default(uuid())
+  maintenanceRecordId   String
+  maintenanceRecord     MaintenanceRecord @relation(fields: [maintenanceRecordId], references: [id], onDelete: Cascade)
+  
+  partId                String
+  part                  Part            @relation(fields: [partId], references: [id], onDelete: Restrict)
+  
+  quantityUsed          Int
+  unitCost              Float?
+  totalCost             Float?
+  costCenter            String?
+  
+  @@index([maintenanceRecordId])
+  @@index([partId])
+}
+
+// Part Orders - Tracking incoming parts
+model PartOrder {
+  id                    String          @id @default(uuid())
+  orderNumber           String          @unique
+  partId                String
+  part                  Part            @relation(fields: [partId], references: [id], onDelete: Restrict)
+  
+  supplierId            String
+  supplierName          String
+  supplierContact       String?
+  supplierPhone         String?
+  
+  quantity              Int
+  unitPrice             Float?
+  totalPrice            Float?
+  
+  orderDate             DateTime        @default(now())
+  expectedDelivery      DateTime?
+  actualDelivery        DateTime?
+  deliveryStatus        String          @default("Pending") // Pending, Delivered, Delayed, Cancelled
+  
+  purchaseOrderNumber   String?
+  paymentStatus         String          @default("Unpaid") // Unpaid, Paid, Partial
+  amountPaid            Float?          @default(0)
+  
+  notes                 String?
+  attachments           Json?           // Invoice, PO, etc
+  
+  orderedBy             String
+  
+  createdAt             DateTime        @default(now())
+  updatedAt             DateTime        @updatedAt
+  
+  @@index([partId])
+  @@index([orderDate])
+  @@index([expectedDelivery])
+  @@index([deliveryStatus])
+}
+
+// Broken Parts Tracking
+model BrokenPart {
+  id                    String              @id @default(uuid())
+  maintenanceRecordId   String
+  maintenanceRecord     MaintenanceRecord   @relation(fields: [maintenanceRecordId], references: [id], onDelete: Cascade)
+  
+  partId                String?
+  part                  Part?               @relation(fields: [partId], references: [id], onDelete: SetNull)
+  
+  partName              String              // In case part is not in master
+  originalQuantity      Int
+  
+  disposition           BrokenPartDisposition @default(InStorage)
+  dispositionDate       DateTime?
+  dispositionNotes      String?
+  
+  // If Scrapped
+  scrapReason           String?
+  scrapApprovedBy       String?
+  
+  // If In Storage
+  storageLocation       String?
+  
+  // If Returned
+  vendorReturnId        String?
+  returnAuthorization   String?
+  returnDate            DateTime?
+  
+  // If Sold/Recycled
+  salePrice             Float?
+  buyerId               String?
+  saleDateFor          DateTime?
+  
+  status                String              @default("Pending") // Pending, Approved, Disposed
+  approvedBy            String?
+  approvalDate          DateTime?
+  
+  createdAt             DateTime            @default(now())
+  updatedAt             DateTime            @updatedAt
+  
+  @@index([maintenanceRecordId])
+  @@index([disposition])
+  @@index([status])
+}
+
+// Fixed Assets - Spare equipment and tools
+model FixedAsset {
+  id                    String          @id @default(uuid())
+  name                  String          // e.g., "Drill Machine", "Spare Motor", "LED Work Light"
+  code                  String          @unique
+  assetCategory         String          // e.g., "Equipment", "Tools", "Spare Parts", "Consumables"
+  description           String?
+  
+  manufacturer          String?
+  modelNumber           String?
+  serialNumber          String?         @unique
+  
+  // Location & Inventory
+  currentLocation       String          // Warehouse location
+  quantity              Int             @default(1)
+  minThreshold          Int             @default(1)
+  
+  // Asset Details
+  purchaseDate          DateTime?
+  purchasePrice         Float?
+  currentValue          Float?
+  depreciation          Float?          // Percentage per year
+  warrantyExpiry        DateTime?
+  
+  supplier              String?
+  supplierContact       String?
+  
+  // Usage
+  status                String          @default("Available") // Available, InUse, Reserved, Damaged, Obsolete
+  assignedToEmployeeId  String?
+  assignedToEmployee    Employee?       @relation("FixedAssetAssignedTo", fields: [assignedToEmployeeId], references: [id], onDelete: SetNull)
+  assignedDate          DateTime?
+  lastUsedDate          DateTime?
+  
+  usageHistory          FixedAssetUsageLog[]
+  
+  // Maintenance
+  maintenanceRequired   Boolean         @default(false)
+  lastMaintenanceDate   DateTime?
+  nextMaintenanceDate   DateTime?
+  
+  documentation         String?
+  condition             String          @default("Good") // Good, Fair, Poor
+  notes                 String?
+  attachments           Json?
+  
+  createdBy             String
+  createdAt             DateTime        @default(now())
+  updatedAt             DateTime        @updatedAt
+  
+  @@index([assetCategory])
+  @@index([status])
+  @@index([currentLocation])
+  @@index([assignedToEmployeeId])
+}
+
+// Fixed Asset Usage Log
+model FixedAssetUsageLog {
+  id                    String          @id @default(uuid())
+  assetId               String
+  asset                 FixedAsset      @relation(fields: [assetId], references: [id], onDelete: Cascade)
+  
+  usedByEmployeeId      String?
+  usedBy                String?         // Employee name or description
+  usedForMachineId      String?         // Which machine it was used on
+  usedForDescription    String?
+  
+  checkOutDate          DateTime        @default(now())
+  checkInDate           DateTime?
+  duration              Int?            // In hours
+  
+  condition             String?         // Condition when returned
+  notes                 String?
+  
+  @@index([assetId])
+  @@index([checkOutDate])
+}
+
+// Update Employee model to add maintenance relations
+// (These are added in the Employee model above:)
+// maintenanceMachineAssignedTo Machine[] @relation("MaintenanceMachineAssignedTo")
+// maintenanceRecordAssignedTo MaintenanceRecord[] @relation("MaintenanceRecordAssignedTo")
+// fixedAssetAssignedTo FixedAsset[] @relation("FixedAssetAssignedTo")

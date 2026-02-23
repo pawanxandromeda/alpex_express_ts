@@ -19,6 +19,7 @@ import HrRoutes from "./modules/hr/hr.routes";
 import adminControlRoutes from "./modules/adminControl/adminControl.routes";
 import securityRoutes from "./modules/adminControl/security.routes";
 import performaRoutes from "./modules/performa/performa.routes";
+import { maintenanceRoutes } from "./modules/maintenance";
 
 const app: Application = express();
 
@@ -82,7 +83,7 @@ app.use("/api/hr", HrRoutes);
 app.use("/api/admin", adminControlRoutes);
 app.use("/api/admin/security", securityRoutes);
 app.use("/api/performa", performaRoutes);
-
+app.use("/api/maintenance", maintenanceRoutes);
 app.get("/health", (_req, res) => res.status(200).json({ status: "OK" }));
 
 app.use((_req, res) => res.status(404).json({ message: "Route not found" }));
