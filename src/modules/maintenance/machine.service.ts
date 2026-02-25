@@ -621,11 +621,9 @@ export class MachineService {
   private static async invalidateMachineCache() {
     try {
       if (!redis) return;
-      const pattern = "machine:*";
-      const keys = await redis.keys(pattern);
-      if (keys.length > 0) {
-        await redis.del(...keys);
-      }
+      // Skip pattern deletion to avoid EPIPE errors from redis.keys() on Lambda
+      // Cache expiration will handle cleanup automatically
+      console.log("🗑️ Machine cache invalidation skipped (relying on key expiration)");
     } catch (error) {
       console.error("Cache invalidation error:", error);
     }

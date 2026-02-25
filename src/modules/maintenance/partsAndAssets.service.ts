@@ -798,13 +798,9 @@ export class PartsAndAssetsService {
   private static async invalidatePartsCache() {
     try {
       if (!redis) return;
-      const patterns = ["parts:*", "orders:*"];
-      for (const pattern of patterns) {
-        const keys = await redis.keys(pattern);
-        if (keys.length > 0) {
-          await redis.del(...keys);
-        }
-      }
+      // Skip pattern deletion to avoid EPIPE errors from redis.keys() on Lambda
+      // Cache expiration will handle cleanup automatically
+      console.log("🗑️ Parts cache invalidation skipped (relying on key expiration)");
     } catch (error) {
       console.error("Cache invalidation error:", error);
     }
@@ -816,10 +812,9 @@ export class PartsAndAssetsService {
   private static async invalidateAssetsCache() {
     try {
       if (!redis) return;
-      const keys = await redis.keys("assets:*");
-      if (keys.length > 0) {
-        await redis.del(...keys);
-      }
+      // Skip pattern deletion to avoid EPIPE errors from redis.keys() on Lambda
+      // Cache expiration will handle cleanup automatically
+      console.log("🗑️ Assets cache invalidation skipped (relying on key expiration)");
     } catch (error) {
       console.error("Cache invalidation error:", error);
     }

@@ -591,13 +591,9 @@ export class MaintenanceService {
   private static async invalidateMaintenanceCache() {
     try {
       if (!redis) return;
-      const patterns = ["maintenance:*", "machine:*"];
-      for (const pattern of patterns) {
-        const keys = await redis.keys(pattern);
-        if (keys.length > 0) {
-          await redis.del(...keys);
-        }
-      }
+      // Skip pattern deletion to avoid EPIPE errors from redis.keys() on Lambda
+      // Cache expiration will handle cleanup automatically
+      console.log("🗑️ Maintenance cache invalidation skipped (relying on key expiration)");
     } catch (error) {
       console.error("Cache invalidation error:", error);
     }

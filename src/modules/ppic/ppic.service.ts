@@ -985,7 +985,15 @@ static async getAllImportedPOs(
       workbook.Props.Author = "PPIC System";
       workbook.Props.CreatedDate = new Date();
 
-      return XLSX.write(workbook, { type: "buffer" });
+      // Generate buffer with proper encoding
+      const buffer = XLSX.write(workbook, { type: "buffer", bookType: "xlsx" });
+      
+      // Ensure we return a proper Buffer instance
+      if (!Buffer.isBuffer(buffer)) {
+        return Buffer.from(buffer);
+      }
+      
+      return buffer;
     } catch (err) {
       throw new Error(`XLSX generation failed: ${(err as Error).message}`);
     }

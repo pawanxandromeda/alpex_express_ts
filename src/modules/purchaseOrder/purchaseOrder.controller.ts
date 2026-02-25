@@ -478,6 +478,35 @@ export const approvePoApi = async (req: AuthRequest, res: Response) => {
   }
 };
 
+export const approveBulkPOs = async (req: AuthRequest, res: Response) => {
+  try {
+    if (!req.user) {
+      return sendError(res, ERROR_CODES.UNAUTHORIZED);
+    }
+
+    const { poIds, remarks } = req.body;
+
+    if (!poIds || !Array.isArray(poIds) || poIds.length === 0) {
+      return sendError(res, "INVALID_REQUEST", "Please provide an array of PO IDs");
+    }
+
+    const approvalData = {
+      approvedBy: req.user.username || req.user.name || "System",
+      approvedByDept: req.user.department || "System",
+      remarks,
+    };
+
+    const result = await service.approveBulkPOs(poIds, approvalData);
+
+    return sendSuccess(res, {
+      message: `Bulk approval completed: ${result.approved}/${result.totalRequested} Purchase Orders approved`,
+      data: result,
+    });
+  } catch (error) {
+    return handleError(res, error);
+  }
+};
+
 export const rejectPoApi = async (req: AuthRequest, res: Response) => {
   try {
     if (!req.user) {

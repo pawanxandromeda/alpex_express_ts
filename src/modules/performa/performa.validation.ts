@@ -51,12 +51,7 @@ export const convertToPOValidation = z.object({
   params: z.object({
     piId: z.string().uuid("Invalid PI ID"),
   }),
-  body: z.object({
-    poNo: z.string().optional(),
-    poDate: z.string().optional(),
-    batchNo: z.string().optional(),
-    dispatchDate: z.string().optional(),
-  }),
+  body: z.object({}).optional(),
 });
 
 export const rejectPIValidation = z.object({

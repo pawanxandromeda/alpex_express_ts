@@ -28,6 +28,7 @@ router.get("/assignment-history/:poId", controller.getPurchaseOrderAssignmentHis
 
 // Approvals routes
 router.get("/approvals/pending", encryptResponse, controller.getPendingApprovalsApi);
+router.post("/approve/bulk", controller.approveBulkPOs);
 router.post("/:id/approve", controller.approvePoApi);
 router.post("/:id/reject", controller.rejectPoApi);
 

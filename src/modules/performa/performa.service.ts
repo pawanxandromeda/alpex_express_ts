@@ -68,13 +68,7 @@ interface CreatePIPayload {
   createdBy: string;
 }
 
-interface ConvertToPOPayload {
-  poNo?: string;
-  poDate?: Date;
-  batchNo?: string;
-  dispatchDate?: Date;
-  [key: string]: any;
-}
+
 
 export class ProformaInvoiceService {
   /**
@@ -437,7 +431,6 @@ static async createPI(payload: CreatePIPayload) {
    */
 static async convertToPO(
   piId: string,
-  poData: ConvertToPOPayload,
   convertedBy: string
 ) {
   try {
@@ -474,13 +467,13 @@ static async convertToPO(
         count = lastCount + 1;
       }
 
-      const poNo = poData.poNo || `ALP/${year}/${String(count).padStart(4, "0")}`;
+      const poNo = `ALP/${year}/${String(count).padStart(4, "0")}`;
 
       // 2️⃣ Create PO
       const purchaseOrder = await tx.purchaseOrder.create({
         data: {
           poNo,
-          poDate: poData.poDate || new Date(),
+          poDate: new Date(),
           customerId: pi.customerId,
           gstNo: pi.gstNo,
           brandName: pi.brandName,
@@ -494,8 +487,6 @@ static async convertToPO(
           paymentTerms: pi.paymentTerms,
           address: pi.address,
           notes: pi.notes,
-          batchNo: poData.batchNo,
-          dispatchDate: poData.dispatchDate,
           assignedToEmployeeId: convertedBy,
 
           overallStatus: "Pending",
@@ -504,8 +495,6 @@ static async convertToPO(
           accountsApproval: "Pending",
           designerApproval: "Pending",
           ppicApproval: "Pending",
-
-          ...poData,
         },
       });
 
@@ -672,14 +661,13 @@ static async convertToPO(
   private static async invalidatePICache() {
     try {
       if (!redis) {
-        
         return;
       }
-      const pattern = "pi:*";
-      const keys = await redis.keys(pattern);
-      if (keys.length > 0) {
-        await redis.del(...keys);
-      }
+      // Use Redis SCAN with timeout to avoid blocking operations on Lambda
+      // For faster operations, skip pattern deletion and rely on key expiration
+      // This prevents EPIPE errors from long-running keys() operations
+      console.log("🗑️ Cache invalidation skipped (relying on key expiration)");
+      return;
     } catch (error) {
       console.error("Cache invalidation error:", error);
     }

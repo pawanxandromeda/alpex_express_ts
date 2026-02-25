@@ -3,6 +3,7 @@ import * as controller from "./customer.controller";
 import encryptResponse from "../../common/middleware/encryptResponse";
 import { upload } from "../../common/utils/upload";
 import { protect } from "../../common/middleware/auth.middleware";
+import { authorize } from "../../common/middleware/authorization.middleware";
 
 const router = Router();
 
@@ -37,6 +38,6 @@ router.post("/blacklist", protect, controller.blacklistCustomer);
 
 // ======== ID-based routes (MUST be last) ========
 router.put("/:id", protect, controller.updateCustomer);
-router.delete("/:id", protect, controller.deleteCustomer);
+router.delete("/:id", protect,authorize(["admin"]), controller.deleteCustomer);
 
 export default router;

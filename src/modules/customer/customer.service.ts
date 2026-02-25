@@ -55,14 +55,17 @@ export const loginCustomer = async (gstrNo: string, customerID: string): Promise
   return customer as BackendCustomer;
 };
 
-export const getAllCustomers = async (employeeId: string): Promise<BackendCustomer[]> => {
+export const getAllCustomers = async (employeeId: string, role?: string): Promise<BackendCustomer[]> => {
+  // If user is admin, show all customers; otherwise show only customers created by or assigned to the employee
+  const whereCondition = role === "admin" ? {} : {
+    OR: [
+      { createdByEmployeeId: employeeId },
+      { assignedToEmployeeId: employeeId }
+    ]
+  };
+
   return prisma.customer.findMany({
-    where: {
-      OR: [
-        { createdByEmployeeId: employeeId },
-        { assignedToEmployeeId: employeeId }
-      ]
-    },
+    where: whereCondition,
     select: {
       id: true,
       customerName: true,

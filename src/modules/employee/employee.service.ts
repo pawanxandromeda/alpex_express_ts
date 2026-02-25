@@ -52,14 +52,27 @@ function generatePasswordFromFirstName(firstName: string): string {
 
 // Create employee – now auto-generates username + password if created by Admin/Superuser
 export const createEmployee = async (data: EmployeeData) => {
-  const existing = await prisma.employee.findFirst({
-    where: {
-      OR: [
-        { email: data.email, status: "Active" },
-        { phone: data.phone, status: "Active" },
-      ],
-    },
-  });
+  // Normalize email: convert empty string to null
+  const normalizedEmail = data.email && data.email.trim() ? data.email.trim() : null;
+
+  // Build dynamic where condition for duplicate check - only check Active employees
+  const whereConditions: any[] = [];
+  
+  // Check phone only against Active employees
+  whereConditions.push({ phone: data.phone, status: "Active" });
+  
+  // Check email only if it's provided (not null)
+  if (normalizedEmail) {
+    whereConditions.push({ email: normalizedEmail, status: "Active" });
+  }
+
+  const existing = whereConditions.length > 0 
+    ? await prisma.employee.findFirst({
+        where: {
+          OR: whereConditions,
+        },
+      })
+    : null;
 
   if (existing) {
     throw new Error("Active employee with same email or phone already exists.");
@@ -84,6 +97,7 @@ export const createEmployee = async (data: EmployeeData) => {
   const employee = await prisma.employee.create({
     data: {
       ...data,
+      email: normalizedEmail, // Use normalized email (null if not provided)
       status, // Always Active
       approvedForCredentials,
       dateOfJoining: data.dateOfJoining ? new Date(data.dateOfJoining) : null,

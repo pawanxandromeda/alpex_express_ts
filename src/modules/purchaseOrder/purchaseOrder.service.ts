@@ -1029,6 +1029,55 @@ export const approvePOApi = async (
   }
 };
 
+export const approveBulkPOs = async (
+  poIds: string[],
+  approvalData: {
+    approvedBy: string;
+    approvedByDept: string;
+    remarks?: string;
+  }
+) => {
+  try {
+    const results = await Promise.allSettled(
+      poIds.map((id) => approvePOApi(id, approvalData))
+    );
+
+    const approved = results
+      .map((result, index) => ({
+        poId: poIds[index],
+        status: result.status,
+        data: result.status === "fulfilled" ? result.value : null,
+        error: result.status === "rejected" ? result.reason : null,
+      }))
+      .filter((r) => r.status === "fulfilled");
+
+    const failed = results
+      .map((result, index) => ({
+        poId: poIds[index],
+        status: result.status,
+        error: result.status === "rejected" ? result.reason : null,
+      }))
+      .filter((r) => r.status === "rejected");
+
+    await invalidateBatchKeys([
+      "po:list:*",
+      "po:pending_approvals:*",
+      CACHE_KEYS.PO_MD_APPROVED(),
+    ]);
+
+    return {
+      totalRequested: poIds.length,
+      approved: approved.length,
+      failed: failed.length,
+      approvedPOs: approved,
+      failedPOs: failed,
+    };
+  } catch (error) {
+    console.error("Error approving bulk POs:", error);
+    throw error;
+  }
+};
+
 export const rejectPOApi = async (
   id: string,
   rejectData: {

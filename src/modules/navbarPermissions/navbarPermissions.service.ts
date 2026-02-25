@@ -8,68 +8,88 @@ export interface NavbarPermissionData {
 }
 
 // Get default menu items based on role
-const getDefaultMenuItemsByRole = (role: string): string[] => {
+export const getDefaultMenuItemsByDepartment = (department: string): string[] => {
   const menuPermissions: Record<string, string[]> = {
     admin: [
       "dashboard",
-      "employees",
-      "customers",
-      "purchase-orders",
-      "leads",
-      "designers",
-      "accounts",
-      "ppic",
-      "master",
+      "todos",
+      "admin",
       "hr",
-      "todos",
-      "security",
-      "admin-control",
-      "notifications"
-    ],
-    manager: [
-      "dashboard",
-      "employees",
-      "customers",
-      "purchase-orders",
-      "leads",
       "ppic",
-      "todos",
-      "notifications"
-    ],
-    employee: [
-      "dashboard",
-      "customers",
-      "leads",
-      "todos",
-      "notifications"
-    ],
-    designer: [
-      "dashboard",
+      "finance",
+      "sales",
       "designer",
-      "ppic",
-      "todos",
-      "notifications"
+      "master",
+      "maintenance",
+      "notifications",
     ],
-    accountant: [
-      "dashboard",
-      "accounts",
-      "purchase-orders",
-      "notifications"
-    ],
+
     hr: [
       "dashboard",
+      "todos",
       "hr",
       "employees",
-      "notifications"
+      "notifications",
+        "leave-management",
+        "documents"
     ],
+
+    sales: [
+      "dashboard",
+      "todos",
+      "sales",
+      "customers",
+      "leads",
+    "performa",
+    "orders",
+      "notifications",
+    ],
+
+    design: [
+      "dashboard",
+      "todos",
+      "designer",
+      "design",
+      "api-master",
+      "changepart",
+      "master",
+      "notifications",
+    ],
+
+    ppic: [
+      "dashboard",
+      "todos",
+      "ppic",
+      "ppic-records",
+      "rfd-records",
+      "dispatched-records",
+      "cancelled-records",
+      "notifications",
+    ],
+
+    finance: [
+      "dashboard",
+      "finance",
+      "accounts",
+      "finance-customers",
+      "notifications",
+    ],
+
+    qa: [
+      "dashboard",
+      "maintenance",
+      "master",
+      "notifications",
+    ],
+
     default: [
       "dashboard",
-      "notifications"
-    ]
+      "notifications",
+    ],
   };
 
-  const roleKey = role.toLowerCase();
-  return menuPermissions[roleKey] || menuPermissions["default"];
+  const deptKey = department.toLowerCase();
+  return menuPermissions[deptKey] || menuPermissions.default;
 };
 
 /**
@@ -78,7 +98,13 @@ const getDefaultMenuItemsByRole = (role: string): string[] => {
 export const getEmployeeNavbarPermissions = async (employeeId: string) => {
   const employee = await prisma.employee.findUnique({
     where: { id: employeeId },
-    select: { id: true, name: true, email: true, role: true, status: true },
+    select: {
+      id: true,
+      name: true,
+      email: true,
+      department: true,
+      status: true,
+    },
   });
 
   if (!employee) {
@@ -89,14 +115,17 @@ export const getEmployeeNavbarPermissions = async (employeeId: string) => {
     throw new Error("Employee account is not active");
   }
 
-  // Check if custom permissions exist
-  let permissions = await prisma.navbarPermission.findUnique({
+  // Check custom navbar permissions
+  const permissions = await prisma.navbarPermission.findUnique({
     where: { employeeId },
   });
 
-  // If no custom permissions, generate from role
+  // If no custom permissions → generate from department
   if (!permissions) {
-    const defaultMenuItems = getDefaultMenuItemsByRole(employee.role);
+    const defaultMenuItems = getDefaultMenuItemsByDepartment(
+      employee.department
+    );
+
     return {
       id: undefined,
       employeeId: employee.id,
@@ -158,10 +187,12 @@ export const setNavbarPermissions = async (payload: NavbarPermissionData) => {
   const permissions = await prisma.navbarPermission.upsert({
     where: { employeeId },
     create: {
-      employeeId,
       employeeName,
       email,
       allowedMenuItems,
+      employee: {
+        connect: { id: employeeId },
+      },
     },
     update: {
       employeeName,

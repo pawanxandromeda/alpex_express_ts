@@ -172,7 +172,6 @@ export const convertToPO = async (req: AuthRequest, res: Response) => {
     }
 
     const { piId } = req.params;
-    const { poNo, poDate, batchNo, dispatchDate, ...otherData } = req.body;
 
     if (!piId) {
       return sendError(res, Object.assign({}, ERROR_CODES.VALIDATION_ERROR, { message: "PI ID is required" }));
@@ -180,7 +179,6 @@ export const convertToPO = async (req: AuthRequest, res: Response) => {
 
     const result = await ProformaInvoiceService.convertToPO(
       piId as string,
-      { poNo, poDate: poDate ? new Date(poDate) : undefined, batchNo, dispatchDate: dispatchDate ? new Date(dispatchDate) : undefined, ...otherData },
       req.user.id
     );
 

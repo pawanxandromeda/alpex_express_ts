@@ -524,7 +524,11 @@ async getAllPOs(req: Request, res: Response, next: NextFunction) {
 
       res.setHeader("Content-Type", mimeTypes[format]);
       res.setHeader("Content-Disposition", `attachment; filename="${filename}"`);
-      res.send(buffer);
+      res.setHeader("Content-Length", buffer.length);
+      res.setHeader("Cache-Control", "no-cache, no-store, must-revalidate");
+      res.setHeader("Pragma", "no-cache");
+      res.setHeader("Expires", "0");
+      res.end(buffer);
     } catch (err) {
       next(err);
     }

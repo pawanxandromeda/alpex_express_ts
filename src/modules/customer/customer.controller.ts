@@ -73,7 +73,7 @@ export const getCustomers = async (req: AuthRequest, res: Response) => {
     return res.status(401).json({ message: "Unauthorized" });
   }
 
-  const customer = await service.getAllCustomers(req.user.id);
+  const customer = await service.getAllCustomers(req.user.id, req.user.role);
   console.log("Fetched customer for user:", req.user.id, customer);
   (res as any).encryptAndSend(customer);
 };

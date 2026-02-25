@@ -10,13 +10,14 @@ if (process.env.REDIS_URL) {
     enableOfflineQueue: true,   // 🔑 Allow queuing when reconnecting
     lazyConnect: false,         // 🔑 Connect immediately
     connectTimeout: 10000,
+    commandTimeout: 5000,       // 🔑 Prevent long-running commands from hanging
     retryStrategy(times) {
-      if (times > 10) {
+      if (times > 5) {
         console.error("❌ Redis: Max retries exceeded");
         return -1; // Stop retrying
       }
-      // exponential backoff, max 3 seconds
-      const delay = Math.min(times * 100, 3000);
+      // exponential backoff, max 1 second
+      const delay = Math.min(times * 100, 1000);
       console.log(`🔄 Redis retry attempt ${times}, waiting ${delay}ms`);
       return delay;
     },
