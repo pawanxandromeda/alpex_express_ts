@@ -528,7 +528,13 @@ async getAllPOs(req: Request, res: Response, next: NextFunction) {
       res.setHeader("Cache-Control", "no-cache, no-store, must-revalidate");
       res.setHeader("Pragma", "no-cache");
       res.setHeader("Expires", "0");
-      res.end(buffer);
+      
+      // Ensure proper binary handling for file downloads
+      if (format === "xlsx" || format === "csv") {
+        res.setHeader("X-Content-Type-Options", "nosniff");
+      }
+      
+      res.end(buffer, "binary");
     } catch (err) {
       next(err);
     }

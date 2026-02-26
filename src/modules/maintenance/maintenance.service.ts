@@ -10,6 +10,11 @@ interface CreateMaintenanceRecordPayload {
   assignedToEmployeeId?: string;
   estimatedDurationHours?: number;
   createdBy: string;
+  partsUsed?: {
+    partId: string;
+    quantityUsed: number;
+    unitCost?: number;
+  }[];
 }
 
 interface UpdateMaintenanceRecordPayload {
@@ -34,7 +39,7 @@ interface CompleteMaintenancePayload {
   materialCost?: number;
   nextMaintenanceDate?: Date;
   partsUsed?: {
-    partId: string;
+    id: string;
     quantityUsed: number;
     unitCost?: number;
   }[];
@@ -55,45 +60,113 @@ export class MaintenanceService {
     payload: CreateMaintenanceRecordPayload
   ) {
     try {
-      const machine = await prisma.machine.findUnique({
-        where: { id: payload.machineId },
+      return await prisma.$transaction(async (tx) => {
+        const machine = await tx.machine.findUnique({
+          where: { id: payload.machineId },
+        });
+
+        if (!machine) {
+          throw new AppError("Machine not found", ERROR_CODES.NOT_FOUND);
+        }
+
+        // Check if machine already has an active/in-progress maintenance record
+        const existingMaintenance = await tx.maintenanceRecord.findFirst({
+          where: {
+            machineId: payload.machineId,
+            status: {
+              in: ["Scheduled", "InProgress"],
+            },
+          },
+        });
+
+        if (existingMaintenance) {
+          throw new AppError(
+            `Machine is already under maintenance. Status: ${existingMaintenance.status}`,
+            ERROR_CODES.VALIDATION_ERROR
+          );
+        }
+
+        // Ensure estimatedDurationHours is a number
+        const estimatedDurationHours = payload.estimatedDurationHours
+          ? typeof payload.estimatedDurationHours === "string"
+            ? parseInt(payload.estimatedDurationHours, 10)
+            : payload.estimatedDurationHours
+          : undefined;
+
+        const maintenanceRecord = await tx.maintenanceRecord.create({
+          data: {
+            machineId: payload.machineId,
+            maintenanceType: payload.maintenanceType as any,
+            status: "Scheduled",
+            scheduledDate: new Date(payload.scheduledDate),
+            description: payload.description,
+            assignedToEmployeeId: payload.assignedToEmployeeId,
+            estimatedDurationHours,
+            createdBy: payload.createdBy,
+          },
+          include: {
+            machine: {
+              include: { machineType: true },
+            },
+            assignedToEmployee: {
+              select: { id: true, name: true, email: true, department: true },
+            },
+            partsUsed: {
+              include: { part: true },
+            },
+            brokenParts: true,
+          },
+        });
+
+        // Add parts used and update inventory if provided
+        if (payload.partsUsed && payload.partsUsed.length > 0) {
+          await tx.maintenancePartUsage.createMany({
+            data: payload.partsUsed.map((part) => ({
+              maintenanceRecordId: maintenanceRecord.id,
+              partId: part.id,
+              quantityUsed: part.quantityUsed,
+              unitCost: part.unitCost,
+              totalCost: (part.unitCost || 0) * part.quantityUsed,
+            })),
+          });
+
+          // Deduct from part inventory and update stock
+          for (const part of payload.partsUsed) {
+            await tx.part.update({
+              where: { id: part.id },
+              data: {
+                quantityInStock: {
+                  decrement: part.quantityUsed,
+                },
+              },
+            });
+          }
+        }
+
+        await this.invalidateMaintenanceCache();
+
+        // Return updated record with parts used
+        return await tx.maintenanceRecord.findUnique({
+          where: { id: maintenanceRecord.id },
+          include: {
+            machine: {
+              include: { machineType: true },
+            },
+            assignedToEmployee: {
+              select: { id: true, name: true, email: true, department: true },
+            },
+            partsUsed: {
+              include: { part: true },
+            },
+            brokenParts: true,
+          },
+        });
       });
-
-      if (!machine) {
-        throw new AppError("Machine not found", ERROR_CODES.NOT_FOUND);
-      }
-
-      const maintenanceRecord = await prisma.maintenanceRecord.create({
-        data: {
-          machineId: payload.machineId,
-          maintenanceType: payload.maintenanceType as any,
-          status: "Scheduled",
-          scheduledDate: payload.scheduledDate,
-          description: payload.description,
-          assignedToEmployeeId: payload.assignedToEmployeeId,
-          estimatedDurationHours: payload.estimatedDurationHours,
-          createdBy: payload.createdBy,
-        },
-        include: {
-          machine: {
-            include: { machineType: true },
-          },
-          assignedToEmployee: {
-            select: { id: true, name: true, email: true, department: true },
-          },
-          partsUsed: {
-            include: { part: true },
-          },
-          brokenParts: true,
-        },
-      });
-
-      await this.invalidateMaintenanceCache();
-      return maintenanceRecord;
     } catch (error) {
       if (error instanceof AppError) throw error;
+      console.error("Error creating maintenance record:", error);
       throw new AppError(
-        "Failed to create Maintenance Record",
+        `Failed to create Maintenance Record: ${error instanceof Error ? error.message : "Unknown error"}`,
         ERROR_CODES.INTERNAL_SERVER_ERROR
       );
     }
@@ -224,7 +297,7 @@ export class MaintenanceService {
           await tx.maintenancePartUsage.createMany({
             data: payload.partsUsed.map((part) => ({
               maintenanceRecordId,
-              partId: part.partId,
+              partId: part.id,
               quantityUsed: part.quantityUsed,
               unitCost: part.unitCost,
               totalCost: (part.unitCost || 0) * part.quantityUsed,
@@ -234,7 +307,7 @@ export class MaintenanceService {
           // Deduct from part inventory
           for (const part of payload.partsUsed) {
             await tx.part.update({
-              where: { id: part.partId },
+              where: { id: part.id },
               data: {
                 quantityInStock: {
                   decrement: part.quantityUsed,

@@ -1189,15 +1189,16 @@ model Machine {
   code                      String              @unique
   machineTypeId             String
   machineType               MachineType         @relation(fields: [machineTypeId], references: [id], onDelete: Restrict)
-  serialNumber              String?             @unique
+  serialNumber              String              @unique
   location                  String
-  department                String
+  capacity                  String?
+  supplier                  String
+  department                String?
   status                    MachineStatus       @default(Operational)
   
   // Asset Information
   purchaseDate              DateTime?
   purchasePrice             Float?
-  supplier                  String?
   warrantyExpiry            DateTime?
   depreciation              Float?              // Percentage per year
   

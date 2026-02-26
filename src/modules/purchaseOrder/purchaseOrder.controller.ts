@@ -423,8 +423,11 @@ export const exportPurchaseOrders = async (req: Request, res: Response) => {
       "attachment; filename=purchase_orders.xlsx"
     );
     res.setHeader("Content-Length", buffer.length);
+    res.setHeader("Cache-Control", "no-cache, no-store, must-revalidate");
+    res.setHeader("Pragma", "no-cache");
+    res.setHeader("Expires", "0");
 
-    return res.status(200).end(buffer);
+    return res.status(200).end(buffer, "binary");
   } catch (error) {
     console.error("Export Purchase Orders Error:", error);
     return res.status(500).json({

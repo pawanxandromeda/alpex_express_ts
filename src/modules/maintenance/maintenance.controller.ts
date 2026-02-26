@@ -1,4 +1,5 @@
 import { Request, Response } from "express";
+import { AuthRequest } from "../../common/middleware/auth.middleware";
 import MachineService from "./machine.service";
 import MaintenanceService from "./maintenance.service";
 import PartsAndAssetsService from "./partsAndAssets.service";
@@ -84,10 +85,18 @@ export class MaintenanceController {
   /**
    * Create Machine
    */
-  static async createMachine(req: Request, res: Response) {
+  static async createMachine(req: AuthRequest, res: Response) {
     try {
       const payload = req.body;
       const userId = req.user?.id;
+
+      if (!userId) {
+        return res.status(401).json({
+          success: false,
+          message: "Unauthorized: User ID not found",
+          code: "UNAUTHORIZED",
+        });
+      }
 
       const machine = await MachineService.createMachine({
         ...payload,
@@ -274,10 +283,18 @@ export class MaintenanceController {
   /**
    * Create Maintenance Record
    */
-  static async createMaintenanceRecord(req: Request, res: Response) {
+  static async createMaintenanceRecord(req: AuthRequest, res: Response) {
     try {
       const payload = req.body;
       const userId = req.user?.id;
+
+      if (!userId) {
+        return res.status(401).json({
+          success: false,
+          message: "Unauthorized: User ID not found",
+          code: "UNAUTHORIZED",
+        });
+      }
 
       const record = await MaintenanceService.createMaintenanceRecord({
         ...payload,
@@ -301,7 +318,7 @@ export class MaintenanceController {
   /**
    * Start Maintenance
    */
-  static async startMaintenance(req: Request, res: Response) {
+  static async startMaintenance(req: AuthRequest, res: Response) {
     try {
       const { maintenanceRecordId } = req.params;
 
@@ -326,11 +343,19 @@ export class MaintenanceController {
   /**
    * Complete Maintenance
    */
-  static async completeMaintenance(req: Request, res: Response) {
+  static async completeMaintenance(req: AuthRequest, res: Response) {
     try {
       const { maintenanceRecordId } = req.params;
       const payload = req.body;
       const userId = req.user?.id;
+
+      if (!userId) {
+        return res.status(401).json({
+          success: false,
+          message: "Unauthorized: User ID not found",
+          code: "UNAUTHORIZED",
+        });
+      }
 
       const record = await MaintenanceService.completeMaintenance(
         maintenanceRecordId,
@@ -354,7 +379,7 @@ export class MaintenanceController {
   /**
    * Get Maintenance Record
    */
-  static async getMaintenanceRecordById(req: Request, res: Response) {
+  static async getMaintenanceRecordById(req: AuthRequest, res: Response) {
     try {
       const { maintenanceRecordId } = req.params;
 
@@ -377,7 +402,7 @@ export class MaintenanceController {
   /**
    * List Maintenance Records
    */
-  static async listMaintenanceRecords(req: Request, res: Response) {
+  static async listMaintenanceRecords(req: AuthRequest, res: Response) {
     try {
       const {
         machineId,
@@ -420,7 +445,7 @@ export class MaintenanceController {
   /**
    * Get Maintenance Statistics
    */
-  static async getMaintenanceStatistics(req: Request, res: Response) {
+  static async getMaintenanceStatistics(req: AuthRequest, res: Response) {
     try {
       const { machineId, dateFrom, dateTo } = req.query;
 
@@ -446,7 +471,7 @@ export class MaintenanceController {
   /**
    * Get Upcoming Maintenance Schedule
    */
-  static async getUpcomingMaintenanceSchedule(req: Request, res: Response) {
+  static async getUpcomingMaintenanceSchedule(req: AuthRequest, res: Response) {
     try {
       const { daysAhead = 30 } = req.query;
 

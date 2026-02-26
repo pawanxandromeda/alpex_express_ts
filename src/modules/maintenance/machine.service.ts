@@ -6,12 +6,13 @@ interface CreateMachinePayload {
   name: string;
   code: string;
   machineTypeId: string;
-  serialNumber?: string;
+  serialNumber: string;
   location: string;
-  department: string;
+  supplier: string;
+  capacity?: string;
+  department?: string;
   purchaseDate?: Date;
   purchasePrice?: number;
-  supplier?: string;
   warrantyExpiry?: Date;
   installationDate?: Date;
   documentation?: string;
@@ -185,6 +186,22 @@ export class MachineService {
    */
   static async createMachine(payload: CreateMachinePayload) {
     try {
+      // Validate required fields
+      if (!payload.name || !payload.code || !payload.machineTypeId || !payload.serialNumber || !payload.location || !payload.supplier) {
+        throw new AppError(
+          "Missing required fields: name, code, machineTypeId, serialNumber, location, supplier",
+          ERROR_CODES.BAD_REQUEST
+        );
+      }
+
+      // Validate createdBy is provided
+      if (!payload.createdBy) {
+        throw new AppError(
+          "User authentication required to create machine",
+          ERROR_CODES.UNAUTHORIZED
+        );
+      }
+
       // Verify machine type exists
       const machineType = await prisma.machineType.findUnique({
         where: { id: payload.machineTypeId },
@@ -202,26 +219,30 @@ export class MachineService {
         );
       }
 
+      // Build data object with all required fields
+      const machineData = {
+        name: payload.name,
+        code: payload.code,
+        machineTypeId: payload.machineTypeId,
+        serialNumber: payload.serialNumber,
+        location: payload.location,
+        supplier: payload.supplier,
+        status: "Operational" as const,
+        createdBy: payload.createdBy,
+        capacity: payload.capacity ?? null,
+        department: payload.department ?? null,
+        purchaseDate: payload.purchaseDate ?? null,
+        purchasePrice: payload.purchasePrice ?? null,
+        warrantyExpiry: payload.warrantyExpiry ?? null,
+        installationDate: payload.installationDate ?? null,
+        documentation: payload.documentation ?? null,
+        powerRequirement: payload.powerRequirement ?? null,
+        spaceRequired: payload.spaceRequired ?? null,
+        customFields: payload.customFields ?? null,
+      };
+
       const machine = await prisma.machine.create({
-        data: {
-          name: payload.name,
-          code: payload.code,
-          machineTypeId: payload.machineTypeId,
-          serialNumber: payload.serialNumber,
-          location: payload.location,
-          department: payload.department,
-          purchaseDate: payload.purchaseDate,
-          purchasePrice: payload.purchasePrice,
-          supplier: payload.supplier,
-          warrantyExpiry: payload.warrantyExpiry,
-          installationDate: payload.installationDate,
-          documentation: payload.documentation,
-          powerRequirement: payload.powerRequirement,
-          spaceRequired: payload.spaceRequired,
-          customFields: payload.customFields,
-          createdBy: payload.createdBy,
-          status: "Operational",
-        },
+        data: machineData,
         include: {
           machineType: true,
           currentStatus: true,

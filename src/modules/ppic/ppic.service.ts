@@ -6,6 +6,7 @@
 import prisma from "../../config/postgres";
 import { AppError, ERROR_CODES } from "../../common/utils/errorMessages";
 import { v4 as uuidv4 } from "uuid";
+import XLSX from "xlsx";
 import {
   FuzzyMatcher,
   DataNormalizer,
@@ -857,8 +858,6 @@ static async getAllImportedPOs(
    */
   private static generateXLSX(pos: any[], selectedColumns: string[] = []): Buffer {
     try {
-      const XLSX = require("xlsx");
-
       // Determine columns to export
       let columnsToExport: string[] = selectedColumns;
 

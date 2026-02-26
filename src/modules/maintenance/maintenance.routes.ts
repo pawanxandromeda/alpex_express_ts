@@ -1,5 +1,6 @@
 import { Router } from "express";
 import MaintenanceController from "./maintenance.controller";
+import { protect } from "../../common/middleware/auth.middleware";
 import {
   createMachineTypeSchema,
   createMachineSchema,
@@ -23,15 +24,17 @@ const router = Router();
 // Machine Type Management
 router.post(
   "/machine-types",
+  protect,
   validateSchema(createMachineTypeSchema),
   MaintenanceController.createMachineType
 );
 
-router.get("/machine-types", MaintenanceController.getMachineTypes);
+router.get("/machine-types", protect, MaintenanceController.getMachineTypes);
 
 // Machine Management
 router.post(
   "/machines",
+  protect,
   validateSchema(createMachineSchema),
   MaintenanceController.createMachine
 );
@@ -60,38 +63,45 @@ router.get("/machines-statistics", MaintenanceController.getMachineStatistics);
 
 router.post(
   "/maintenance-records",
+  protect,
   validateSchema(createMaintenanceRecordSchema),
   MaintenanceController.createMaintenanceRecord
 );
 
 router.patch(
   "/maintenance-records/:maintenanceRecordId/start",
+  protect,
   MaintenanceController.startMaintenance
 );
 
 router.patch(
   "/maintenance-records/:maintenanceRecordId/complete",
+  protect,
   validateSchema(completeMaintenanceSchema),
   MaintenanceController.completeMaintenance
 );
 
 router.get(
   "/maintenance-records/:maintenanceRecordId",
+  protect,
   MaintenanceController.getMaintenanceRecordById
 );
 
 router.get(
   "/maintenance-records",
+  protect,
   MaintenanceController.listMaintenanceRecords
 );
 
 router.get(
   "/maintenance-statistics",
+  protect,
   MaintenanceController.getMaintenanceStatistics
 );
 
 router.get(
   "/upcoming-maintenance",
+  protect,
   MaintenanceController.getUpcomingMaintenanceSchedule
 );
 

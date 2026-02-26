@@ -57704,9 +57704,9 @@ var require_cpexcel = __commonJS({
 // node_modules/xlsx/xlsx.js
 var require_xlsx = __commonJS({
   "node_modules/xlsx/xlsx.js"(exports2, module2) {
-    var XLSX4 = {};
-    function make_xlsx_lib(XLSX5) {
-      XLSX5.version = "0.18.5";
+    var XLSX5 = {};
+    function make_xlsx_lib(XLSX6) {
+      XLSX6.version = "0.18.5";
       var current_codepage = 1200, current_ansi = 1252;
       var $cptable;
       if (typeof cptable !== "undefined") $cptable = cptable;
@@ -63589,7 +63589,7 @@ var require_xlsx = __commonJS({
         return o.join("");
       }
       function write_meta_ods() {
-        return '<office:document-meta xmlns:office="urn:oasis:names:tc:opendocument:xmlns:office:1.0" xmlns:meta="urn:oasis:names:tc:opendocument:xmlns:meta:1.0" xmlns:dc="http://purl.org/dc/elements/1.1/" xmlns:xlink="http://www.w3.org/1999/xlink" office:version="1.2"><office:meta><meta:generator>SheetJS ' + XLSX5.version + "</meta:generator></office:meta></office:document-meta>";
+        return '<office:document-meta xmlns:office="urn:oasis:names:tc:opendocument:xmlns:office:1.0" xmlns:meta="urn:oasis:names:tc:opendocument:xmlns:meta:1.0" xmlns:dc="http://purl.org/dc/elements/1.1/" xmlns:xlink="http://www.w3.org/1999/xlink" office:version="1.2"><office:meta><meta:generator>SheetJS ' + XLSX6.version + "</meta:generator></office:meta></office:document-meta>";
       }
       var CORE_PROPS = [
         ["cp:category", "Category"],
@@ -75967,8 +75967,8 @@ var require_xlsx = __commonJS({
         if (!o) o = new_buf(127);
         for (var i = 0; i != 4; ++i) o.write_shift(4, 0);
         write_XLWideString("SheetJS", o);
-        write_XLWideString(XLSX5.version, o);
-        write_XLWideString(XLSX5.version, o);
+        write_XLWideString(XLSX6.version, o);
+        write_XLWideString(XLSX6.version, o);
         write_XLWideString("7262", o);
         return o.length > o.l ? o.slice(0, o.l) : o;
       }
@@ -87635,21 +87635,21 @@ var require_xlsx = __commonJS({
         to_csv: write_csv_stream,
         set_readable
       };
-      if (typeof parse_xlscfb !== "undefined") XLSX5.parse_xlscfb = parse_xlscfb;
-      XLSX5.parse_zip = parse_zip;
-      XLSX5.read = readSync;
-      XLSX5.readFile = readFileSync;
-      XLSX5.readFileSync = readFileSync;
-      XLSX5.write = writeSync;
-      XLSX5.writeFile = writeFileSync;
-      XLSX5.writeFileSync = writeFileSync;
-      XLSX5.writeFileAsync = writeFileAsync;
-      XLSX5.utils = utils;
-      XLSX5.writeXLSX = writeSyncXLSX;
-      XLSX5.writeFileXLSX = writeFileSyncXLSX;
-      XLSX5.SSF = SSF;
-      if (typeof __stream !== "undefined") XLSX5.stream = __stream;
-      if (typeof CFB !== "undefined") XLSX5.CFB = CFB;
+      if (typeof parse_xlscfb !== "undefined") XLSX6.parse_xlscfb = parse_xlscfb;
+      XLSX6.parse_zip = parse_zip;
+      XLSX6.read = readSync;
+      XLSX6.readFile = readFileSync;
+      XLSX6.readFileSync = readFileSync;
+      XLSX6.write = writeSync;
+      XLSX6.writeFile = writeFileSync;
+      XLSX6.writeFileSync = writeFileSync;
+      XLSX6.writeFileAsync = writeFileAsync;
+      XLSX6.utils = utils;
+      XLSX6.writeXLSX = writeSyncXLSX;
+      XLSX6.writeFileXLSX = writeFileSyncXLSX;
+      XLSX6.SSF = SSF;
+      if (typeof __stream !== "undefined") XLSX6.stream = __stream;
+      if (typeof CFB !== "undefined") XLSX6.CFB = CFB;
       if (typeof require !== "undefined") {
         var strmod = require("stream");
         if ((strmod || {}).Readable) set_readable(strmod.Readable);
@@ -87658,12 +87658,12 @@ var require_xlsx = __commonJS({
     if (typeof exports2 !== "undefined") make_xlsx_lib(exports2);
     else if (typeof module2 !== "undefined" && module2.exports) make_xlsx_lib(module2.exports);
     else if (typeof define === "function" && define.amd) define("xlsx", function() {
-      if (!XLSX4.version) make_xlsx_lib(XLSX4);
-      return XLSX4;
+      if (!XLSX5.version) make_xlsx_lib(XLSX5);
+      return XLSX5;
     });
-    else make_xlsx_lib(XLSX4);
+    else make_xlsx_lib(XLSX5);
     if (typeof window !== "undefined" && !window.XLSX) try {
-      window.XLSX = XLSX4;
+      window.XLSX = XLSX5;
     } catch (e) {
     }
   }
@@ -305558,7 +305558,10 @@ var exportPurchaseOrders = async (req, res) => {
       "attachment; filename=purchase_orders.xlsx"
     );
     res.setHeader("Content-Length", buffer.length);
-    return res.status(200).end(buffer);
+    res.setHeader("Cache-Control", "no-cache, no-store, must-revalidate");
+    res.setHeader("Pragma", "no-cache");
+    res.setHeader("Expires", "0");
+    return res.status(200).end(buffer, "binary");
   } catch (error48) {
     console.error("Export Purchase Orders Error:", error48);
     return res.status(500).json({
@@ -306597,6 +306600,9 @@ function v4(options, buf, offset) {
 }
 var v4_default = v4;
 
+// src/modules/ppic/ppic.service.ts
+var import_xlsx3 = __toESM(require_xlsx());
+
 // src/modules/ppic/ppic.parser.ts
 var FuzzyMatcher = class {
   static {
@@ -307050,10 +307056,10 @@ var PPICService = class {
       }
       if (fileType === "xlsx") {
         try {
-          const XLSX4 = require_xlsx();
-          const workbook = XLSX4.read(buffer, { type: "buffer" });
+          const XLSX5 = require_xlsx();
+          const workbook = XLSX5.read(buffer, { type: "buffer" });
           const worksheet = workbook.Sheets[workbook.SheetNames[0]];
-          const data = XLSX4.utils.sheet_to_json(worksheet);
+          const data = XLSX5.utils.sheet_to_json(worksheet);
           const headers = Object.keys(data[0] || {});
           return { headers, rows: data };
         } catch (err) {
@@ -307683,7 +307689,6 @@ var PPICService = class {
    */
   static generateXLSX(pos, selectedColumns = []) {
     try {
-      const XLSX4 = require_xlsx();
       let columnsToExport = selectedColumns;
       if (!columnsToExport || columnsToExport.length === 0) {
         const headers = /* @__PURE__ */ new Set();
@@ -307724,7 +307729,7 @@ var PPICService = class {
         });
         return item;
       });
-      const worksheet = XLSX4.utils.json_to_sheet(flatData, {
+      const worksheet = import_xlsx3.default.utils.json_to_sheet(flatData, {
         header: columnsToExport
       });
       const columnWidths = columnsToExport.map((col) => ({
@@ -307744,7 +307749,7 @@ var PPICService = class {
         }
       };
       for (let i = 0; i < columnsToExport.length; i++) {
-        const cellRef = XLSX4.utils.encode_cell({ r: 0, c: i });
+        const cellRef = import_xlsx3.default.utils.encode_cell({ r: 0, c: i });
         if (worksheet[cellRef]) {
           worksheet[cellRef].s = headerStyle;
         }
@@ -307764,22 +307769,22 @@ var PPICService = class {
       };
       for (let i = 1; i < flatData.length + 1; i++) {
         for (let j = 0; j < columnsToExport.length; j++) {
-          const cellRef = XLSX4.utils.encode_cell({ r: i, c: j });
+          const cellRef = import_xlsx3.default.utils.encode_cell({ r: i, c: j });
           if (worksheet[cellRef]) {
             worksheet[cellRef].s = i % 2 === 0 ? alternateRowStyle : dataStyle;
           }
         }
       }
       worksheet["!freeze"] = { xSplit: 0, ySplit: 1 };
-      const workbook = XLSX4.utils.book_new();
-      XLSX4.utils.book_append_sheet(workbook, worksheet, "PurchaseOrders");
+      const workbook = import_xlsx3.default.utils.book_new();
+      import_xlsx3.default.utils.book_append_sheet(workbook, worksheet, "PurchaseOrders");
       if (!workbook.Props) {
         workbook.Props = {};
       }
       workbook.Props.Title = "Purchase Orders Export";
       workbook.Props.Author = "PPIC System";
       workbook.Props.CreatedDate = /* @__PURE__ */ new Date();
-      const buffer = XLSX4.write(workbook, { type: "buffer", bookType: "xlsx" });
+      const buffer = import_xlsx3.default.write(workbook, { type: "buffer", bookType: "xlsx" });
       if (!Buffer.isBuffer(buffer)) {
         return Buffer.from(buffer);
       }
@@ -308359,7 +308364,10 @@ var PPICController = class {
       res.setHeader("Cache-Control", "no-cache, no-store, must-revalidate");
       res.setHeader("Pragma", "no-cache");
       res.setHeader("Expires", "0");
-      res.end(buffer);
+      if (format === "xlsx" || format === "csv") {
+        res.setHeader("X-Content-Type-Options", "nosniff");
+      }
+      res.end(buffer, "binary");
     } catch (err) {
       next(err);
     }
@@ -308403,7 +308411,7 @@ var import_express10 = __toESM(require_express2());
 // src/modules/master/master.service.ts
 var import_client4 = __toESM(require_default2());
 init_postgres();
-var import_xlsx3 = __toESM(require_xlsx());
+var import_xlsx4 = __toESM(require_xlsx());
 var import_fs = __toESM(require("fs"));
 var import_win32 = __toESM(require("path/win32"));
 var MasterService = class {
@@ -308465,9 +308473,9 @@ var MasterService = class {
     const failed = [];
     const errors = [];
     try {
-      const workbook = import_xlsx3.default.read(file2.buffer, { type: "buffer" });
+      const workbook = import_xlsx4.default.read(file2.buffer, { type: "buffer" });
       const sheet = workbook.Sheets[workbook.SheetNames[0]];
-      const rows = import_xlsx3.default.utils.sheet_to_json(sheet);
+      const rows = import_xlsx4.default.utils.sheet_to_json(sheet);
       const imageMap = /* @__PURE__ */ new Map();
       images?.forEach((img) => {
         imageMap.set(img.originalname, img);
@@ -308590,9 +308598,9 @@ var MasterService = class {
   }
   async parseCompositionFile(file2, fieldMapping) {
     try {
-      const workbook = import_xlsx3.default.read(file2.buffer, { type: "buffer" });
+      const workbook = import_xlsx4.default.read(file2.buffer, { type: "buffer" });
       const sheet = workbook.Sheets[workbook.SheetNames[0]];
-      const rows = import_xlsx3.default.utils.sheet_to_json(sheet);
+      const rows = import_xlsx4.default.utils.sheet_to_json(sheet);
       if (!Array.isArray(rows) || rows.length === 0) {
         throw new Error("Excel file is empty or invalid");
       }
@@ -308649,9 +308657,9 @@ var MasterService = class {
     const failed = [];
     const errors = [];
     try {
-      const workbook = import_xlsx3.default.read(file2.buffer, { type: "buffer" });
+      const workbook = import_xlsx4.default.read(file2.buffer, { type: "buffer" });
       const sheet = workbook.Sheets[workbook.SheetNames[0]];
-      const rows = import_xlsx3.default.utils.sheet_to_json(sheet);
+      const rows = import_xlsx4.default.utils.sheet_to_json(sheet);
       const getMappedValue = (fieldName, row) => {
         const mappedName = fieldMapping?.[fieldName] || fieldName;
         return row[mappedName];
@@ -308720,9 +308728,9 @@ var MasterService = class {
     const failed = [];
     const errors = [];
     try {
-      const workbook = import_xlsx3.default.read(file2.buffer, { type: "buffer" });
+      const workbook = import_xlsx4.default.read(file2.buffer, { type: "buffer" });
       const sheet = workbook.Sheets[workbook.SheetNames[0]];
-      const rows = import_xlsx3.default.utils.sheet_to_json(sheet);
+      const rows = import_xlsx4.default.utils.sheet_to_json(sheet);
       const getMappedValue = (fieldName, row) => {
         const mappedName = fieldMapping?.[fieldName] || fieldName;
         return row[mappedName];
@@ -317744,7 +317752,15 @@ app.use((_req, res) => res.status(404).json({ message: "Route not found" }));
 var app_default = app;
 
 // lambda.ts
-var handler = (0, import_serverless_http.default)(app_default);
+var handler = (0, import_serverless_http.default)(app_default, {
+  binary: [
+    "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+    "application/vnd.ms-excel",
+    "text/csv",
+    "application/pdf",
+    "image/*"
+  ]
+});
 // Annotate the CommonJS export names for ESM import in node:
 0 && (module.exports = {
   handler

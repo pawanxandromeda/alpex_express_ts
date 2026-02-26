@@ -140,7 +140,7 @@
               "Properties": {
                 "Code": {
                   "S3Bucket": "serverless-framework-deployments-ap-south-1-f479eb84-69f4",
-                  "S3Key": "serverless/alpex-backend/dev/1771994349840-2026-02-25T04:39:09.840Z/alpex-backend.zip"
+                  "S3Key": "serverless/alpex-backend/dev/1771994791660-2026-02-25T04:46:31.660Z/alpex-backend.zip"
                 },
                 "Handler": "lambda.handler",
                 "Runtime": "nodejs18.x",
@@ -172,14 +172,14 @@
                 "ApiLogGroup"
               ]
             },
-            "ApiLambdaVersiondgMGcm8xps2qAEBhxtEE5K8g5zMo8ixo3Psl4l6Fzuw": {
+            "ApiLambdaVersiond8druFNLZyllh1sPqoOP6qwWClL8jmygjl3OkEQE": {
               "Type": "AWS::Lambda::Version",
               "DeletionPolicy": "Retain",
               "Properties": {
                 "FunctionName": {
                   "Ref": "ApiLambdaFunction"
                 },
-                "CodeSha256": "AwCoZV1afJ7zYuWJL0QenDXpyFE564UR8BOU8nxahSQ="
+                "CodeSha256": "cKB99XIJ+Rdu0G6jPOEs/Iif7pI9ZUwsRGDg9Tk4p8c="
               }
             },
             "HttpApi": {
@@ -331,7 +331,7 @@
             "ApiLambdaFunctionQualifiedArn": {
               "Description": "Current Lambda function version",
               "Value": {
-                "Ref": "ApiLambdaVersiondgMGcm8xps2qAEBhxtEE5K8g5zMo8ixo3Psl4l6Fzuw"
+                "Ref": "ApiLambdaVersiond8druFNLZyllh1sPqoOP6qwWClL8jmygjl3OkEQE"
               },
               "Export": {
                 "Name": "sls-alpex-backend-dev-ApiLambdaFunctionQualifiedArn"
@@ -406,7 +406,7 @@
           "timeout": 6,
           "runtime": "nodejs18.x",
           "vpc": {},
-          "versionLogicalId": "ApiLambdaVersiondgMGcm8xps2qAEBhxtEE5K8g5zMo8ixo3Psl4l6Fzuw"
+          "versionLogicalId": "ApiLambdaVersiond8druFNLZyllh1sPqoOP6qwWClL8jmygjl3OkEQE"
         }
       },
       "plugins": [
@@ -423,7 +423,7 @@
         "artifactsS3KeyDirname": "serverless/alpex-backend/dev/code-artifacts",
         "deploymentBucket": "serverless-framework-deployments-ap-south-1-f479eb84-69f4",
         "artifact": "D:\\Pharma-ERP\\alpex-pharma-backend\\.serverless\\build\\alpex-backend.zip",
-        "artifactDirectoryName": "serverless/alpex-backend/dev/1771994349840-2026-02-25T04:39:09.840Z"
+        "artifactDirectoryName": "serverless/alpex-backend/dev/1771994791660-2026-02-25T04:46:31.660Z"
       },
       "custom": {
         "serverless-offline": {
@@ -565,7 +565,7 @@
             "Properties": {
               "Code": {
                 "S3Bucket": "serverless-framework-deployments-ap-south-1-f479eb84-69f4",
-                "S3Key": "serverless/alpex-backend/dev/1771994349840-2026-02-25T04:39:09.840Z/alpex-backend.zip"
+                "S3Key": "serverless/alpex-backend/dev/1771994791660-2026-02-25T04:46:31.660Z/alpex-backend.zip"
               },
               "Handler": "lambda.handler",
               "Runtime": "nodejs18.x",
@@ -597,14 +597,14 @@
               "ApiLogGroup"
             ]
           },
-          "ApiLambdaVersiondgMGcm8xps2qAEBhxtEE5K8g5zMo8ixo3Psl4l6Fzuw": {
+          "ApiLambdaVersiond8druFNLZyllh1sPqoOP6qwWClL8jmygjl3OkEQE": {
             "Type": "AWS::Lambda::Version",
             "DeletionPolicy": "Retain",
             "Properties": {
               "FunctionName": {
                 "Ref": "ApiLambdaFunction"
               },
-              "CodeSha256": "AwCoZV1afJ7zYuWJL0QenDXpyFE564UR8BOU8nxahSQ="
+              "CodeSha256": "cKB99XIJ+Rdu0G6jPOEs/Iif7pI9ZUwsRGDg9Tk4p8c="
             }
           },
           "HttpApi": {
@@ -756,7 +756,7 @@
           "ApiLambdaFunctionQualifiedArn": {
             "Description": "Current Lambda function version",
             "Value": {
-              "Ref": "ApiLambdaVersiondgMGcm8xps2qAEBhxtEE5K8g5zMo8ixo3Psl4l6Fzuw"
+              "Ref": "ApiLambdaVersiond8druFNLZyllh1sPqoOP6qwWClL8jmygjl3OkEQE"
             },
             "Export": {
               "Name": "sls-alpex-backend-dev-ApiLambdaFunctionQualifiedArn"
@@ -822,12 +822,12 @@
     "serviceProviderAwsCfStackName": "alpex-backend-dev",
     "serviceProviderAwsCfStackId": "arn:aws:cloudformation:ap-south-1:038932158802:stack/alpex-backend-dev/d77b0ab0-043c-11f1-9c2e-02646738e33f",
     "serviceProviderAwsCfStackCreated": "2026-02-07T15:51:19.126Z",
-    "serviceProviderAwsCfStackUpdated": "2026-02-24T14:12:19.719Z",
+    "serviceProviderAwsCfStackUpdated": "2026-02-25T04:39:18.687Z",
     "serviceProviderAwsCfStackStatus": "UPDATE_COMPLETE",
     "serviceProviderAwsCfStackOutputs": [
       {
         "OutputKey": "ApiLambdaFunctionQualifiedArn",
-        "OutputValue": "arn:aws:lambda:ap-south-1:038932158802:function:alpex-backend-dev-api:62",
+        "OutputValue": "arn:aws:lambda:ap-south-1:038932158802:function:alpex-backend-dev-api:63",
         "Description": "Current Lambda function version",
         "ExportName": "sls-alpex-backend-dev-ApiLambdaFunctionQualifiedArn"
       },
@@ -942,7 +942,7 @@
           "Properties": {
             "Code": {
               "S3Bucket": "serverless-framework-deployments-ap-south-1-f479eb84-69f4",
-              "S3Key": "serverless/alpex-backend/dev/1771994349840-2026-02-25T04:39:09.840Z/alpex-backend.zip"
+              "S3Key": "serverless/alpex-backend/dev/1771994791660-2026-02-25T04:46:31.660Z/alpex-backend.zip"
             },
             "Handler": "lambda.handler",
             "Runtime": "nodejs18.x",
@@ -974,14 +974,14 @@
             "ApiLogGroup"
           ]
         },
-        "ApiLambdaVersiondgMGcm8xps2qAEBhxtEE5K8g5zMo8ixo3Psl4l6Fzuw": {
+        "ApiLambdaVersiond8druFNLZyllh1sPqoOP6qwWClL8jmygjl3OkEQE": {
           "Type": "AWS::Lambda::Version",
           "DeletionPolicy": "Retain",
           "Properties": {
             "FunctionName": {
               "Ref": "ApiLambdaFunction"
             },
-            "CodeSha256": "AwCoZV1afJ7zYuWJL0QenDXpyFE564UR8BOU8nxahSQ="
+            "CodeSha256": "cKB99XIJ+Rdu0G6jPOEs/Iif7pI9ZUwsRGDg9Tk4p8c="
           }
         },
         "HttpApi": {
@@ -1133,7 +1133,7 @@
         "ApiLambdaFunctionQualifiedArn": {
           "Description": "Current Lambda function version",
           "Value": {
-            "Ref": "ApiLambdaVersiondgMGcm8xps2qAEBhxtEE5K8g5zMo8ixo3Psl4l6Fzuw"
+            "Ref": "ApiLambdaVersiond8druFNLZyllh1sPqoOP6qwWClL8jmygjl3OkEQE"
           },
           "Export": {
             "Name": "sls-alpex-backend-dev-ApiLambdaFunctionQualifiedArn"
