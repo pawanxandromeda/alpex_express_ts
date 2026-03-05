@@ -1,6 +1,7 @@
 import prisma from "../../config/postgres";
 import redis from "../../config/redis";
 import { AppError, ERROR_CODES } from "../../common/utils/errorMessages";
+import XLSX from "xlsx";
 
 interface CreateMachinePayload {
   name: string;
@@ -633,6 +634,213 @@ export class MachineService {
           ERROR_CODES.VALIDATION_ERROR
         );
       }
+    }
+  }
+
+  /**
+   * Parse sheet data (Excel, CSV, JSON)
+   */
+  static parseSheetData(
+    buffer: Buffer,
+    fileType: "xlsx" | "csv" | "json"
+  ): { headers: string[]; rows: Record<string, any>[] } {
+    try {
+      if (fileType === "json") {
+        const data = JSON.parse(buffer.toString());
+        const rows = Array.isArray(data) ? data : data.data || [];
+        const headers = rows.length > 0 ? Object.keys(rows[0]) : [];
+        return { headers, rows };
+      }
+
+      if (fileType === "csv") {
+        const lines = buffer.toString().split("\n").filter(line => line.trim());
+        const headers = lines[0].split(",").map((h) => h.trim());
+        const rows = lines.slice(1).map((line) => {
+          const values = line.split(",").map((v) => v.trim());
+          const row: Record<string, any> = {};
+          headers.forEach((header, i) => {
+            row[header] = values[i] !== undefined && values[i] !== '' ? values[i] : null;
+          });
+          return row;
+        });
+        return { headers, rows };
+      }
+
+      if (fileType === "xlsx") {
+        const workbook = XLSX.read(buffer, { type: "buffer" });
+        const worksheet = workbook.Sheets[workbook.SheetNames[0]];
+        const data = XLSX.utils.sheet_to_json(worksheet) as Record<string, any>[];
+        const headers = Object.keys(data[0] || {});
+        return { headers, rows: data };
+      }
+
+      throw new Error(`Unsupported file type: ${fileType}`);
+    } catch (err) {
+      throw new AppError(
+        `Failed to parse sheet data: ${(err as Error).message}`
+      );
+    }
+  }
+
+  /**
+   * Auto-detect field mapping from sheet headers
+   */
+  static detectFieldMapping(headers: string[]): Record<string, string> {
+    const mapping: Record<string, string> = {};
+    const machineFields = [
+      "name", "code", "machineTypeId", "serialNumber", "location", "supplier",
+      "capacity", "department", "purchaseDate", "purchasePrice", "warrantyExpiry",
+      "installationDate", "documentation", "powerRequirement", "spaceRequired"
+    ];
+
+    // Fuzzy match headers to machine fields
+    headers.forEach(header => {
+      const headerLower = header.toLowerCase().trim();
+      const match = machineFields.find(field => 
+        headerLower.includes(field.toLowerCase()) || 
+        field.toLowerCase().includes(headerLower)
+      );
+      if (match) {
+        mapping[match] = header;
+      }
+    });
+
+    return mapping;
+  }
+
+  /**
+   * Test mapping with sample rows
+   */
+  static testMapping(
+    sampleRows: Record<string, any>[],
+    mapping: Record<string, string>
+  ): {
+    validatedRows: any[];
+    summary: { total: number; valid: number; errors: number };
+  } {
+    const validatedRows: any[] = [];
+    let validCount = 0;
+    let errorCount = 0;
+
+    sampleRows.forEach((row, idx) => {
+      try {
+        const mappedRow: Record<string, any> = {};
+        
+        Object.entries(mapping).forEach(([targetField, sourceField]) => {
+          mappedRow[targetField] = row[sourceField] || null;
+        });
+
+        validatedRows.push({
+          rowIndex: idx,
+          data: mappedRow,
+          status: "valid"
+        });
+        validCount++;
+      } catch (err) {
+        errorCount++;
+        validatedRows.push({
+          rowIndex: idx,
+          data: row,
+          status: "error",
+          error: (err as Error).message
+        });
+      }
+    });
+
+    return {
+      validatedRows,
+      summary: {
+        total: sampleRows.length,
+        valid: validCount,
+        errors: errorCount
+      }
+    };
+  }
+
+  /**
+   * Bulk import machines from file
+   */
+  static async bulkImportMachines(
+    buffer: Buffer,
+    fileType: "xlsx" | "csv" | "json",
+    fieldMapping: Record<string, string>,
+    createdBy: string,
+    machineTypeId?: string
+  ): Promise<any> {
+    try {
+      const { headers, rows } = this.parseSheetData(buffer, fileType);
+      
+      if (rows.length === 0) {
+        throw new AppError("No data found in sheet", ERROR_CODES.VALIDATION_ERROR);
+      }
+
+      const imported: any[] = [];
+      const failed: any[] = [];
+      const errors: any[] = [];
+
+      for (let i = 0; i < rows.length; i++) {
+        const row = rows[i];
+        try {
+          // Map fields
+          const machineData: any = {
+            createdBy
+          };
+
+          Object.entries(fieldMapping).forEach(([targetField, sourceField]) => {
+            machineData[targetField] = row[sourceField];
+          });
+
+          // Validate required fields
+          if (!machineData.name || !machineData.code || !machineData.serialNumber) {
+            throw new Error("Missing required fields: name, code, serialNumber");
+          }
+
+          // Create machine
+          const machine = await prisma.machine.create({
+            data: {
+              name: machineData.name,
+              code: machineData.code,
+              machineTypeId: machineTypeId || machineData.machineTypeId,
+              serialNumber: machineData.serialNumber,
+              location: machineData.location || "Not Specified",
+              supplier: machineData.supplier || "Not Specified",
+              capacity: machineData.capacity || null,
+              department: machineData.department || null,
+              purchaseDate: machineData.purchaseDate ? new Date(machineData.purchaseDate) : null,
+              purchasePrice: machineData.purchasePrice ? Number(machineData.purchasePrice) : null,
+              warrantyExpiry: machineData.warrantyExpiry ? new Date(machineData.warrantyExpiry) : null,
+              installationDate: machineData.installationDate ? new Date(machineData.installationDate) : null,
+              documentation: machineData.documentation || null,
+              powerRequirement: machineData.powerRequirement || null,
+              spaceRequired: machineData.spaceRequired || null,
+              status: "Operational",
+              createdBy: machineData.createdBy
+            }
+          });
+
+          imported.push(machine);
+        } catch (rowError: any) {
+          failed.push(row);
+          errors.push({
+            row: i + 2,
+            message: rowError.message,
+            data: row
+          });
+        }
+      }
+
+      return {
+        success: true,
+        importedCount: imported.length,
+        failedCount: failed.length,
+        imported,
+        errors: errors.length > 0 ? errors : undefined
+      };
+    } catch (error: any) {
+      throw new AppError(
+        `Bulk import failed: ${error.message}`,
+        ERROR_CODES.INTERNAL_SERVER_ERROR
+      );
     }
   }
 

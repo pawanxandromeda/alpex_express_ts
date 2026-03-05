@@ -1,6 +1,7 @@
 import { Router } from "express";
 import MaintenanceController from "./maintenance.controller";
 import { protect } from "../../common/middleware/auth.middleware";
+import { upload } from "../../common/utils/upload";
 import {
   createMachineTypeSchema,
   createMachineSchema,
@@ -30,6 +31,27 @@ router.post(
 );
 
 router.get("/machine-types", protect, MaintenanceController.getMachineTypes);
+
+// Bulk Import Routes
+router.post(
+  "/machines/import",
+  protect,
+  upload.single("file"),
+  MaintenanceController.bulkImportMachines
+);
+
+router.post(
+  "/machines/detect-mapping",
+  protect,
+  upload.single("file"),
+  MaintenanceController.detectMachineMapping
+);
+
+router.post(
+  "/machines/test-mapping",
+  protect,
+  MaintenanceController.testMachineMapping
+);
 
 // Machine Management
 router.post(

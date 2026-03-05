@@ -885,6 +885,127 @@ export class MaintenanceController {
       });
     }
   }
+
+  // ============ BULK IMPORT ROUTES ============
+
+  /**
+   * Detect machine mapping from file
+   * POST /api/maintenance/machines/detect-mapping
+   */
+  static async detectMachineMapping(req: Request, res: Response) {
+    try {
+      if (!req.file) {
+        return res.status(400).json({ 
+          success: false,
+          error: "No file uploaded" 
+        });
+      }
+
+      const fileType = (req.query.fileType as string) || "xlsx";
+      const { headers } = MachineService.parseSheetData(req.file.buffer, fileType as any);
+      const mapping = MachineService.detectFieldMapping(headers);
+
+      return res.status(200).json({
+        success: true,
+        message: "Field mapping detected successfully",
+        data: {
+          detectedHeaders: headers,
+          suggestedMapping: mapping,
+          confidence: Object.keys(mapping).length / headers.length,
+        },
+      });
+    } catch (error: any) {
+      return res.status(400).json({
+        success: false,
+        message: error.message,
+        code: error.code,
+      });
+    }
+  }
+
+  /**
+   * Test mapping with sample rows
+   * POST /api/maintenance/machines/test-mapping
+   */
+  static async testMachineMapping(req: Request, res: Response) {
+    try {
+      const { sampleRows, mapping } = req.body;
+
+      if (!sampleRows || !Array.isArray(sampleRows) || sampleRows.length === 0) {
+        return res.status(400).json({
+          success: false,
+          error: "sampleRows must be a non-empty array"
+        });
+      }
+
+      if (!mapping || typeof mapping !== "object") {
+        return res.status(400).json({
+          success: false,
+          error: "mapping must be a valid object"
+        });
+      }
+
+      const result = MachineService.testMapping(sampleRows, mapping);
+
+      return res.status(200).json({
+        success: true,
+        message: "Mapping test completed",
+        data: result,
+      });
+    } catch (error: any) {
+      return res.status(400).json({
+        success: false,
+        message: error.message,
+        code: error.code,
+      });
+    }
+  }
+
+  /**
+   * Bulk import machines from file
+   * POST /api/maintenance/machines/import
+   */
+  static async bulkImportMachines(req: AuthRequest, res: Response) {
+    try {
+      if (!req.file) {
+        return res.status(400).json({ 
+          success: false,
+          error: "No file uploaded" 
+        });
+      }
+
+      const fileType = (req.query.fileType as string) || "xlsx";
+      const fieldMapping = req.body.mappingStrategy || req.body.fieldMapping
+        ? typeof (req.body.mappingStrategy || req.body.fieldMapping) === 'string' 
+          ? JSON.parse(req.body.mappingStrategy || req.body.fieldMapping)
+          : (req.body.mappingStrategy || req.body.fieldMapping)
+        : {};
+      const machineTypeId = req.body.machineTypeId as string | undefined;
+
+      if (!req.user?.id) {
+        return res.status(401).json({
+          success: false,
+          error: "Unauthorized: User ID not found"
+        });
+      }
+
+      const result = await MachineService.bulkImportMachines(
+        req.file.buffer,
+        fileType as any,
+        fieldMapping,
+        req.user.id,
+        machineTypeId
+      );
+
+      return res.status(201).json(result);
+    } catch (error: any) {
+      return res.status(500).json({
+        success: false,
+        error: error.message,
+        code: error.code,
+      });
+    }
+  }
 }
 
 export default MaintenanceController;

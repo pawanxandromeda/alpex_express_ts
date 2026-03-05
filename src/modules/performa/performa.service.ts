@@ -54,6 +54,16 @@ interface CreatePIPayload {
   orderType?: string;
   notes?: string;
   
+  // CYC Charges Details
+  cycChargesQuantity?: string;
+  companyChargesQuantity?: string;
+  clientPayableCharges?: string;
+  
+  // Packing Details
+  packStyle?: string;
+  packType?: string;
+  formType?: string;
+  
   // Approval
   preparedByEmployeeId?: string;
   checkedByEmployeeId?: string;
@@ -84,6 +94,36 @@ static async createPI(payload: CreatePIPayload) {
 
       if (!customer) {
         throw new AppError("Customer not found", ERROR_CODES.CUSTOMER_NOT_FOUND);
+      }
+
+      // 1.5️⃣ Validate compositionId if provided
+      if (payload.compositionId) {
+        const composition = await tx.compositionMaster.findUnique({
+          where: { id: payload.compositionId },
+        });
+        if (!composition) {
+          throw new AppError(
+            "Composition not found",
+            ERROR_CODES.VALIDATION_ERROR
+          );
+        }
+      }
+
+      // Validate line item compositions if provided
+      if (payload.lineItems && payload.lineItems.length > 0) {
+        for (const item of payload.lineItems) {
+          if (item.compositionId) {
+            const composition = await tx.compositionMaster.findUnique({
+              where: { id: item.compositionId },
+            });
+            if (!composition) {
+              throw new AppError(
+                `Composition not found for line item ${item.itemNo}`,
+                ERROR_CODES.VALIDATION_ERROR
+              );
+            }
+          }
+        }
       }
 
       // 2️⃣ Generate PI No → ALP/PI/YEAR/COUNT
@@ -153,6 +193,14 @@ static async createPI(payload: CreatePIPayload) {
           piRate: payload.piRate,
           amount: payload.amount,
           mrp: payload.mrp,
+          
+          cycChargesQuantity: payload.cycChargesQuantity,
+          companyChargesQuantity: payload.companyChargesQuantity,
+          clientPayableCharges: payload.clientPayableCharges,
+          
+          packStyle: payload.packStyle,
+          packType: payload.packType,
+          formType: payload.formType,
 
           createdBy: payload.createdBy,
           status: "Draft",
@@ -427,7 +475,7 @@ static async createPI(payload: CreatePIPayload) {
   }
 
   /**
-   * Convert verified PI to PO
+   * Convert PI to PO (even if not verified, and update verified status)
    */
 static async convertToPO(
   piId: string,
@@ -436,13 +484,6 @@ static async convertToPO(
   try {
     return await prisma.$transaction(async (tx) => {
       const pi = await this.getPIById(piId);
-
-      if (pi.status !== "Verified") {
-        throw new AppError(
-          "Only verified PIs can be converted to PO",
-          ERROR_CODES.VALIDATION_ERROR
-        );
-      }
 
       // 1️⃣ Generate PO Number → ALP/YEAR/SEQUENCE (matching frontend format)
       const year = new Date().getFullYear();
@@ -469,6 +510,14 @@ static async convertToPO(
 
       const poNo = `ALP/${year}/${String(count).padStart(4, "0")}`;
 
+      // 2️⃣ Calculate batchQty (quantity * packStyle)
+      let batchQty: string | undefined;
+      if (pi.piQty && pi.packStyle) {
+        const qty = parseFloat(pi.piQty) || 0;
+        const packStyle = parseFloat(pi.packStyle) || 0;
+        batchQty = (qty * packStyle).toString();
+      }
+
       // 2️⃣ Create PO
       const purchaseOrder = await tx.purchaseOrder.create({
         data: {
@@ -487,7 +536,20 @@ static async convertToPO(
           paymentTerms: pi.paymentTerms,
           address: pi.address,
           notes: pi.notes,
+          cycChargesQuantity: pi.cycChargesQuantity,
+          companyChargesQuantity: pi.companyChargesQuantity,
+          clientPayableCharges: pi.clientPayableCharges,
           assignedToEmployeeId: convertedBy,
+
+          // Store packStyle in aluAluBlisterStripBottle column
+          aluAluBlisterStripBottle: pi.packType,
+          
+          // Store packType in tabletCapsuleDrySyrupBottle column
+          tabletCapsuleDrySyrupBottle: pi.formType,
+          packStyle: pi.packStyle, // Store packStyle in a separate column for easier access
+          
+          // Store calculated batchQty
+          batchQty: batchQty,
 
           overallStatus: "Pending",
           showStatus: "Order Pending",
@@ -503,6 +565,9 @@ static async convertToPO(
         where: { id: piId },
         data: {
           status: "Converted",
+          verificationStatus: "Verified",
+          verifiedBy: convertedBy,
+          verifiedAt: new Date(),
           convertedToPOId: purchaseOrder.id,
           convertedAt: new Date(),
           convertedBy,

@@ -11,6 +11,11 @@ export interface EmployeeData {
   createdByRole: string;
   dateOfJoining?: string | Date;
   ctc?: number;
+
+  // optional credential fields added to support new API behaviour
+  username?: string;
+  password?: string;
+  autoGeneratePassword?: boolean; // front end may signal whether server should generate
 }
 
 // Helper: Normalize name → lowercase, remove spaces
@@ -65,6 +70,15 @@ export const createEmployee = async (data: EmployeeData) => {
   if (normalizedEmail) {
     whereConditions.push({ email: normalizedEmail, status: "Active" });
   }
+  
+  // if frontend provided a username we should also avoid creating a second active
+  // user with the same username (inactive duplicates are still allowed by check)
+  const providedUsername = data.username && data.username.trim()
+    ? data.username.trim()
+    : null;
+  if (providedUsername) {
+    whereConditions.push({ username: providedUsername, status: "Active" });
+  }
 
   const existing = whereConditions.length > 0 
     ? await prisma.employee.findFirst({
@@ -75,28 +89,52 @@ export const createEmployee = async (data: EmployeeData) => {
     : null;
 
   if (existing) {
-    throw new Error("Active employee with same email or phone already exists.");
+    throw new Error("Active employee with same email, phone or username already exists.");
   }
 
   const isAdminCreated = ["Admin", "Superuser"].includes(data.createdByRole);
   const status = "Active"; // Status is always Active for all employees
-  const approvedForCredentials = isAdminCreated ? "Approved" : "Pending";
+
+  // credentials state will default to pending unless we either auto-generate or
+  // the front-end has supplied them explicitly.
+  let approvedForCredentials: "Approved" | "Pending" = "Pending";
 
   let username: string | null = null;
   let hashedPassword: string | null = null;
   let plainPassword: string | undefined = undefined;
 
-  if (isAdminCreated) {
-    // Auto-approve → generate credentials immediately
+  // handle provided credentials from front end first; if both username & password
+  // are supplied we'll take them as-is and do not generate anything on our side.
+  if (providedUsername && data.password) {
+    // prefer the trimmed username
+    username = providedUsername;
+    // hash the supplied password
+    hashedPassword = await bcrypt.hash(data.password, 10);
+    plainPassword = data.password;
+    approvedForCredentials = "Approved";
+  } else if (isAdminCreated && data.autoGeneratePassword !== false) {
+    // fallback to previous behaviour: generate creds for admin/superuser when
+    // autoGeneratePassword flag is not explicitly set to false
     const firstName = getFirstName(data.name);
     username = await generateUniqueUsername(firstName, data.department);
     plainPassword = generatePasswordFromFirstName(firstName);
     hashedPassword = await bcrypt.hash(plainPassword, 10);
+    approvedForCredentials = "Approved";
   }
+
+  // remove fields that are not part of the Prisma model before passing
+  // note: we already extracted `providedUsername` earlier; we also omit the
+  // frontend flags so prisma doesn't complain.
+  const {
+    autoGeneratePassword,
+    username: _u,
+    password: _p,
+    ...prismaSafeData
+  } = data as any;
 
   const employee = await prisma.employee.create({
     data: {
-      ...data,
+      ...prismaSafeData,
       email: normalizedEmail, // Use normalized email (null if not provided)
       status, // Always Active
       approvedForCredentials,
@@ -109,14 +147,17 @@ export const createEmployee = async (data: EmployeeData) => {
     },
   });
 
-  // Optional: log auto-approval
-  if (isAdminCreated && username && plainPassword) {
+  // Optional: log auto-approval or manual supply of credentials.
+  // `approvedForCredentials` will be set to Approved if we generated or
+  // received them from front-end, so we log whenever credentials exist and
+  // are not pending.
+  if (approvedForCredentials === "Approved" && username && plainPassword) {
     try {
       await logAction({
         action: "AUTO_APPROVE_EMPLOYEE",
         performedBy: "system", // or pass actual admin ID if available
         targetId: employee.id,
-        details: { username, status: "Active", approvedForCredentials: "Approved" },
+        details: { username, status: "Active", approvedForCredentials },
       });
     } catch (logError) {
       console.error('Error logging action:', logError);
@@ -124,11 +165,11 @@ export const createEmployee = async (data: EmployeeData) => {
     }
   }
 
+  const credentials = username && plainPassword ? { username, password: plainPassword } : null;
+
   return {
     employee,
-    credentials: isAdminCreated
-      ? { username, password: plainPassword }
-      : null,
+    credentials,
   };
 
 };

@@ -13,7 +13,7 @@ export const createPI = async (req: AuthRequest, res: Response) => {
       return sendError(res, ERROR_CODES.UNAUTHORIZED);
     }
 
-    const { customerId, brandName, partyName, gstNo, composition, compositionId, piQty, piRate, amount, mrp, paymentTerms, deliveryTerms, address, notes } = req.body;
+    const { customerId, brandName, partyName, gstNo, composition, compositionId, piQty, piRate, amount, mrp, paymentTerms, deliveryTerms, address, notes, cycChargesQuantity, companyChargesQuantity, clientPayableCharges, packStyle, packType, formType } = req.body;
 
     if (!customerId) {
       return sendError(res, Object.assign({}, ERROR_CODES.VALIDATION_ERROR, { message: "Customer ID is required" }));
@@ -34,6 +34,12 @@ export const createPI = async (req: AuthRequest, res: Response) => {
       deliveryTerms,
       address,
       notes,
+      cycChargesQuantity,
+      companyChargesQuantity,
+      clientPayableCharges,
+      packStyle,
+      packType,
+      formType,
       createdBy: req.user.id,
     });
 

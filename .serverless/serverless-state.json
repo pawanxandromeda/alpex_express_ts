@@ -138,7 +138,7 @@
             "Properties": {
               "Code": {
                 "S3Bucket": "serverless-framework-deployments-ap-south-1-f479eb84-69f4",
-                "S3Key": "serverless/alpex-backend/dev/1771994791660-2026-02-25T04:46:31.660Z/alpex-backend.zip"
+                "S3Key": "serverless/alpex-backend/dev/1772516301575-2026-03-03T05:38:21.575Z/alpex-backend.zip"
               },
               "Handler": "lambda.handler",
               "Runtime": "nodejs18.x",
@@ -170,14 +170,14 @@
               "ApiLogGroup"
             ]
           },
-          "ApiLambdaVersiond8druFNLZyllh1sPqoOP6qwWClL8jmygjl3OkEQE": {
+          "ApiLambdaVersiond78NSPrtXUZm9ydxiOsqeA7NmPvR7yojy1qkgCdMc": {
             "Type": "AWS::Lambda::Version",
             "DeletionPolicy": "Retain",
             "Properties": {
               "FunctionName": {
                 "Ref": "ApiLambdaFunction"
               },
-              "CodeSha256": "cKB99XIJ+Rdu0G6jPOEs/Iif7pI9ZUwsRGDg9Tk4p8c="
+              "CodeSha256": "XlbYG1ihv1B9T7ZIZZwnQo5bCZGuoK/aAd5YFvTCnng="
             }
           },
           "HttpApi": {
@@ -326,7 +326,7 @@
           "ApiLambdaFunctionQualifiedArn": {
             "Description": "Current Lambda function version",
             "Value": {
-              "Ref": "ApiLambdaVersiond8druFNLZyllh1sPqoOP6qwWClL8jmygjl3OkEQE"
+              "Ref": "ApiLambdaVersiond78NSPrtXUZm9ydxiOsqeA7NmPvR7yojy1qkgCdMc"
             },
             "Export": {
               "Name": "sls-alpex-backend-dev-ApiLambdaFunctionQualifiedArn"
@@ -410,7 +410,7 @@
         "timeout": 6,
         "runtime": "nodejs18.x",
         "vpc": {},
-        "versionLogicalId": "ApiLambdaVersiond8druFNLZyllh1sPqoOP6qwWClL8jmygjl3OkEQE"
+        "versionLogicalId": "ApiLambdaVersiond78NSPrtXUZm9ydxiOsqeA7NmPvR7yojy1qkgCdMc"
       }
     },
     "configValidationMode": "warn",
@@ -438,7 +438,7 @@
         "artifactsS3KeyDirname": "serverless/alpex-backend/dev/code-artifacts",
         "deploymentBucket": "serverless-framework-deployments-ap-south-1-f479eb84-69f4",
         "artifact": "D:\\Pharma-ERP\\alpex-pharma-backend\\.serverless\\build\\alpex-backend.zip",
-        "artifactDirectoryName": "serverless/alpex-backend/dev/1771994791660-2026-02-25T04:46:31.660Z"
+        "artifactDirectoryName": "serverless/alpex-backend/dev/1772516301575-2026-03-03T05:38:21.575Z"
       },
       "custom": {
         "$ref": "$[\"service\"][\"custom\"]"
@@ -449,7 +449,7 @@
     "layers": {}
   },
   "package": {
-    "artifactDirectoryName": "serverless/alpex-backend/dev/1771994791660-2026-02-25T04:46:31.660Z",
+    "artifactDirectoryName": "serverless/alpex-backend/dev/1772516301575-2026-03-03T05:38:21.575Z",
     "artifact": "alpex-backend.zip"
   }
 }

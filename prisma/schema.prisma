@@ -455,6 +455,9 @@ model PurchaseOrder {
   changePart                   String?
   cyc                          String?
   advance                      String?
+  cycChargesQuantity           String?
+  companyChargesQuantity       String?
+  clientPayableCharges         String?
   showStatus                   String           @default("Order Pending")
   mdApproval                   String           @default("Pending")
   accountsApproval             String           @default("Pending")
@@ -559,6 +562,16 @@ model ProformaInvoice {
   grandTotal               String?
   advance                  String?
   notes                    String?
+  
+  // CYC Charges Details
+  cycChargesQuantity       String?
+  companyChargesQuantity   String?
+  clientPayableCharges     String?
+  
+  // Packing Details
+  packStyle                String?
+  packType                 String?
+  formType                 String?
   
   // Order Type
   orderType                String?                          @default("NEW")
@@ -1186,7 +1199,7 @@ model MachineType {
 model Machine {
   id                        String              @id @default(uuid())
   name                      String              // e.g., "Tablet Press - A1"
-  code                      String              @unique
+  code                      String
   machineTypeId             String
   machineType               MachineType         @relation(fields: [machineTypeId], references: [id], onDelete: Restrict)
   serialNumber              String              @unique

@@ -16,6 +16,12 @@ export const createPIValidation = z.object({
     deliveryTerms: z.string().optional(),
     address: z.string().optional(),
     notes: z.string().optional(),
+    cycChargesQuantity: z.string().optional(),
+    companyChargesQuantity: z.string().optional(),
+    clientPayableCharges: z.string().optional(),
+    packStyle: z.string().optional(),
+    packType: z.string().optional(),
+    formType: z.string().optional(),
   }),
 });
 
@@ -33,6 +39,12 @@ const updatePIShape = {
   deliveryTerms: z.string().optional(),
   address: z.string().optional(),
   notes: z.string().optional(),
+  cycChargesQuantity: z.string().optional(),
+  companyChargesQuantity: z.string().optional(),
+  clientPayableCharges: z.string().optional(),
+  packStyle: z.string().optional(),
+  packType: z.string().optional(),
+  formType: z.string().optional(),
 };
 
 export const updatePIValidation = z.object({
