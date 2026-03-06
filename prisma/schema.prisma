@@ -230,6 +230,11 @@ model Employee {
   maintenanceRecordAssignedTo  MaintenanceRecord[] @relation("MaintenanceRecordAssignedTo")
   fixedAssetAssignedTo         FixedAsset[]        @relation("FixedAssetAssignedTo")
 
+  // Master Password Relations
+  masterPasswordsCreated MasterPassword[]         @relation("MasterPasswordCreatedBy")
+  masterPasswordsUpdated MasterPassword[]         @relation("MasterPasswordUpdatedBy")
+  masterPasswordUsageLogs MasterPasswordUsageLog[] @relation("MasterPasswordUsedBy")
+
   // Login Access Control
   canLogin               Boolean                  @default(true)
 
@@ -241,6 +246,49 @@ model Employee {
   @@index([reportingManagerId])
 }
 
+model MasterPassword {
+  id                      String                    @id @default(uuid())
+  passwordHash            String
+  createdByEmployeeId     String
+  createdByEmployee       Employee                  @relation("MasterPasswordCreatedBy", fields: [createdByEmployeeId], references: [id])
+  updatedByEmployeeId     String?
+  updatedByEmployee       Employee?                 @relation("MasterPasswordUpdatedBy", fields: [updatedByEmployeeId], references: [id])
+  lastUsedAt              DateTime?
+  numberOfUses            Int                       @default(0)
+  lastUsedByEmployeeId    String?
+  isActive                Boolean                   @default(true)
+  usageLogs               MasterPasswordUsageLog[]
+  createdAt               DateTime                  @default(now())
+  updatedAt               DateTime                  @updatedAt
+
+  @@index([createdByEmployeeId])
+  @@index([updatedByEmployeeId])
+  @@index([isActive])
+}
+
+model MasterPasswordUsageLog {
+  id                       String          @id @default(uuid())
+  masterPasswordId         String
+  masterPassword           MasterPassword  @relation(fields: [masterPasswordId], references: [id], onDelete: Cascade)
+  usedByEmployeeId         String
+  usedByEmployee           Employee        @relation("MasterPasswordUsedBy", fields: [usedByEmployeeId], references: [id])
+  accessedEmployeeId       String?
+  accessedEmployeeName     String?
+  action                   String          // LOGIN, CREATE, UPDATE, etc.
+  ipAddress                String?
+  userAgent                String?
+  reason                   String?
+  accessGranted            Boolean         @default(true)
+  failureReason            String?
+  metadata                 Json?
+  createdAt                DateTime        @default(now())
+
+  @@index([masterPasswordId])
+  @@index([usedByEmployeeId])
+  @@index([accessedEmployeeId])
+  @@index([createdAt])
+  @@index([action])
+}
 
 model Customer {
   id                   String   @id @default(uuid())
@@ -572,6 +620,8 @@ model ProformaInvoice {
   packStyle                String?
   packType                 String?
   formType                 String?
+  numberOfShippers         String?
+  productType              String?
   
   // Order Type
   orderType                String?                          @default("NEW")

@@ -22,6 +22,8 @@ export const createPIValidation = z.object({
     packStyle: z.string().optional(),
     packType: z.string().optional(),
     formType: z.string().optional(),
+    numberOfShippers: z.string().optional(),
+    productType: z.string().optional(),
   }),
 });
 
@@ -45,6 +47,8 @@ const updatePIShape = {
   packStyle: z.string().optional(),
   packType: z.string().optional(),
   formType: z.string().optional(),
+  numberOfShippers: z.string().optional(),
+  productType: z.string().optional(),
 };
 
 export const updatePIValidation = z.object({

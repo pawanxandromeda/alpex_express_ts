@@ -63,6 +63,8 @@ interface CreatePIPayload {
   packStyle?: string;
   packType?: string;
   formType?: string;
+  numberOfShippers?: string;
+  productType?: string;
   
   // Approval
   preparedByEmployeeId?: string;
@@ -201,6 +203,8 @@ static async createPI(payload: CreatePIPayload) {
           packStyle: payload.packStyle,
           packType: payload.packType,
           formType: payload.formType,
+          numberOfShippers: payload.numberOfShippers,
+          productType: payload.productType,
 
           createdBy: payload.createdBy,
           status: "Draft",
@@ -547,6 +551,10 @@ static async convertToPO(
           // Store packType in tabletCapsuleDrySyrupBottle column
           tabletCapsuleDrySyrupBottle: pi.formType,
           packStyle: pi.packStyle, // Store packStyle in a separate column for easier access
+          
+          // Map new fields
+          noOfShippers: pi.numberOfShippers,
+          productNewOld: pi.productType,
           
           // Store calculated batchQty
           batchQty: batchQty,
